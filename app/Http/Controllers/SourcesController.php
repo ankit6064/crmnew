@@ -1026,11 +1026,15 @@ public function leadslist(Request $request)
     public function leadscount(Request $request)
     {
         // Fetch assigned data grouped by `asign_to`
-        $assingData = Lead::where('source_id', $request->source_id)
-            ->select('asign_to', DB::raw('COUNT(asign_to) as totalasign_to'))
-            ->groupBy('asign_to')
-            ->get();
-    
+        $assingData = Lead::where('source_id', $request->source_id)->select(
+            'asign_to',
+            DB::raw('COUNT(*) as totalasign_to'),
+            DB::raw("SUM(CASE WHEN status = '2' THEN 1 ELSE 0 END) as failed_leads"),
+            DB::raw("SUM(CASE WHEN status = '1' THEN 1 ELSE 0 END) as pending_leads"),
+            DB::raw("SUM(CASE WHEN status = '3' THEN 1 ELSE 0 END) as closed_leads")
+        )
+        ->groupBy('asign_to')
+        ->get();
         if ($assingData->isEmpty()) {
             $html = '<div class="tooltip1">
                     <span class="tooltiptext1">No Result</span>
@@ -1046,13 +1050,31 @@ public function leadslist(Request $request)
         $tooltipContent = '';
         foreach ($assingData as $assign) {
             $userName = $users[$assign->asign_to] ?? 'Unknown'; // Handle missing users
-            $tooltipContent .= "<p>{$userName} - {$assign->totalasign_to}</p>";
+            $tooltipContent.=" <tr style='#c9d1e3:1px solid black'>
+            <td style='border:1px solid #c9d1e3;text-align:center'> $userName</td>
+            <td style='border:1px solid #c9d1e3;text-align:center'>$assign->totalasign_to</td>
+            <td style='border:1px solid #c9d1e3;text-align:center'>$assign->failed_leads</td>
+            <td style='border:1px solid #c9d1e3;text-align:center'>$assign->closed_leads</td>
+            <td style='border:1px solid #c9d1e3;text-align:center'>$assign->pending_leads</td>
+        </tr>";
         }
     
         // Return HTML as a response
-        $html = '<div class="tooltip1">
-                    <span class="tooltiptext1">' . $tooltipContent . '</span>
-                </div>';
+        $html = '
+            <table border="1" cellpadding="4" cellspacing="0" style="width:100%;border:1px solid black">
+                <thead style="border:1px solid #c9d1e3;color:black;font-size:16px">
+                    <tr>
+                        <th style="border:1px solid #c9d1e3;text-align:center">Employee Name</th>
+                        <th style="border:1px solid #c9d1e3;text-align:center">Total Leads</th>
+                        <th style="border:1px solid #c9d1e3;text-align:center">Failed Leads</th>
+                        <th style="border:1px solid #c9d1e3;text-align:center">Closed Leads</th>
+                        <th style="border:1px solid #c9d1e3;text-align:center">Pending Leads</th>
+                    </tr>
+                </thead>
+                <tbody style="border:1px solid #c9d1e3;color:black;font-size:14px">
+                '.$tooltipContent.'
+                </tbody>
+            </table>';
     
         return response()->json(['html' => $html,'source_id'=>$request->source_id]);
     }
