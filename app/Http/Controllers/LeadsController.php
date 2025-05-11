@@ -789,7 +789,7 @@ class LeadsController extends Controller
 
     public function getLeadsData(Request $request, $id = null)
     {
-    
+
         $id = $request->source_id;
         if ($request->ajax()) {
             // Fetch leads with relationships and filters
@@ -871,7 +871,11 @@ class LeadsController extends Controller
                     return $notesButton . ' ' . $quickNoteButton;
                 })
                 ->editColumn('updated_at', function ($data) {
-                    return $data->updated_at->format('d M, Y H:i:s');
+                    if (!empty($data->closed_on)) {
+                        return $data->closed_on->format('d M, Y H:i:s');
+                    } else {
+                        return $data->updated_at->format('d M, Y H:i:s');
+                    }
                 })
                 ->addColumn('last_updated_note', function ($data) {
                     // Get the latest note
@@ -1146,10 +1150,10 @@ class LeadsController extends Controller
                 'phone_number' => $create_note['phone_number'],
             );
             Note::create($data);
-            if($request->status == 3){
-                Lead::where('id', $request->lead_id)->update(['status' => $request->status, 'is_notify' => 1, 'is_read' => 1,'closed_on'=>Carbon::now()]);
+            if ($request->status == 3) {
+                Lead::where('id', $request->lead_id)->update(['status' => $request->status, 'is_notify' => 1, 'is_read' => 1, 'closed_on' => Carbon::now()]);
 
-            }else{
+            } else {
                 Lead::where('id', $request->lead_id)->update(['status' => $request->status, 'is_notify' => 1, 'is_read' => 1]);
 
             }

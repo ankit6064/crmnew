@@ -466,7 +466,8 @@ public function empdailyreport(Request $request)
                             'notes.reminder_for', 'notes.feedback', 'notes.updated_at', 
                             'leads.status', 'leads.linkedin_address')
             ->join('notes', 'notes.lead_id', '=', 'leads.id')
-            ->where('leads.asign_to', auth()->user()->id);
+            ->where('leads.asign_to', auth()->user()->id)
+            ->orderByDesc('notes.updated_at');
 
         // Filter by campaign ID
         if (!empty($campaign_id)) {
@@ -570,9 +571,24 @@ private function getStatusIcon($status)
         // Base Query
         // DB::enableQueryLog();        
         if(Auth::user()->is_admin == 1){
-            $query = Lead::where('asign_to', Auth::id())
+            $query = Lead::select(
+                'leads.id as lead_id',
+                'leads.prospect_first_name',
+                'leads.prospect_last_name',
+                'leads.linkedin_address',
+                'leads.asign_to',
+                'notes.id as note_id',
+                'notes.feedback',
+                'notes.updated_at',
+                'notes.status',
+                'notes.reminder_for',
+                'notes.source_id',
+                'leads.note_created_date',
+                // Add any other required fields here
+            )->where('asign_to', Auth::id())
             ->join('notes', 'notes.lead_id', '=', 'leads.id')
-            ->whereNotNull('notes.source_id');
+            ->whereNotNull('notes.source_id')
+            ->orderByDesc('note_created_date');
         }elseif(Auth::user()->is_admin == null){
             $query = Lead::select(
                 'leads.id as lead_id',
@@ -586,15 +602,30 @@ private function getStatusIcon($status)
                 'notes.status',
                 'notes.reminder_for',
                 'notes.source_id',
-                'leads.note_created_date'
+                'leads.note_created_date',
                 // Add any other required fields here
-            )->join('notes', 'notes.lead_id', '=', 'leads.id')->orderByDesc('leads.note_created_date');
+            )->join('notes', 'notes.lead_id', '=', 'leads.id')->orderByDesc('note_created_date');
         }
         else{
         $employee_ids = User::where(['user_id' => auth()->user()->id, 'is_admin' => '1'])->orderBy('id')->pluck('id');
         // dd($employee_ids);
-        $query = Lead::whereIN('asign_to', $employee_ids)
-        ->join('notes', 'notes.lead_id', '=', 'leads.id');
+        $query = Lead::select(
+            'leads.id as lead_id',
+            'leads.prospect_first_name',
+            'leads.prospect_last_name',
+            'leads.linkedin_address',
+            'leads.asign_to',
+            'notes.id as note_id',
+            'notes.feedback',
+            'notes.updated_at',
+            'notes.status',
+            'notes.reminder_for',
+            'notes.source_id',
+            'leads.note_created_date',
+        )->
+        whereIN('asign_to', $employee_ids)
+        ->join('notes', 'notes.lead_id', '=', 'leads.id')
+        ->orderByDesc('note_created_date');
         // ->whereNotNull('notes.source_id');
         }
    
@@ -626,6 +657,7 @@ private function getStatusIcon($status)
             $query->where('notes.reminder_for',$reminder_for_conversation);
         }
     }
+
 
     // $query->orderByDesc('notes.created_at'); 
 
