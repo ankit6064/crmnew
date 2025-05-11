@@ -144,7 +144,7 @@ class LeadsController extends Controller
     public function create()
     {
         if (Auth::user()->is_admin == 1) {
-             $sourcesData = Lead::where(['asign_to' => auth()->user()->id])
+            $sourcesData = Lead::where(['asign_to' => auth()->user()->id])
                 // ->whereHas('source', function ($query) {
                 //     $query->where('is_active', '1');
                 // })
@@ -306,7 +306,7 @@ class LeadsController extends Controller
                 <td class="wraping"> ' . $n . ' </td>
                 <!--td class="wraping"> ' . $sources->start_date . ' </td-->
                 <!--td class="wraping"> ' . $sources->end_date . ' </td-->
-                <td class="wraping"><div class="reassigned"><a class="unassigned" href="javascript:void(0);" data-camp="' . $table_data->source_id . '" data-asign="' . $table_data->asign_to . '"><span class="label label-warning">Withdraw</span></a><a href="javascript:void(0);" onclick="reassign('.$table_data->source_id.','.$table_data->totalLeads.','.$table_data->asign_to.');" data-id="' . $table_data->source_id . '"  data-total="' . $table_data->totalLeads . '" data-asign="' . $table_data->asign_to . '"><span class="label label-warning">Reassign</span></a></div></td>
+                <td class="wraping"><div class="reassigned"><a class="unassigned" href="javascript:void(0);" data-camp="' . $table_data->source_id . '" data-asign="' . $table_data->asign_to . '"><span class="label label-warning">Withdraw</span></a><a href="javascript:void(0);" onclick="reassign(' . $table_data->source_id . ',' . $table_data->totalLeads . ',' . $table_data->asign_to . ');" data-id="' . $table_data->source_id . '"  data-total="' . $table_data->totalLeads . '" data-asign="' . $table_data->asign_to . '"><span class="label label-warning">Reassign</span></a></div></td>
                 </tr>';
             }
         } else {
@@ -679,7 +679,7 @@ class LeadsController extends Controller
                 $totalRecords = Lead::where('user_id', auth()->user()->id)->where('approval_status', '2')->count();
 
                 $baseQuery = Lead::with('source')->where('user_id', auth()->user()->id)->where('approval_status', '2');
-            } 
+            }
 
             if (isset($orderByColumn) && !empty($orderByColumn)) {
                 $leadsData = $baseQuery->orderBy($orderByColumn, $columnSortOrder);
@@ -789,6 +789,7 @@ class LeadsController extends Controller
 
     public function getLeadsData(Request $request, $id = null)
     {
+    
         $id = $request->source_id;
         if ($request->ajax()) {
             // Fetch leads with relationships and filters
@@ -846,43 +847,47 @@ class LeadsController extends Controller
     }
 
 
-   public function closed(Request $request)
-{
-    if ($request->ajax()) {
-        $query = Lead::with(['source', 'momReport', 'notes' => function($query) {
-                $query->latest()->limit(1); // Eager load only the latest note to optimize query
-            }])
-            ->where(['asign_to' => auth()->user()->id])
-            ->where(['status' => '3'])
-            ->whereHas('source', function ($q) {
-                $q->where('is_active', 1);
-            })
-            ->orderBy('id', 'DESC');
+    public function closed(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = Lead::with([
+                'source',
+                'momReport',
+                'notes' => function ($query) {
+                    $query->latest()->limit(1); // Eager load only the latest note to optimize query
+                }
+            ])
+                ->where(['asign_to' => auth()->user()->id])
+                ->where(['status' => '3'])
+                ->whereHas('source', function ($q) {
+                    $q->where('is_active', 1);
+                })
+                ->orderBy('id', 'DESC');
 
-        return DataTables::of($query)
-            ->addColumn('action', function ($data) {
-                $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
-                $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
-                return $notesButton . ' ' . $quickNoteButton;
-            })
-            ->editColumn('updated_at', function ($data) {
-                return $data->updated_at->format('d M, Y H:i:s');
-            })
-            ->addColumn('last_updated_note', function ($data) {
-                // Get the latest note
-                $latestNote = $data->notes->first();
-                return $latestNote && strlen($latestNote->feedback) > 20
-                    ? substr($latestNote->feedback, 0, 20) . '...'
-                    : $latestNote->feedback ?? '';
-            })
-            ->addColumn('options', function ($data) {
-                // Avoid querying LhsReport and MomReport multiple times for the same lead
-                $getLhsReport = $data->lhsReport; // Already eager loaded
+            return DataTables::of($query)
+                ->addColumn('action', function ($data) {
+                    $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
+                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
+                    return $notesButton . ' ' . $quickNoteButton;
+                })
+                ->editColumn('updated_at', function ($data) {
+                    return $data->updated_at->format('d M, Y H:i:s');
+                })
+                ->addColumn('last_updated_note', function ($data) {
+                    // Get the latest note
+                    $latestNote = $data->notes->first();
+                    return $latestNote && strlen($latestNote->feedback) > 20
+                        ? substr($latestNote->feedback, 0, 20) . '...'
+                        : $latestNote->feedback ?? '';
+                })
+                ->addColumn('options', function ($data) {
+                    // Avoid querying LhsReport and MomReport multiple times for the same lead
+                    $getLhsReport = $data->lhsReport; // Already eager loaded
+    
+                    $actionHtml = '';
 
-                $actionHtml = '';
-
-                if ($getLhsReport) {
-                    $actionHtml .= '
+                    if ($getLhsReport) {
+                        $actionHtml .= '
                         <a href="' . url('/lhs_report/view_lhs', [$data->id]) . '">
                             <span class="label" data-toggle="tooltip" data-placement="top" title="View LHS Report" style="color:#000;font-size: 15px;">
                                 <i class="fa fa-eye"></i>
@@ -895,40 +900,40 @@ class LeadsController extends Controller
                         </a>
                     ';
 
-                    // Check for MOM report and file path
-                    $momreport = $data->momReport; // Already eager loaded
-                    if (empty($momreport['mom_file_path'])) {
-                        $actionHtml .= '
+                        // Check for MOM report and file path
+                        $momreport = $data->momReport; // Already eager loaded
+                        if (empty($momreport['mom_file_path'])) {
+                            $actionHtml .= '
                             <a href="' . route('employee.show_mom', [$data->id]) . '">
                                 <span class="label" data-toggle="tooltip" data-placement="top" title="Create MOM Report" style="color:#000;font-size: 15px;">
                                     <i class="fa fa-file-text-o"></i>
                                 </span>
                             </a>';
-                    } else {
-                        if (isset($momreport['mom_file_path'])) {
-                            $actionHtml .= '
+                        } else {
+                            if (isset($momreport['mom_file_path'])) {
+                                $actionHtml .= '
                                 <a href="' . asset('storage/' . $momreport['mom_file_path']) . '">
                                     <span class="label" data-toggle="tooltip" data-placement="top" title="MOM Download" style="color:#55ce63;font-size: 15px;">
                                         <i class="ti-download"></i>
                                     </span>
                                 </a>';
+                            }
                         }
-                    }
-                } else {
-                    $actionHtml .= '
+                    } else {
+                        $actionHtml .= '
                         <a href="' . url('/employee/lhs_report', [$data->id]) . '">
                             <i class="fa fa-plus" title="Add LHS Report"></i>
                         </a>';
-                }
+                    }
 
-                return $actionHtml;
-            })
-            ->rawColumns(['action', 'last_updated_note', 'options'])
-            ->make(true);
+                    return $actionHtml;
+                })
+                ->rawColumns(['action', 'last_updated_note', 'options'])
+                ->make(true);
+        }
+
+        return view('leads.closed');
     }
-
-    return view('leads.closed');
-}
 
     public function add_note(Request $request)
     {
@@ -943,14 +948,14 @@ class LeadsController extends Controller
             'reminder_for' => $request->reminder_for,
             'feedback' => $request->feedback,
             'phone_number' => $request->phone_number,
-        ); 
+        );
         Note::create($data);
         // dd(config('app.timezone'));
         $date = date('Y-m-d H:i:s');
         $notecreatedat = \Carbon\Carbon::parse($date)
-        ->addHours(1)
-        ->addMinutes(3)
-        ->format('Y-m-d H:i:s');
+            ->addHours(1)
+            ->addMinutes(3)
+            ->format('Y-m-d H:i:s');
         Lead::where('id', $request->lead_id)->update(array('note_created_date' => $notecreatedat));
         return response()->json(['success' => 'Note Added Successfully']);
         // }
@@ -959,8 +964,14 @@ class LeadsController extends Controller
 
     public function notes_view(Request $request)
     {
-        $notes_data = Lead::where(['id' => $request->lead_id])->with('source')->with('notes')->first();
-        $sources_data = Source::where(['id' => $notes_data->source_id])->first();
+        $notes_data = Lead::where('id', $request->lead_id)
+            ->with('source')
+            ->with([
+                'notes' => function ($query) {
+                    $query->orderBy('created_at', 'desc');
+                }
+            ])
+            ->first();
 
         $table = '
         <table id="example23" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">
@@ -981,9 +992,7 @@ class LeadsController extends Controller
                 } else {
                     $dateData = "N/A";
                 }
-                $date = \Carbon\Carbon::parse($table_data->created_at)
-                ->addHours(1)
-                ->addMinutes(3);                
+                $date = \Carbon\Carbon::parse($table_data->created_at);
                 $table .= '<tr>
                 <td class="wraping notes_comment" ><p style="white-space: initial; max-height: 100px; overflow-y : auto;";> ' . $table_data->feedback . '</p> </td>
                 <td class="wraping"> ' . $date->format('Y-m-d H:i') . ' </td>
@@ -1004,95 +1013,101 @@ class LeadsController extends Controller
     }
 
 
- public function failed(Request $request)
-{
-    if ($request->ajax()) {
-        // Eager load 'source' and 'notes' with latest feedback
-        $query = Lead::with(['source', 'notes' => function($query) {
-            $query->latest()->limit(1); // Load only the latest note to improve performance
-        }])
-        ->where('asign_to', auth()->user()->id)
-        ->where('status', '2')
-        ->whereHas('source', function ($q) {
-            $q->where('is_active', 1);
-        })
-        ->orderBy('id', 'DESC');
+    public function failed(Request $request)
+    {
+        if ($request->ajax()) {
+            // Eager load 'source' and 'notes' with latest feedback
+            $query = Lead::with([
+                'source',
+                'notes' => function ($query) {
+                    $query->latest()->limit(1); // Load only the latest note to improve performance
+                }
+            ])
+                ->where('asign_to', auth()->user()->id)
+                ->where('status', '2')
+                ->whereHas('source', function ($q) {
+                    $q->where('is_active', 1);
+                })
+                ->orderBy('id', 'DESC');
 
-        return DataTables::of($query)
-            ->addColumn('action', function ($data) {
-                // Buttons for notes interaction
-                $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
-                $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
-                return $notesButton . ' ' . $quickNoteButton;
-            })
-            ->editColumn('updated_at', function ($data) {
-                return $data->updated_at->format('d M, Y H:i:s');
-            })
-            ->addColumn('last_updated_note', function ($data) {
-                // Retrieve the latest note feedback from the eager-loaded relationship
-                $latestNote = $data->notes->first();
-                return $latestNote && strlen($latestNote->feedback) > 20
-                    ? substr($latestNote->feedback, 0, 20) . '...'
-                    : $latestNote->feedback ?? '';
-            })
-            ->addColumn('options', function ($data) {
-                // Eager load LhsReport for performance and avoid querying per row
-                $getLhsReport = LhsReport::where('lead_id', $data->id)->first();
+            return DataTables::of($query)
+                ->addColumn('action', function ($data) {
+                    // Buttons for notes interaction
+                    $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
+                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
+                    return $notesButton . ' ' . $quickNoteButton;
+                })
+                ->editColumn('updated_at', function ($data) {
+                    return $data->updated_at->format('d M, Y H:i:s');
+                })
+                ->addColumn('last_updated_note', function ($data) {
+                    // Retrieve the latest note feedback from the eager-loaded relationship
+                    $latestNote = $data->notes->first();
+                    return $latestNote && strlen($latestNote->feedback) > 20
+                        ? substr($latestNote->feedback, 0, 20) . '...'
+                        : $latestNote->feedback ?? '';
+                })
+                ->addColumn('options', function ($data) {
+                    // Eager load LhsReport for performance and avoid querying per row
+                    $getLhsReport = LhsReport::where('lead_id', $data->id)->first();
 
-                $actionHtml = '<span class="label label-info" onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal">Change Status</span>';
+                    $actionHtml = '<span class="label label-info" onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal">Change Status</span>';
 
-                return $actionHtml;
-            })
-            ->rawColumns(['action', 'last_updated_note', 'options'])
-            ->make(true);
+                    return $actionHtml;
+                })
+                ->rawColumns(['action', 'last_updated_note', 'options'])
+                ->make(true);
+        }
+
+        return view('leads.failed');
     }
 
-    return view('leads.failed');
-}
+    public function in_progress(Request $request)
+    {
+        if ($request->ajax()) {
+            // Eager load the relationships we need (source and notes)
+            $query = Lead::with([
+                'source',
+                'notes' => function ($query) {
+                    $query->latest()->limit(1); // Eager load the latest note only
+                }
+            ])
+                ->where('asign_to', auth()->user()->id)
+                ->where('status', '4')
+                ->whereHas('source', function ($q) {
+                    $q->where('is_active', 1);
+                })
+                ->orderBy('id', 'DESC');
 
- public function in_progress(Request $request)
-{
-    if ($request->ajax()) {
-        // Eager load the relationships we need (source and notes)
-        $query = Lead::with(['source', 'notes' => function($query) {
-                $query->latest()->limit(1); // Eager load the latest note only
-            }])
-            ->where('asign_to', auth()->user()->id)
-            ->where('status', '4')
-            ->whereHas('source', function ($q) {
-                $q->where('is_active', 1);
-            })
-            ->orderBy('id', 'DESC');
-
-        return DataTables::of($query)
-            ->addColumn('action', function ($data) {
-                // Buttons for notes interaction
-                $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
-                $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
-                return $notesButton . ' ' . $quickNoteButton;
-            })
-            ->editColumn('updated_at', function ($data) {
-                return $data->updated_at->format('d M, Y H:i:s');
-            })
-            ->addColumn('last_updated_note', function ($data) {
-                // Retrieve the latest note feedback
-                $latestNote = $data->notes->first(); // Already eager loaded
-                return $latestNote && strlen($latestNote->feedback) > 20
-                    ? substr($latestNote->feedback, 0, 20) . '...'
-                    : $latestNote->feedback ?? '';
-            })
-            ->addColumn('options', function ($data) {
-                // Eager load LhsReport and avoid querying inside the column
-                $actionHtml = '
+            return DataTables::of($query)
+                ->addColumn('action', function ($data) {
+                    // Buttons for notes interaction
+                    $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
+                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
+                    return $notesButton . ' ' . $quickNoteButton;
+                })
+                ->editColumn('updated_at', function ($data) {
+                    return $data->updated_at->format('d M, Y H:i:s');
+                })
+                ->addColumn('last_updated_note', function ($data) {
+                    // Retrieve the latest note feedback
+                    $latestNote = $data->notes->first(); // Already eager loaded
+                    return $latestNote && strlen($latestNote->feedback) > 20
+                        ? substr($latestNote->feedback, 0, 20) . '...'
+                        : $latestNote->feedback ?? '';
+                })
+                ->addColumn('options', function ($data) {
+                    // Eager load LhsReport and avoid querying inside the column
+                    $actionHtml = '
                     <span class="label label-info" onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal">Change Status</span>';
-                return $actionHtml;
-            })
-            ->rawColumns(['action', 'last_updated_note', 'options'])
-            ->make(true);
-    }
+                    return $actionHtml;
+                })
+                ->rawColumns(['action', 'last_updated_note', 'options'])
+                ->make(true);
+        }
 
-    return view('leads.in_progress');
-}
+        return view('leads.in_progress');
+    }
 
 
     public function changeStatus(Request $request)
@@ -1131,7 +1146,13 @@ class LeadsController extends Controller
                 'phone_number' => $create_note['phone_number'],
             );
             Note::create($data);
-            Lead::where('id', $request->lead_id)->update(['status' => $request->status, 'is_notify' => 1, 'is_read' => 1]);
+            if($request->status == 3){
+                Lead::where('id', $request->lead_id)->update(['status' => $request->status, 'is_notify' => 1, 'is_read' => 1,'closed_on'=>Carbon::now()]);
+
+            }else{
+                Lead::where('id', $request->lead_id)->update(['status' => $request->status, 'is_notify' => 1, 'is_read' => 1]);
+
+            }
             $notification_count = Lead::where('is_notify', '!=', 0)->count();
             if ($request->status == 2) {
                 $status = 'failed';

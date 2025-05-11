@@ -574,7 +574,21 @@ private function getStatusIcon($status)
             ->join('notes', 'notes.lead_id', '=', 'leads.id')
             ->whereNotNull('notes.source_id');
         }elseif(Auth::user()->is_admin == null){
-            $query = Lead::join('notes', 'notes.lead_id', '=', 'leads.id');
+            $query = Lead::select(
+                'leads.id as lead_id',
+                'leads.prospect_first_name',
+                'leads.prospect_last_name',
+                'leads.linkedin_address',
+                'leads.asign_to',
+                'notes.id as note_id',
+                'notes.feedback',
+                'notes.updated_at',
+                'notes.status',
+                'notes.reminder_for',
+                'notes.source_id',
+                'leads.note_created_date'
+                // Add any other required fields here
+            )->join('notes', 'notes.lead_id', '=', 'leads.id')->orderByDesc('leads.note_created_date');
         }
         else{
         $employee_ids = User::where(['user_id' => auth()->user()->id, 'is_admin' => '1'])->orderBy('id')->pluck('id');
@@ -613,6 +627,8 @@ private function getStatusIcon($status)
         }
     }
 
+    // $query->orderByDesc('notes.created_at'); 
+
     // $queries = DB::getQueryLog();
     // dd($queries);
     
@@ -647,7 +663,7 @@ private function getStatusIcon($status)
                 return strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback;
             })
             ->addColumn('note_date_time', function ($data) {
-                return date('d-m-Y H:i:s', strtotime($data->updated_at));
+                return date('d-m-Y H:i:s', strtotime($data->note_created_date));
             })
             ->addColumn('status', function ($data) {
                 $statusIcons = [

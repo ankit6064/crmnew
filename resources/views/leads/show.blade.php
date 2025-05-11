@@ -571,9 +571,7 @@
                                             <td class="feedback_td">{{ $record['reminder_for'] }}</td>
                                             <td style="text-align:center;white-space:nowrap !important">
                                             <?php 
-                                            $date = \Carbon\Carbon::parse($record['updated_at'])
-                                            ->addHours(1)
-                                            ->addMinutes(3); 
+                                            $date = \Carbon\Carbon::parse($record['updated_at']);
                                             ?>
                                                 {{ date('d M, Y h:i A', strtotime($date)) }}
                                             </td>
