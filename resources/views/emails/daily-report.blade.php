@@ -1,0 +1,1 @@
+<p>Please find the daily report as attachment.</p>
