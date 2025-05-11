@@ -774,9 +774,13 @@ public function employeeclosedleads(Request $request)
             ->addColumn('source_description', function ($row) {
                 return $row->source->description ?? 'N/A'; // Example: Adjust 'name' as per your source model
             })
-            ->editColumn('updated_at',function($row){
-                return date('d/m/Y', strtotime($row->updated_at));
+            ->editColumn('updated_at', function ($row) {
+                if (!empty($row->closed_on)) {
+                    return date('d/m/Y', strtotime($row->closed_on));
+                } else {
+                    return date('d/m/Y', strtotime($row->updated_at));
 
+                }
             })
             ->addColumn('action', function ($row) {
                 $notesButton = '<a onclick="shownoteslist(' . $row->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal">
@@ -903,8 +907,13 @@ public function leadslist(Request $request)
             ->addColumn('source_description', function ($row) {
                 return $row->source->description ?? 'N/A'; // Example: Adjust 'name' as per your source model
             })
-            ->editColumn('updated_at',function($row){
-                return date('d/m/Y', strtotime($row->updated_at));
+            ->editColumn('updated_at', function ($row) {
+                if (!empty($row->closed_on)) {
+                    return date('d/m/Y', strtotime($row->closed_on));
+                } else {
+                    return date('d/m/Y', strtotime($row->updated_at));
+
+                }
 
             })
             ->addColumn('action', function ($row) {

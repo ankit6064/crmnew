@@ -42,6 +42,7 @@
                                     <th>Password</th>
                                     <th>Address</th>
                                     <th>Phone No</th>
+                                    <th>Manage Login Permission</th>
                                     <th>Change Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -105,6 +106,12 @@
                     {
                         data: 'phone_no',
                         name: 'phone_no'
+                    },
+                    {
+                        data: 'disable_login',
+                        name: 'disable_login',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'status',
@@ -257,5 +264,31 @@
             }
         });
     });
+
+    function disablelogin(employeeid,employeemail){
+        $.ajax({
+            url: "{{ route('employee.manageemployeelogin') }}", // Corrected route syntax
+            method: 'post',
+            data: {
+                employeeid,
+                employeemail,
+                _token: $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
+            },
+            dataType:"json",
+            
+            success: function (response) {
+                if (response.status == 200) {
+                    alert(response.message);
+                } else {
+                    alert('Failed to toggle status.');
+                }
+            },
+            error: function (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    
+    }
 </script>
 @endpush

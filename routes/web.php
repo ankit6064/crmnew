@@ -130,6 +130,7 @@ Route::prefix('leads')->group(function (): void {
     Route::post('store', [LeadsController::class, 'store'])->name('leads.store');
     Route::get('assign_lead_emp/{id?}', [LeadsController::class, 'assign_lead_emp'])->name('leads.assign_lead_emp');
     Route::post('statusUpdate', [EmployeeController::class, 'statusUpdate'])->name('employee.statusUpdate');
+    Route::post('manageemployeelogin', [EmployeeController::class, 'manageemployeelogin'])->name('employee.manageemployeelogin');
 
     Route::get('campname', [LeadsController::class, 'campname'])->name('leads.campname');
     Route::get('assigned_leads', [LeadsController::class, 'assigned_leads'])->name('leads.assigned_leads');

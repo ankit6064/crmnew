@@ -29,6 +29,7 @@ use PhpOffice\PhpWord\Shared\Html;
 use PhpOffice\PhpWord\Style\Table;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
+use App\Models\RestrictEmployeelogin;
 
 class EmployeeController extends Controller
 {
@@ -282,6 +283,17 @@ class EmployeeController extends Controller
                 ->get();
 
             return DataTables::of($managers)
+            ->addColumn('disable_login', function ($data) {
+                // Determine if the checkbox should be checked
+                $check = RestrictEmployeelogin::where(['employee_id'=>$data->id])->first();
+                if(isset($check) && !empty($check)){
+                    $checked = '';
+                }else{
+                    $checked = 'checked';
+                }
+                $status = '<input data-sid="' . $data->source_id . '" data-id="' . $data->id . '" class="switchery" type="checkbox" onchange="disablelogin(' . $data->id . ', \'' . addslashes($data->email) . '\');" ' . $checked . '>';
+                return $status;
+            })
                 ->addColumn('status', function ($data) {
                     // Determine if the checkbox should be checked
                     $checked = $data->is_active == 1 ? 'checked' : '';
@@ -301,11 +313,25 @@ class EmployeeController extends Controller
 
                     return $editLink . '' . $deleteLink;
                 })
-                ->rawColumns(['actions', 'status'])
+                ->rawColumns(['actions', 'status','disable_login'])
                 ->toJson();
         }
         return response()->json(['error' => 'Invalid request'], 400);
 
+    }
+
+
+    public function manageemployeelogin(Request $request){
+        $check = RestrictEmployeelogin::where(['employee_email'=>$request->employeemail,'employee_id'=>$request->employeeid])->first();
+        if(isset($check) && !empty($check)){
+            $check->delete();
+        }else{
+            $restrictlogin = New RestrictEmployeelogin();
+            $restrictlogin->employee_email = $request->employeemail;
+            $restrictlogin->employee_id = $request->employeeid;
+            $restrictlogin->save();
+        }
+        echo json_encode(['status' => 200, 'message' => 'Permission changed successfully']);
     }
 
     public function statusUpdate(Request $request)
@@ -548,7 +574,21 @@ private function getStatusIcon($status)
             ->join('notes', 'notes.lead_id', '=', 'leads.id')
             ->whereNotNull('notes.source_id');
         }elseif(Auth::user()->is_admin == null){
-            $query = Lead::join('notes', 'notes.lead_id', '=', 'leads.id');
+            $query = Lead::select(
+                'leads.id as lead_id',
+                'leads.prospect_first_name',
+                'leads.prospect_last_name',
+                'leads.linkedin_address',
+                'leads.asign_to',
+                'notes.id as note_id',
+                'notes.feedback',
+                'notes.updated_at',
+                'notes.status',
+                'notes.reminder_for',
+                'notes.source_id',
+                'leads.note_created_date'
+                // Add any other required fields here
+            )->join('notes', 'notes.lead_id', '=', 'leads.id')->orderByDesc('leads.note_created_date');
         }
         else{
         $employee_ids = User::where(['user_id' => auth()->user()->id, 'is_admin' => '1'])->orderBy('id')->pluck('id');
@@ -587,6 +627,8 @@ private function getStatusIcon($status)
         }
     }
 
+    // $query->orderByDesc('notes.created_at'); 
+
     // $queries = DB::getQueryLog();
     // dd($queries);
     
@@ -621,7 +663,7 @@ private function getStatusIcon($status)
                 return strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback;
             })
             ->addColumn('note_date_time', function ($data) {
-                return date('d-m-Y H:i:s', strtotime($data->updated_at));
+                return date('d-m-Y H:i:s', strtotime($data->note_created_date));
             })
             ->addColumn('status', function ($data) {
                 $statusIcons = [
