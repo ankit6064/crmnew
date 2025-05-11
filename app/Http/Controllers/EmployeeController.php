@@ -29,6 +29,7 @@ use PhpOffice\PhpWord\Shared\Html;
 use PhpOffice\PhpWord\Style\Table;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
+use App\Models\RestrictEmployeelogin;
 
 class EmployeeController extends Controller
 {
@@ -282,6 +283,17 @@ class EmployeeController extends Controller
                 ->get();
 
             return DataTables::of($managers)
+            ->addColumn('disable_login', function ($data) {
+                // Determine if the checkbox should be checked
+                $check = RestrictEmployeelogin::where(['employee_id'=>$data->id])->first();
+                if(isset($check) && !empty($check)){
+                    $checked = '';
+                }else{
+                    $checked = 'checked';
+                }
+                $status = '<input data-sid="' . $data->source_id . '" data-id="' . $data->id . '" class="switchery" type="checkbox" onchange="disablelogin(' . $data->id . ', \'' . addslashes($data->email) . '\');" ' . $checked . '>';
+                return $status;
+            })
                 ->addColumn('status', function ($data) {
                     // Determine if the checkbox should be checked
                     $checked = $data->is_active == 1 ? 'checked' : '';
@@ -301,11 +313,25 @@ class EmployeeController extends Controller
 
                     return $editLink . '' . $deleteLink;
                 })
-                ->rawColumns(['actions', 'status'])
+                ->rawColumns(['actions', 'status','disable_login'])
                 ->toJson();
         }
         return response()->json(['error' => 'Invalid request'], 400);
 
+    }
+
+
+    public function manageemployeelogin(Request $request){
+        $check = RestrictEmployeelogin::where(['employee_email'=>$request->employeemail,'employee_id'=>$request->employeeid])->first();
+        if(isset($check) && !empty($check)){
+            $check->delete();
+        }else{
+            $restrictlogin = New RestrictEmployeelogin();
+            $restrictlogin->employee_email = $request->employeemail;
+            $restrictlogin->employee_id = $request->employeeid;
+            $restrictlogin->save();
+        }
+        echo json_encode(['status' => 200, 'message' => 'Permission changed successfully']);
     }
 
     public function statusUpdate(Request $request)
