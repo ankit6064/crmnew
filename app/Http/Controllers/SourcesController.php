@@ -1053,9 +1053,9 @@ public function leadslist(Request $request)
             $tooltipContent.=" <tr style='#c9d1e3:1px solid black'>
             <td style='border:1px solid #c9d1e3;text-align:center'> $userName</td>
             <td style='border:1px solid #c9d1e3;text-align:center'>$assign->totalasign_to</td>
-            <td style='border:1px solid #c9d1e3;text-align:center'>$assign->failed_leads</td>
-            <td style='border:1px solid #c9d1e3;text-align:center'>$assign->closed_leads</td>
             <td style='border:1px solid #c9d1e3;text-align:center'>$assign->pending_leads</td>
+            <td style='border:1px solid #c9d1e3;text-align:center'>$assign->closed_leads</td>
+            <td style='border:1px solid #c9d1e3;text-align:center'>$assign->failed_leads</td>
         </tr>";
         }
     
@@ -1066,9 +1066,9 @@ public function leadslist(Request $request)
                     <tr>
                         <th style="border:1px solid #c9d1e3;text-align:center">Employee Name</th>
                         <th style="border:1px solid #c9d1e3;text-align:center">Total Leads</th>
-                        <th style="border:1px solid #c9d1e3;text-align:center">Failed Leads</th>
-                        <th style="border:1px solid #c9d1e3;text-align:center">Closed Leads</th>
                         <th style="border:1px solid #c9d1e3;text-align:center">Pending Leads</th>
+                        <th style="border:1px solid #c9d1e3;text-align:center">Closed Leads</th>
+                        <th style="border:1px solid #c9d1e3;text-align:center">Failed Leads</th>
                     </tr>
                 </thead>
                 <tbody style="border:1px solid #c9d1e3;color:black;font-size:14px">

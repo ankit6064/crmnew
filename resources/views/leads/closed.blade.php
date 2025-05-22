@@ -138,19 +138,13 @@
                                     </div>
                                     <div class="NoResponseData">
                                         <div class="form-group" id="status" name="status">
-                                            <label class="control-label">Reminder Date</label>
-                                            <input type="date" class="form-control" placeholder="Reminder Date"
-                                                name="reminder_date" value="{{ old('reminder_date') }}" id="min-date"
-                                                data-dtp="dtp_2827e">
-                                            <label class="control-label">Reminder Time</label>
-                                            <input type="time" class="form-control" id="reminder_time"
-                                                name="reminder_time">
-                                            <label class="control-label">Conversation Type</label>
+                                        <label class="control-label">Conversation Type</label>
                                             {{-- <input type="text" class="form-control required"
                                                 placeholder="Reminder Type" id="reminder_for" name="reminder_for"
                                                 value="{{ old('reminder_for') }}"> --}}
-                                            <select id="reminder_for" class="form-control required" name="reminder_for">
+                                            <select id="reminder_for" class="form-control required" name="reminder_for" onchange="checktype();">
                                                 <option value="">Choose Conversation Type</option>
+                                                <option value="Callback">Callback</option>
                                                 <option value="Declined">Declined</option>
                                                 <option value="DNC">DNC</option>
                                                 <option value="Follow-up Call">Follow-up Call</option>
@@ -161,6 +155,28 @@
                                                 <option value="Not Right Party">Not Right Party</option>
                                                 <option value="Reference Shared">Reference Shared</option>
                                             </select>
+
+                                            <div id="reminderdatetime">
+                                            <label class="control-label">Reminder Date</label>
+                                            <input type="date" class="form-control" placeholder="Reminder Date"
+                                                name="reminder_date" value="{{ old('reminder_date') }}" id="min-date"
+                                                data-dtp="dtp_2827e">
+                                            <label class="control-label">Reminder Time</label>
+                                            <input type="time" class="form-control" id="reminder_time"
+                                                name="reminder_time">
+                                                </div>
+
+                                                <div id="callbackdatetime" style="display: none;">
+                                            <label class="control-label">Callback Date</label>
+                                            <input type="date" class="form-control" placeholder="Callback Date"
+                                                name="callback_date" value="{{ old('callback_date') }}" id="callback_date"
+                                                data-dtp="dtp_2827e">
+                                            <label class="control-label">Callback Time</label>
+                                            <input type="time" class="form-control" id="callback_time"
+                                                name="callback_time">
+                                                </div>
+
+                                            
                                             <div class="alert alert-danger print-error-msg-1" style="display:none">
                                                 <ul class="custom_text-1"></ul>
                                             </div>
@@ -309,6 +325,11 @@
                 let reminder_date = $("[name=reminder_date]").val();
                 let reminder_time = $("[name=reminder_time]").val();
                 let source_id = $("[name=source_id]").val();
+
+                let callback_date = $("[name=callback_date]").val();
+
+                let callback_time = $("[name=callback_time]").val();
+
                 console.log(reminder_time);
                 let reminder_for = $("[name=reminder_for]").val();
                 let lead_id = $("input[name=lead_id_quick_note]").val();
@@ -323,6 +344,8 @@
                         reminder_for: reminder_for,
                         lead_id: lead_id,
                         feedback: feedback,
+                        callback_date: callback_date,
+                        callback_time : callback_time,
                         phone_number : $('#phone_number').val(),
                         _token: _token
                     },
@@ -341,6 +364,9 @@
                             $('#min-date').val("");
                             $('#reminder_for').val("");
                             $('#reminder_time').val("");
+                            $('#callback_date').val("");
+                            $('#callback_time').val("");
+
                             $('.alert.alert-danger.print-error-msg-1').hide();
                             $('.alert.alert-danger.print-error-msg').hide();
                             $("#NoResponse").trigger("click");
@@ -459,6 +485,19 @@
         $('.largemodal-close').on('click', function (event) {
             $('#largeModal').modal('hide');
         });
+
+
+        function checktype(){
+            var remindfor = $('#reminder_for').val();
+            if(remindfor == 'Callback'){
+                $('#reminderdatetime').css('display','none');
+                $('#callbackdatetime').css('display','block');  
+            }else{
+                $('#reminderdatetime').css('display','block');
+                $('#callbackdatetime').css('display','none');
+
+            }
+        }
 
     </script>
 

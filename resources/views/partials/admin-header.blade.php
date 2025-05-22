@@ -1,4 +1,14 @@
 <nav class="navbar top-navbar navbar-expand-md navbar-light">
+    <style>
+        .swal2-confirm.swal-confirm-button {
+            background-color: #192e62 !important;
+            color: white !important;
+            border: none;
+        }
+    </style>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+
     <div class="navbar-header">
         <a class="navbar-brand" href="{{ route('dashboard') }}">
             <b>
@@ -24,7 +34,7 @@
             </li>
             <!-- More left-aligned items -->
         </ul>
-
+      <input type="hidden" name="usertype" id="usertype" value="{{ Auth::user()->is_admin }}">
         <ul class="navbar-nav my-lg-0 ml-auto">
             <!-- Right-aligned items -->
             <li class="bell-area">
@@ -85,3 +95,91 @@
     </div>
 
 </nav>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function checkPendingLeads() {
+        let _token = $('meta[name="csrf-token"]').attr('content');
+        $.ajax({
+            url: '{{url("leads/checkpendingcallback")}}',
+            type: "POST",
+            dataType: "json",
+            data: {
+                id: {{Auth::id()}},
+                _token: _token,
+            },
+            success: function (response) {
+                if (response.status == 200) {
+                    Swal.fire({
+                        title: 'Pending Callbacks!',
+                        text: `You have ${response.data} pending callbacks for today.`,
+                        icon: 'info',
+                        iconColor: '#192e62',
+                        showCancelButton: true,
+                        confirmButtonText: 'View Details',
+                        cancelButtonText: 'Cancel',
+                        customClass: {
+                            confirmButton: 'swal-confirm-button'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/leads/callbackleads'; // replace with your target URL
+                        }
+                    });
+                }
+
+            },
+        });
+    }
+
+    function checkPendingLeadsManager() {
+        let _token = $('meta[name="csrf-token"]').attr('content');
+        $.ajax({
+            url: '{{url("leads/checkpendingcallbackmanager")}}',
+            type: "POST",
+            dataType: "json",
+            data: {
+                id: {{Auth::id()}},
+                _token: _token,
+            },
+            success: function (response) {
+                if (response.status == 200) {
+                    Swal.fire({
+                        title: 'Passed Callbacks!',
+                        text: `Your employee have ${response.data} passed callbacks for today.`,
+                        icon: 'info',
+                        iconColor: '#192e62',
+                        showCancelButton: true,
+                        confirmButtonText: 'View Details',
+                        cancelButtonText: 'Cancel',
+                        customClass: {
+                            confirmButton: 'swal-confirm-button'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/leads/managercallbackleads?status=passed'; // replace with your target URL
+                        }
+                    });
+                }
+
+            },
+        });
+    }
+    
+    $(document).ready(function () {
+        var checkleads;
+
+        if ($('#usertype').val() == 1) {
+            checkleads = checkPendingLeads;
+        } else if ($('#usertype').val() == 2) {
+            checkleads = checkPendingLeadsManager;
+        }
+
+        // Call it once immediately
+        checkleads();
+
+        // Then call every 5 minutes
+        setInterval(checkleads, 3 * 60 * 1000);
+    });
+</script>

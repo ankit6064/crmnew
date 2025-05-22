@@ -117,6 +117,12 @@
                             </a>
                         </li>
 
+                        <li>
+                            <a class="waves-effect waves-dark" href="{{ route('managercallbackleads') }}" aria-expanded="false">
+                            <i class="fa fa-phone"></i><span class="hide-menu">Emp. Callback Leads</span>
+                            </a>
+                        </li>
+
                         <li
                             class="{{ request()->routeIs('employee.manageremployeeindex', 'employee.createmanageremployees') ? 'active' : '' }}">
                             <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('employee.manageremployeeindex', 'employee.createmanageremployees') ? 'active' : '' }}"

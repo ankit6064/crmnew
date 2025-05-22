@@ -12,6 +12,8 @@ use App\Models\Note;
 use App\Models\LhsReport;
 use App\Models\conversationType;
 use App\Models\LhsFiles;
+use App\Models\CallbackLeads;
+use App\Models\Checkcallback;
 use Illuminate\Http\Request;
 use App\Http\Requests\AssignLeadRequest;
 use Illuminate\Support\Carbon;
@@ -619,8 +621,13 @@ class LeadsController extends Controller
                 if (strpos($var, 'linkedin') == -1) {
                     $linkdin = '<td><a href="javascript:void(0)" ><i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i></a></td>';
                 } else {
-                    $linkdin = '<td><a href="" target="_blank" ><i  alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>
-                       </td>';
+                    $linkdin = '<td><a href="" target="_blank">
+                        <i alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>
+                </td>
+                <td>
+                    <button onclick="editmodule(' . $lead["id"] . ', \'' . $var . '\')">Edit</button>
+                </td>';
+
                 }
                 $formattedData[] = [
                     'action' => $campaignsHtml,
@@ -953,7 +960,19 @@ class LeadsController extends Controller
             'feedback' => $request->feedback,
             'phone_number' => $request->phone_number,
         );
-        Note::create($data);
+        $note = Note::create($data);
+
+        if ($request->reminder_for == 'Callback') {
+            $callbackleads = new CallbackLeads();
+            $callbackleads->note_id = $note->id;
+            $callbackleads->employee_id = auth()->user()->id;
+            $callbackleads->lead_id = $request->lead_id;
+            $callbackleads->callback_date = $request->callback_date;
+            $callbackleads->callback_time = $request->callback_time;
+            $callbackleads->save();
+        }
+
+
         // dd(config('app.timezone'));
         $date = date('Y-m-d H:i:s');
         $notecreatedat = \Carbon\Carbon::parse($date)
@@ -961,8 +980,256 @@ class LeadsController extends Controller
             ->addMinutes(3)
             ->format('Y-m-d H:i:s');
         Lead::where('id', $request->lead_id)->update(array('note_created_date' => $notecreatedat));
+        // dd($callbackleads->id); 
         return response()->json(['success' => 'Note Added Successfully']);
         // }
+    }
+
+    public function callbackleads(request $request)
+    {
+        $currentDate = now()->format('Y-m-d'); // 2025-05-14
+        if ($request->ajax()) {
+            $callbackleads = CallbackLeads::where('employee_id', auth()->user()->id)->whereDate('callback_date', $currentDate)->orderBy('callback_time')->get();
+            if (isset($callbackleads) && !empty($callbackleads)) {
+                for ($i = 0; $i < count($callbackleads); $i++) {
+                    $leadDetails = Lead::join('sources', 'sources.id', 'leads.source_id')->where('leads.id', $callbackleads[$i]->lead_id)->first();
+                    if (!empty($leadDetails)) {
+                        $callbackleads[$i]->lead_name = $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
+                        $callbackleads[$i]->source_name = $leadDetails->source_name;
+                        $callbackleads[$i]->description = $leadDetails->description;
+
+                    }
+                }
+            }
+            return DataTables::of($callbackleads)
+                ->addIndexColumn()
+                ->editColumn('status', function ($callbackleads) {
+                    if ($callbackleads->status == 1) {
+                        return '<span style="color:green">Complete</span>';
+                    } elseif ($callbackleads->status == 2) {
+                        return '<span style="color:red">Uncomplete</span>';
+                    } else {
+                        return '<button class="btn btn-success btn-sm" onclick="changecallbackstatus(' . $callbackleads->id . ',' . $callbackleads->lead_id . ',1)">Complete</button> 
+                    <button class="btn btn-danger btn-sm" onclick="changecallbackstatus(' . $callbackleads->id . ',' . $callbackleads->lead_id . ',2)">Uncomplete</button>';
+
+                    }
+                })
+                ->editColumn('note', function ($callbackleads) {
+                    if (empty($callbackleads->note)) {
+                        return 'N/A';
+                    } else {
+                        return $callbackleads->note;
+                    }
+                })
+                ->editColumn('callback_time', function ($callbackleads) {
+                    return Carbon::parse($callbackleads->callback_time)->format('g:i A');
+
+                })
+                ->rawColumns(['status'])
+                ->make(true);
+        }
+        return view('leads.callbackleadsemployee');
+
+    }
+
+    public function managercallbackleads(request $request)
+    {
+        $currentDate = now()->format('Y-m-d'); // 2025-05-14
+        $currentTime = now()->format('H:i'); // e.g., 14:27 (use 'H:i' for 24-hour format to avoid AM/PM issues)
+        if ($request->ajax()) {
+            $passedleads = @$request->passed_status;
+            if (isset($request->employee_id) && !empty($request->employee_id)) {
+                $employeeids = [$request->employee_id];
+            } else {
+                $employeeids = User::where('user_id', auth()->user()->id)->pluck('id');
+
+            }
+
+            if (isset($request->callback_status)) {
+                $callback_status = [$request->callback_status];
+            } else {
+                $callback_status = ["0", "1", "2"];
+            }
+            if ($passedleads == 'passed') {
+
+                $callbackleads = CallbackLeads::whereIn('employee_id', $employeeids)
+                    ->whereDate('callback_date', $currentDate)
+                    ->whereTime('callback_time', '<', $currentTime) // 🔍 Only future callbacks
+                    ->where('status', 0)
+                    ->orderBy('callback_time')
+                    ->get();
+            } else {
+                $callbackleads = CallbackLeads::whereIn('employee_id', $employeeids)
+                    ->whereDate('callback_date', $currentDate)
+                    ->orderBy('callback_time')
+                    ->whereIn('status', $callback_status)
+                    ->get();
+            }
+            if (isset($callbackleads) && !empty($callbackleads)) {
+                for ($i = 0; $i < count($callbackleads); $i++) {
+                    $leadDetails = Lead::join('sources', 'sources.id', 'leads.source_id')->where('leads.id', $callbackleads[$i]->lead_id)->first();
+                    if (!empty($leadDetails)) {
+                        $callbackleads[$i]->lead_name = $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
+                        $callbackleads[$i]->source_name = $leadDetails->source_name;
+                        $callbackleads[$i]->description = $leadDetails->description;
+
+                    }
+                    $employee_details = User::where('id', $callbackleads[$i]->employee_id)->first();
+                    if (!empty($employee_details)) {
+                        $callbackleads[$i]->employee_name = $employee_details->first_name . ' ' . $employee_details->last_name;
+                    } else {
+                        $callbackleads[$i]->employee_name = 'N/A';
+                    }
+                }
+            }
+            return DataTables::of($callbackleads)
+                ->addIndexColumn()
+                ->editColumn('status', function ($callbackleads) {
+                    if ($callbackleads->status == 1) {
+                        return '<span style="color:green">Complete</span>';
+                    } elseif ($callbackleads->status == 2) {
+                        return '<span style="color:red">Uncomplete</span>';
+                    } else {
+                        return '<span style="color:orange">Pending</span>';
+
+                    }
+                })
+                ->editColumn('note', function ($callbackleads) {
+                    if (empty($callbackleads->note)) {
+                        return 'N/A';
+                    } else {
+                        return $callbackleads->note;
+                    }
+                })
+                ->editColumn('callback_time', function ($callbackleads) {
+                    return Carbon::parse($callbackleads->callback_time)->format('g:i A');
+
+                })
+                ->rawColumns(['status'])
+                ->make(true);
+        }
+        $employee_list = User::select('id', 'first_name', 'last_name')->where('user_id', auth()->user()->id)->orderby('first_name')->get();
+
+        return view('leads.managercallbackleads', compact('employee_list'));
+
+    }
+
+    public function changecallbackstatus(Request $request)
+    {
+        if ($request->ajax()) {
+            CallbackLeads::where('id', $request->callbackid)->update(['id' => $request->callbackid, 'status' => $request->status, 'note' => $request->note]);
+            echo json_encode(['status' => 200, 'message' => 'Status Upated']);
+            exit;
+        }
+    }
+
+
+    public function checkpendingcallback(Request $request)
+    {
+        $currentDate = now()->format('Y-m-d'); // e.g., 2025-05-17
+        $currentTime = now()->format('H:i'); // e.g., 14:27 (use 'H:i' for 24-hour format to avoid AM/PM issues)
+        $check = CallbackLeads::where('employee_id', $request->id)
+            ->whereDate('callback_date', $currentDate)
+            ->where('status', 0)
+            ->count();
+
+        if ($check > 0) {
+            $checklastcallback = Checkcallback::where('employee_id', $request->id)
+                ->whereDate('today_date', $currentDate)
+                ->first();
+            if (empty($checklastcallback)) {
+                $checkcallbacktable = new Checkcallback();
+                $checkcallbacktable->employee_id = $request->id;
+                $checkcallbacktable->today_date = $currentDate;
+                $checkcallbacktable->last_modal_time = $currentTime;
+                $checkcallbacktable->save();
+
+                echo json_encode([
+                    'status' => 200,
+                    'message' => 'You have pending callback',
+                    'data' => $check
+                ]);
+                exit;
+            } else {
+                $lastModalDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $checklastcallback->updated_at);
+                // dd($lastModalDateTime);
+                $currentDateTime = Carbon::now();
+
+                $diffInMinutes = $lastModalDateTime->diffInMinutes($currentDateTime);
+                if ($diffInMinutes >= 60) {
+                    Checkcallback::where('employee_id', $request->id)->update(['today_date' => $currentDate, 'last_modal_time' => $currentTime]);
+                    echo json_encode([
+                        'status' => 200,
+                        'message' => 'You have pending callback',
+                        'data' => $check
+                    ]);
+                    exit;
+                }
+            }
+        } else {
+            echo json_encode([
+                'status' => 400,
+                'message' => 'No pending leads',
+                'data' => $check
+            ]);
+            exit;
+        }
+    }
+
+    public function checkpendingcallbackmanager(Request $request)
+    {
+        $currentDate = now()->format('Y-m-d'); // e.g., 2025-05-17
+        $currentTime = now()->format('H:i'); // e.g., 14:27 (use 'H:i' for 24-hour format to avoid AM/PM issues)
+        $employeeids = User::where('user_id', auth()->user()->id)->pluck('id');
+
+        $check = CallbackLeads::whereIn('employee_id', $employeeids)
+            ->whereDate('callback_date', $currentDate)
+            ->whereTime('callback_time', '<', $currentTime) // 🔍 Only future callbacks
+            ->where('status', 0)
+            ->count();
+        // dd($check);
+
+        if ($check > 0) {
+            $checklastcallback = Checkcallback::where('employee_id', $request->id)
+                ->whereDate('today_date', $currentDate)
+                ->first();
+            if (empty($checklastcallback)) {
+                // $checkcallbacktable = new Checkcallback();
+                // $checkcallbacktable->employee_id = $request->id;
+                // $checkcallbacktable->today_date = $currentDate;
+                // $checkcallbacktable->last_modal_time = $currentTime;
+                // $checkcallbacktable->save();
+
+                echo json_encode([
+                    'status' => 200,
+                    'message' => 'You have pending callback',
+                    'data' => $check
+                ]);
+                exit;
+            } else {
+                $lastModalDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $checklastcallback->updated_at);
+                // dd($lastModalDateTime);
+                $currentDateTime = Carbon::now();
+
+                $diffInMinutes = $lastModalDateTime->diffInMinutes($currentDateTime);
+                if ($diffInMinutes >= 60) {
+                    // Checkcallback::where('employee_id',$request->id)->update(['today_date'=>$currentDate,'last_modal_time'=>$currentTime]);
+                    echo json_encode([
+                        'status' => 200,
+                        'message' => 'You have pending callback',
+                        'data' => $check
+                    ]);
+                    exit;
+                }
+            }
+        } else {
+            echo json_encode([
+                'status' => 400,
+                'message' => 'No pending leads',
+                'data' => $check
+            ]);
+            exit;
+        }
     }
 
 

@@ -147,6 +147,13 @@ Route::prefix('leads')->group(function (): void {
     Route::get('unapprovedLeadsemp', [LeadsController::class, 'unapprovedLeadsemp'])->name('leads.unapprovedLeadsemp');
 
     Route::get('closed', [LeadsController::class, 'closed'])->name('closed');
+    Route::get('callbackleads', [LeadsController::class, 'callbackleads'])->name('callbackleads');
+    Route::post('changecallbackstatus', [LeadsController::class, 'changecallbackstatus'])->name('changecallbackstatus');
+    Route::post('checkpendingcallback', [LeadsController::class, 'checkpendingcallback'])->name('checkpendingcallback');
+    Route::post('checkpendingcallbackmanager', [LeadsController::class, 'checkpendingcallbackmanager'])->name('checkpendingcallbackmanager');
+
+    Route::get('managercallbackleads', [LeadsController::class, 'managercallbackleads'])->name('managercallbackleads');
+
     Route::get('failed', [LeadsController::class, 'failed'])->name('failed');
     Route::get('in_progress', [LeadsController::class, 'in_progress'])->name('in_progress');
     Route::post('add_note', [LeadsController::class,'add_note'])->name('add_note');

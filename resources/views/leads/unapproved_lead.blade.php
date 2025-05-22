@@ -25,6 +25,34 @@
         padding-right: 8px;
     }
 </style>
+
+<form id="Reassignedform">
+<div id="RevertModel" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Update Linkedin Address</h4>
+                <button type="button" id="modelclose" class="close" data-dismiss="modal" aria-hidden="true" onclick="closerevertmodal();">×</button>
+            </div>
+            <div class="modal-body">
+               
+                    <div class="NoResponseData">
+                        <div class="form-group" id="employe" name="employe">
+                            <label class="control-label">Linkedin</label>
+                            <input type="text" id="linkedinurl" name="camp_id" value="" class="form-control ">
+                        </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+            <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
+                <button type="button" class="btn btn-default waves-effect" data-dismiss="modal" onclick="closerevertmodal();">Close</button>
+                {{-- <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i> Save</button> --}}
+                <button id="save-data-reassigned" type="button" class="btn btn-info waves-effect waves-light ">Reassigned</button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
 <div class="row page-titles">
     <div class="col-md-5 align-self-center">
         <h3 class="text-themecolor">Dashboard</h3>
@@ -169,5 +197,9 @@
             });
         }
     });
+
+    function editmodule(id,url){
+        $('#RevertModel').modal('show');
+            }
 </script>
 @endsection
