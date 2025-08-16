@@ -96,6 +96,11 @@
                 <ul id="sidebarnav">
                     <li class="nav-devider"></li>
                     <li class="nav-small-cap">Manager Panel</li>
+                    <li>
+                        <a class="waves-effect waves-dark" href="{{ url('managerdashboard') }}" aria-expanded="false">
+                            <i class="mdi mdi-gauge"></i><span class="hide-menu">Dashboard</span>
+                        </a>
+                    </li>
 
                     @if (auth()->user()->manager_type == 2)
                         <li>
@@ -115,6 +120,31 @@
                             <a class="waves-effect waves-dark" href="{{ route('home') }}" aria-expanded="false">
                                 <i class="fa fa-home"></i><span class="hide-menu">Home</span>
                             </a>
+                        </li>
+
+
+                        <li
+                            class="{{ request()->routeIs('employeelogs', 'employee.createmanager') ? 'active' : '' }}">
+                            <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('employeelogs', 'employee.createmanager') ? 'active' : '' }}"
+                                href="#" data-bs-toggle="collapse" data-bs-target="#employee-collapse-admin"
+                                aria-expanded="{{ request()->routeIs('employeelogs', 'employee.createmanager') ? 'true' : 'false' }}">
+                                <i class="fa fa-history	"></i>
+                                <span class="hide-menu">Logs</span>
+                            </a>
+                            <div class="collapse {{ request()->routeIs('employeelogs') ? 'show' : '' }}"
+                                id="employee-collapse-admin">
+                                <ul aria-expanded="false" class="list-unstyled fw-normal pb-1 small">
+                                    <li class="{{ request()->routeIs('employeelogs') ? 'active' : '' }}">
+                                        <a href="{{ route('employeelogs') }}">Employee Logs</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('managerlogs') ? 'active' : '' }}">
+                                        <a href="{{ route('managerlogs') }}">Myself Logs</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('leadslogs') ? 'active' : '' }}">
+                                        <a href="{{ route('leadslogs') }}">Leads Logs</a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
 
                         <li>
@@ -139,6 +169,29 @@
                                     </li>
                                     <li class="{{ request()->routeIs('employee.createmanageremployees') ? 'active' : '' }}">
                                         <a href="{{ route('employee.createmanageremployees') }}">Add Employee</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
+
+
+                        <li
+                            class="{{ request()->routeIs('employee.submanagerlisting', 'employee.createmanager') ? 'active' : '' }}">
+                            <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('employee.submanagerlisting', 'employee.createmanager') ? 'active' : '' }}"
+                                href="#" data-bs-toggle="collapse" data-bs-target="#employee-collapse-admin"
+                                aria-expanded="{{ request()->routeIs('employee.submanagerlisting', 'employee.createmanager') ? 'true' : 'false' }}">
+                                <i class="fa fa-users"></i>
+                                <span class="hide-menu">Add/View Sub Manager</span>
+                            </a>
+                            <div class="collapse {{ request()->routeIs('employee.submanagerlisting') ? 'show' : '' }}"
+                                id="employee-collapse-admin">
+                                <ul aria-expanded="false" class="list-unstyled fw-normal pb-1 small">
+                                    <li class="{{ request()->routeIs('employee.submanagerlisting') ? 'active' : '' }}">
+                                        <a href="{{ route('employee.submanagerlisting') }}">View Sub Manager</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('employee.createmanager') ? 'active' : '' }}">
+                                        <a href="{{ route('employee.createmanager') }}">Add Sub Manager</a>
                                     </li>
                                 </ul>
                             </div>

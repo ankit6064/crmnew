@@ -34,6 +34,7 @@ class Lead extends Model
         'is_read',
         'assign_to_external_manager',
         'approval_status',
+        'status',
         'asign_to'
     ];
 

@@ -1,0 +1,192 @@
+.align-right { text-align: right; }
+.chart-container { height: 400px; }
+
+/* Filter Section Styling */
+.filter-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+.filter-card:hover {
+    transform: translateY(-5px);
+}
+.form-inline .form-group label {
+    font-weight: 600;
+    color: #333;
+}
+.form-inline .form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    box-shadow: 0px 0px 8px #dddddd9e;
+    transition: border-color 0.3s;
+}
+.form-inline .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); 
+}
+.btn-primary, .btn-secondary {
+    border-radius: 8px;
+    padding: 8px 20px;
+    border: none;
+    transition: background 0.3s, transform 0.2s;
+}
+.btn-primary {
+    background: #007bff;
+}
+/* .btn-primary:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+} */
+.btn-secondary {
+    background: #6c757d;
+}
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* Card Styling for Chart and Campaign Counts */
+.card-outline-info {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+.card-outline-info:hover {
+    transform: translateY(-5px);
+}
+.card-header {
+    background: linear-gradient(90deg, #007bff 0%, #00c4ff 100%);
+    /* border-top-left-radius: 15px !important;
+    border-top-right-radius: 15px !important; */
+}
+.card-body {
+    background: #fff;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+/* Campaign Counts Styling */
+.date-section { margin-bottom: 25px; }
+.date-section h4 {
+    margin-bottom: 15px;
+    color: #333;
+    font-weight: 700;
+    font-size: 1.3rem;
+    border-left: 4px solid #007bff;
+    padding-left: 10px;
+}
+.campaign-card {
+margin-bottom: 5px;
+padding: 5px;
+background: transparent;
+border: none;
+border-radius: 10px;
+box-shadow: none;
+transition: transform 0.2s, box-shadow 0.3s;
+}
+.campaign-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.campaign-card h5 {
+    margin-bottom: 5px;
+    font-size: 1.15rem;
+    color: #1a1a1a;
+}
+.campaign-card p {
+    margin: 0;
+    color: #666;
+}
+.campaign-card .count {
+    font-weight: 600;
+    color: #007bff;
+}
+.card-body .form-group.mr-3 label.mr-2 {
+    font-weight: 700;
+    }
+.filter-card:hover {
+    transform: none !important;
+    }
+    form#filterForm {
+justify-content: normal !important;
+}
+.card-body .btn-primary, .btn-secondary {
+padding: 15.5px 34px !important;
+}
+.form-inline .form-control {
+min-width: 380px;
+}
+.search-clear button {
+font-weight: 600;
+background: #192e62;
+text-transform: uppercase;
+}
+button#searchBtn:hover {
+color: #fff !important;
+transform: none !important;
+}
+.btn-secondary:hover {
+transform: none !important;
+}
+button#clearBtn:hover {
+color: #fff !important;
+}
+.btn-secondary:hover {
+transform: none !important;
+background: #0056b3;
+}
+/* .btn-primary:hover {
+transform: translateY(0) !important;
+} */
+.card-header:first-child {
+padding: 20px !important;
+}
+.count-table {
+width: 100%;
+border-collapse: collapse;
+margin-top: 20px;
+font-family: Arial, sans-serif;
+text-align: center;
+box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.count-table th,
+.count-table td {
+border: 1px solid #ddd;
+padding: 12px;
+font-weight: 600;
+}
+
+.count-table th {
+background-color: #f2f2f2;
+color: #333;
+}
+
+.count-table tr:nth-child(even) {
+background-color: #fafafa;
+}
+table.count-table h6 {
+margin-bottom: 0;
+}
+.campaign-card {
+margin-bottom: 0px !important;
+}
+.campaign-card .h5, h5 {
+font-size: 15px;
+margin-bottom: 0;
+}
+.card-outline-info:hover {
+transform: none !important;
+}
+.campaign-card:hover {
+margin-bottom: 0px !important;
+transform: none !important;
+background: transparent;
+box-shadow: none !important;
+}
+/* .btn-primary:hover {
+padding: 0px !important;
+} */

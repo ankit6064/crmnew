@@ -28,6 +28,10 @@
         padding: 3px 10px;
         line-height: 13px;
     }
+    th[data-orderable="false"]::before,
+th[data-orderable="false"]::after {
+    display: none !important;
+}
 </style>
 
 @section('content')
@@ -87,7 +91,7 @@
     cellspacing="0" width="100%">
     <thead>
         <tr>
-            <th>Action</th>
+            <th data-orderable="false">Action</th>
             <th>Campaign Name
             <br>
                 <select id="campaign_name" style="margin-top: 5px;" onchange="changecampaign();">
@@ -358,7 +362,7 @@
         processing: false,
         serverSide: true,
         searching: true, // Enable search globally
-        ordering: false , // Disable sorting
+        ordering: true , // Disable sorting
 
         ajax: {
             url: url,
@@ -379,15 +383,15 @@
         columns: [
             { data: 'action', name: 'action', orderable: false, searchable: false },
             { data: 'source_name', name: 'source_name', orderable: false },
-            { data: 'source_description', name: 'source_description', orderable: false },
+            { data: 'description', name: 'description', orderable: true },
             { data: 'company_name', name: 'company_name', orderable: false },
-            { data: 'prospect_first_name', name: 'prospect_first_name' },
+            { data: 'prospect_first_name', name: 'prospect_first_name',orderable:true },
             { data: 'timezone', name: 'timezone', orderable: false },
-            { data: 'designation', name: 'designation' },
-            { data: 'prospect_email', name: 'prospect_email' },
-            { data: 'contact_number_1', name: 'contact_number_1' },
-            { data: 'status', name: 'status' },
-            { data: 'updated_at', name: 'updated_at' }
+            { data: 'designation', name: 'designation',orderable:true },
+            { data: 'prospect_email', name: 'prospect_email',orderable:false },
+            { data: 'contact_number_1', name: 'contact_number_1',orderable:false },
+            { data: 'status', name: 'status',orderable:false },
+            { data: 'updated_at', name: 'leads.updated_at',orderable:true }
         ],
         rawColumns: ['action'] // Ensure HTML is rendered in the actions column
     });

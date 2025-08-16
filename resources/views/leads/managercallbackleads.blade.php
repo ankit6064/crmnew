@@ -303,7 +303,7 @@
                     processing: false,
                     serverSide: true,
                     searching: false,
-                    ordering: false,
+                    ordering: true,
                     ajax: {
                         url: "{{ url('leads/managercallbackleads') }}",
                         data: function (d) {
@@ -313,15 +313,15 @@
                         }
                     },
                     columns: [
-                        { data: 'DT_RowIndex', name: 'DT_RowIndex' },
-                        { data: 'lead_name', name: 'lead_name' },
-                        { data: 'employee_name', name: 'employee_name' },
+                        { data: 'DT_RowIndex', name: 'callback_leads.id' },
+                        { data: 'lead_name', name: 'prospect_first_name',sortable:true },
+                        { data: 'employee_name', name: 'users.first_name',sortable:false },
                         { data: 'source_name', name: 'source_name' },
                         { data: 'description', name: 'description' },
                         { data: 'callback_date', name: 'callback_date' },
                         { data: 'callback_time', name: 'callback_time' },
-                        { data: 'note', name: 'note' },
-                        { data: 'status', name: 'status' }
+                        { data: 'note', name: 'note',sortable:false },
+                        { data: 'status', name: 'status',sortable:false }
                     ]
                 });
 

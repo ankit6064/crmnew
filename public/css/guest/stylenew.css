@@ -1,0 +1,195 @@
+/*-fonts-*/
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/*-fonts-*/
+.invalid-feedback {
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 100%;
+    color: #e3342f;
+}
+.login-bg {
+    background-image: url("../../images/blue-bg.jpg") !important;
+    background-repeat: no-repeat !important;
+    background-position: right !important;
+}
+.login-bg
+{
+	margin: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	font-family: "Poppins", sans-serif;
+}
+.login-bg .container {
+    display: flex;
+    background: #fff;
+    width: 1100px;
+    border-radius: 10px;
+    padding-right: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    padding-left: 0px;
+    border: 1px solid #ddd;
+}
+    .login-bg .left-panel {
+      background: #092c64;
+      color: #fff;
+      flex: 1;
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .login-bg .left-panel img {
+    width: 100%;
+    border-radius: 5px;
+    margin-bottom: 40px;
+}
+    .login-bg .left-panel p {
+    font-size: 20px;
+    text-align: center;
+    line-height: 30px;
+}
+    .login-bg .right-panel {
+      flex: 1;
+      padding: 50px 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #fff;
+    }
+    .login-bg .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .login-bg .logo img {
+      max-width: 180px;
+    }
+    .login-bg h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .login-bg .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+	  font-size:18px;
+	   font-family: "Poppins", sans-serif;
+		font-weight: 500;
+    }
+	
+.login-bg input[type="email"], .login-bg input[type="password"], .login-bg input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+    box-shadow: 0 3px 10px #dddddd52;
+}
+.login-bg label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 0;
+    font-weight: 500;
+}
+input[type="email"]::placeholder, input[type="password"]::placeholder, input[type="text"]::placeholder {
+    color: #000;
+    opacity: 0.3;
+}
+.login-bg .remember {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 14px;
+    margin-top: 10px;
+}
+.login-bg .remember input {
+    margin-right: 8px;
+    width: 25px;
+    height: 25px;
+    border-radius: 5px;
+}
+.login-bg .btn {
+    width: 100%;
+    padding: 14px;
+    background: #0E3C70;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.login-bg .btn:hover {
+	background: #092c64;
+}
+.login-bg .illustration {
+	width: 100%;
+	height: auto;
+}
+
+
+/*-media-query-*/
+@media screen and (max-width: 992px)
+{
+	.right-panel {
+    padding: 50px 50px !important;
+}
+}
+
+/*-media-query-*/
+	
+@media screen and (max-width: 767px)
+{
+	.container
+	{
+		flex-direction: column;
+	}
+	.login-bg .right-panel {
+    padding: 50px 50px;
+}
+.login-bg {
+    height: auto;
+}
+}
+
+@media screen and (max-width: 479px)
+{
+
+.login-bg .right-panel {
+    padding: 50px 30px !important;
+}
+.login-bg .left-panel {
+    padding: 40px 15px;
+}
+.login-bg {
+    background-image: none !important;
+}
+.login-bg .subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 500;
+}
+.login-bg .left-panel p {
+    font-size: 16px;
+    line-height: 26px;
+}
+.col-md-4.left-panel {
+    display: none;
+}
+.login-bg .container {
+    box-shadow: none;
+    border: none;
+}
+}
+
+
+
+
+

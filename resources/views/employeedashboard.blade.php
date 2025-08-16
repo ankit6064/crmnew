@@ -40,7 +40,7 @@
                         <div class="col-12">
                             <h2 class="m-b-0"><i class="fa fa-check text-progress"></i></h2>
                             <h3 class="">{{ $totalClosedLeads }}</h3>
-                            <h6 class="card-subtitle">Campaign Total Closed Leads</h6>
+                            <h6 class="card-subtitle">Closed Leads</h6>
                         </div>
                     </a>
                     <div class="col-12">
@@ -55,16 +55,36 @@
         <div class="card">
             <div class="card-body">
                 <div class="row">
-                    <a href="{{ url('leads/in_progress') }}">
+                    <a href="{{ url('leads/completed') }}">
                         <div class="col-12">
                             <h2 class="m-b-0"><i class="fa fa-check text-success"></i></h2>
-                            <h3 class="">{{ $totalInprogressLeads }}</h3>
-                            <h6 class="card-subtitle">Campaign Total Inprogress Leads</h6>
+                            <h3 class="">{{ $totalCompletedLeads }}</h3>
+                            <h6 class="card-subtitle">Completed Leads</h6>
                         </div>
                     </a>
                     <div class="col-12">
                         <div class="progress">
                             <div class="progress-bar bg-success" role="progressbar" style="width: 100%; height: 6px;"
+                                aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <a href="{{ url('leads/in_progress') }}">
+                        <div class="col-12">
+                            <h2 class="m-b-0"><i class="fa fa-hourglass-half text-info"></i></h2>
+                            <h3 class="">{{ $totalInprogressLeads }}</h3>
+                            <h6 class="card-subtitle">Inprogress Leads</h6>
+                        </div>
+                    </a>
+                    <div class="col-12">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 100%; height: 6px;background-color:#1976d2 !important"
                                 aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
@@ -80,7 +100,7 @@
                         <div class="col-12">
                             <h2 class="m-b-0"><i class="fa fa-exclamation-triangle text-danger"></i></h2>
                             <h3 class="">{{ $totalFailedLeads }}</h3>
-                            <h6 class="card-subtitle">Campaign Total Failed Leads</h6>
+                            <h6 class="card-subtitle">Failed Leads</h6>
                         </div>
                     </a>
                     <div class="col-12">
@@ -164,7 +184,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
-<script>
+<!-- <script>
 $(document).ready(function () {
     $('#spinner-overlay').show();
 
@@ -181,10 +201,10 @@ $(document).ready(function () {
             }
         },
         columns: [
-            { data: 'campaign_name', name: 'campaign_name', orderable: false, searchable: true },
-            { data: 'description', name: 'description', orderable: false, searchable: true },
+            { data: 'source_name', name: 'source_name', orderable: true, searchable: true },
+            { data: 'description', name: 'description', orderable: true, searchable: true },
             { data: 'totalLeads', name: 'totalLeads', orderable: true, searchable: false },
-            { data: 'last_login', name: 'last_login', orderable: true, searchable: false },
+            { data: 'last_login', name: 'last_login', orderable: false, searchable: false },
             { data: 'notes_count', name: 'notes_count', orderable: true, searchable: false },
         ],
         
@@ -209,6 +229,6 @@ $(document).ready(function () {
 
 
 
-</script>
+</script> -->
 
 @endsection

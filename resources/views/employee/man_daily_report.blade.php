@@ -261,12 +261,13 @@
                 }
             },
             columns: [
-                { data: 'lead_name', name: 'lead_name' },
-                { data: 'conversation_type', name: 'conversation_type' },
-                { data: 'note', name: 'note' },
-                { data: 'note_date_time', name: 'note_date_time' },
+                { data: 'lead_name', name: 'prospect_first_name' },
+                { data: 'conversation_type', name: 'conversation_type',orderable:false },
+                { data: 'note', name: 'note',orderable:false },
+                { data: 'note_date_time', name: 'note_created_date' },
                 { data: 'status', name: 'status', orderable: false, searchable: false },
             ],
+            order: [[3, 'desc']], // Index 3 is note_date_time
             initComplete: function () {
                 $('#spinner-overlay').hide(); // Hide spinner after table is fully initialized
             },

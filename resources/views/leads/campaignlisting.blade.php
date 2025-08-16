@@ -346,12 +346,12 @@
         },
         columns: [
             { data: 'action', name: 'action', orderable: false, searchable: false },
-            { data: 'company_name', name: 'company_name', orderable: false },
+            { data: 'company_name', name: 'company_name', orderable: true,searchable:true },
             { data: 'prospect_first_name', name: 'prospect_first_name' },
             { data: 'timezone', name: 'timezone', orderable: false },
-            { data: 'designation', name: 'designation' },
-            { data: 'contact_number_1', name: 'contact_number_1' },
-            { data: 'contact_number_2', name: 'contact_number_2' },
+            { data: 'designation', name: 'designation',orderable:false },
+            { data: 'contact_number_1', name: 'contact_number_1',orderable:false },
+            { data: 'contact_number_2', name: 'contact_number_2',orderable:false },
             { data: 'update_note_date', name: 'update_note_date' }
         ],
         rawColumns: ['action'] // Ensure HTML is rendered in the actions column

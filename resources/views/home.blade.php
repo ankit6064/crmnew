@@ -60,10 +60,10 @@
                 columns: [
                     // {data: 'assign_to_employee', name: 'assign_to_employee'},
                     { data: 'name', name: 'name' },
-                    { data: 'camp_source_name', name: 'camp_source_name' },
-                    { data: 'camp_description', name: 'camp_description', searchable: false, orderable: false },
-                    { data: 'lead_assigned', name: 'lead_assigned', searchable: false, orderable: false },
-                    { data: 'last_login', name: 'last_login' },
+                    { data: 'source_name', name: 'source_name' },
+                    { data: 'description', name: 'description', searchable: false, orderable: true },
+                    { data: 'lead_assigned', name: 'lead_assigned', searchable: false, orderable: true },
+                    { data: 'last_login_new', name: 'last_login' },
                     { data: 'notes_count', name: 'notes_count', searchable: false, orderable: false },
                 ],
                 drawCallback: function () {

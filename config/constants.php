@@ -18,8 +18,11 @@ if (!defined('LEAD_STATUS_INPROGRESS')) {
     define('LEAD_STATUS_INPROGRESS', 4);
 }
 
+if (!defined('LEAD_STATUS_COMPLETED')) {
+    define('LEAD_STATUS_COMPLETED', 5);
+}
 if (!defined('LEAD_STATUS')) {
-    define('LEAD_STATUS', [LEAD_STATUS_PENDING, LEAD_STATUS_FAILED, LEAD_STATUS_CLOSED, LEAD_STATUS_INPROGRESS]);
+    define('LEAD_STATUS', [LEAD_STATUS_PENDING, LEAD_STATUS_FAILED, LEAD_STATUS_CLOSED, LEAD_STATUS_INPROGRESS,LEAD_STATUS_COMPLETED]);
 }
 
 if (!defined('USER')) {
@@ -29,9 +32,12 @@ if (!defined('USER')) {
 if (!defined('MANAGER')) {
     define('MANAGER', 2);
 }
+if (!defined('SUBMANAGER')) {
+    define('SUBMANAGER', 3);
+}
 
 if (!defined('EMPLOYEE_ROLE')) {
-    define('EMPLOYEE_ROLE', [USER, MANAGER]);
+    define('EMPLOYEE_ROLE', [USER, MANAGER,SUBMANAGER]);
 }
 
 if (!defined('MANAGER_TYPE_INTERNAL')) {

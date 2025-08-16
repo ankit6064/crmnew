@@ -9,26 +9,33 @@
     <title>@yield('title', 'Lead Management')</title>
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/common/favicon(32x32).png') }}">
+    <!-- <link href="{{ asset('css/guest/stylenew.css') }}" rel="stylesheet"> -->
+    <!-- <link href="{{ asset('css/guest/dashboard.css') }}" rel="stylesheet"> -->
+
     @include('partials.common-style')
     @include('partials.admin-style')
-    @stack('styles') <!-- For additional scripts -->
+    @stack('styles')
 </head>
 
 <body class="fix-header fix-sidebar card-no-border">
     <div id="main-wrapper">
-        <header class="topbar">
-            @include('partials.admin-header')
-        </header>
-        @include('partials.sidebar')
-        <div class="page-wrapper">
-            <main>
+            @include('partials.manager-header')
+            <div class="dashboard-screen">
+		<div class="container-fluid">
+			<div class="main-content">
+        @include('partials.sidebarnew')
+     
+                            <!-- <main> -->
                 @yield('content')
-            </main>
-            @include('partials.spinner')
+            <!-- </main> -->
+            <!-- @include('partials.spinner') -->
             <footer>
                 @include('partials.footer')
             </footer>
-        </div>
+            </div>
+            </div>
+            </div>
+        <!-- </div> -->
     </div>
     @include('partials.common-script')
     @include('partials.admin-script')

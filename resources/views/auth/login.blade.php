@@ -1,84 +1,114 @@
-@extends('layouts.guest')
+<!doctype html>
+<html lang="en">
 
-@section('content')
-<div class="container">
-    <div class="row justify-content-center login-card-center ">
-        <div class="col-md-8">
-            <div class="text-center mb-4">
-                <!-- Logo -->
-                {{-- <img src="{{ asset('img/common/relocity_logo.png') }}" alt="homepage" class="dark-logo" /> --}}
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Favicon icon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/common/favicon(32x32).png') }}">
+    <!-- Fonts -->
+    <!-- <link rel="preconnect" href="https://fonts.bunny.net"> -->
+    <!-- <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" /> -->
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Login</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css">
+    <link href="{{ asset('css/guest/stylenew.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+
+<body>
+    <div class="cuver-bg"></div>
+    <div class="login-bg">
+        <div class="container">
+            <!-- Left Panel -->
+            <div class="col-md-4 left-panel">
+                <img src="{{ asset('images/left-img.png') }}" alt="Illustration" class="illustration">
+                <p>At Revvelocity, we combine our passion for sales with our extensive experience – helping our clients
+                    leapfrog ahead to become bigger and stronger.</p>
             </div>
-            <div class="card">
-                <div class="card-header">{{ __('Login') }}</div>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route('login') }}">
-                        @csrf
-                        @if(Session::has('status'))
-                            <div class="alert alert-success">{{Session::get('status')}}</div>
-                        @endif
-                        <div class="form-group row">
-                            <label for="email"
-                                class="col-md-4 col-form-label text-md-right">{{ __('E-Mail Address') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
-                                    name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
-
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="password"
-                                class="col-md-4 col-form-label text-md-right">{{ __('Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password" type="password"
-                                    class="form-control @error('password') is-invalid @enderror" name="password"
-                                    required autocomplete="current-password">
-
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <div class="col-md-6 offset-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-
-                                    <label class="form-check-label" for="remember">
-                                        {{ __('Remember Me') }}
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group row mb-0">
-                            <div class="col-md-8 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Login') }}
-                                </button>
-
-                                @if (Route::has('password.request'))
-                                    <a style="display: none" class="btn btn-link" href="{{ route('password.request') }}">
-                                        {{ __('Forgot Your Password?') }}
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-                    </form>
+            <!-- Right Panel -->
+            <div class="col-md-8 right-panel">
+                <div class="logo">
+                    <img src="{{ asset('images/logo.png') }}" alt="Revvelocity Logo">
                 </div>
+                <h2>Welcome Back</h2>
+                <div class="subtitle">
+                    Enter your email address & password to login
+                </div>
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+                    @if(Session::has('status'))
+                        <div class="alert alert-success">{{Session::get('status')}}</div>
+                    @endif
+                    <input id="email" type="email" class=" @error('email') is-invalid @enderror" name="email"
+                        value="{{ old('email') }}" placeholder="Enter Your Email" required autocomplete="email"
+                        autofocus>
+
+                        <div style="position: relative;">
+    <input id="password" type="password"
+           class="@error('password') is-invalid @enderror"
+           name="password" placeholder="Enter Your Password"
+           required autocomplete="current-password"
+           style="padding-right: 40px;">
+
+    <span onclick="togglePassword()" style="
+        position: absolute;
+        right: 20px;
+        top: 40%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        user-select: none;">
+        <i id="eyeIcon" class="fa-solid fa-eye"></i>
+    </span>
+</div>
+
+
+
+                    @error('email')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+                    <div class="remember">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">Remember Me</label>
+                    </div>
+                    <button class="btn">
+                        LOGIN
+                    </button>
+                </form>
             </div>
         </div>
     </div>
-</div>
-@endsection
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+        integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+        crossorigin="anonymous"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"
+        integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+        crossorigin="anonymous"></script>
+</body>
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById("password");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const isPasswordHidden = passwordInput.type === "password";
+
+    passwordInput.type = isPasswordHidden ? "text" : "password";
+
+    // Toggle eye / eye-slash icon
+    eyeIcon.classList.toggle("fa-eye");
+    eyeIcon.classList.toggle("fa-eye-slash");
+}
+</script>
+
+
+</html>

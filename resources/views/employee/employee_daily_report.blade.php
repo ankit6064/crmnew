@@ -179,13 +179,13 @@ $(document).ready(function () {
         
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false }, // Sr. No column
-            { data: 'lead_name', name: 'lead_name' },
-            { data: 'conversation_type', name: 'conversation_type' },
-            { data: 'note', name: 'note' },
-            { data: 'note_date_time', name: 'note_date_time' },
+            { data: 'prospect_first_name', name: 'prospect_first_name',orderable:true,searchable:false },
+            { data: 'conversation_type', name: 'conversation_type',orderable:false },
+            { data: 'note', name: 'note',orderable:false },
+            { data: 'updated_at', name: 'updated_at',orderable:true },
             { data: 'status', name: 'status', orderable: false, searchable: false },
         ],
-        order: [[1, 'asc']], // Ensure ordering does not affect Sr. No
+        order: [[4, 'desc']], // Ensure ordering does not affect Sr. No
         columnDefs: [
             { targets: 0, className: 'text-center' } // Center align Sr. No column
         ],

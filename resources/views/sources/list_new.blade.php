@@ -254,7 +254,8 @@
         padding: 0px;
         white-space: break-spaces;
     }
-    .source-item{
+
+    .source-item {
         cursor: pointer;
     }
 
@@ -358,7 +359,7 @@
 
                     <div class="card-body">
                         <!--<h4 class="card-title">Data Export </h4>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <h6 class="card-subtitle">Copy, CSV, PDF & Print</h6>-->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <h6 class="card-subtitle">Copy, CSV, PDF & Print</h6>-->
                         <a type="button" href="{{ route('sources.create') }}" class="btn btn-success addButton"> + Add
                             Campaign</a>
                         <div class="table-responsive m-t-40" id="table_data">
@@ -369,6 +370,7 @@
 
                                         <th width="200" style="text-align:center">Campaign</th>
                                         <th width="200" style="text-align:center">Sub-Campaign Name</th>
+                                        <th width="200" style="text-align:center">Transfer Company</th>
                                         <th width="50" style="text-align:center">Total Leads</th>
                                         <th width="50" style="text-align:center">Company Distribution</th>
                                         <th width="50" style="text-align:center">Manager</th>
@@ -399,7 +401,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="totalLeadsLabel">Total Leads According to Company</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closemodal()">
-                        <span aria-hidden="true">&times;</span>
+                        <span aria-hidden="true" style="color: black;">&times;</span>
                     </button>
                 </div>
                 <div id="totalLeadsModalBody" class="modal-body">
@@ -414,7 +416,48 @@
                     <button type="button" class="btn btn-info" data-dismiss="modal" onclick="closemodal()">Close</button>
                 </div>
             </div>
+
         </div>
+        </form>
+    </div>
+
+
+    <div class="modal fade" id="transferleadmodal" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
+        aria-hidden="true">
+        <form method="post" id="transferform">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="totalLeadsLabel">Company listing</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="closemodaltransfer()">
+                            <span aria-hidden="true" style="color:black">&times;</span>
+                        </button>
+                    </div>
+                    <div id="transferleadbody" class="modal-body">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span id="error_company_select" style="padding-left: var(--bs-modal-padding);color:red;display:none">Select
+                        atleast any one company</span>
+                    <div id="source_div" style="padding-left: var(--bs-modal-padding);">
+                    </div>
+                    <span id="error_source_select" style="padding-left: var(--bs-modal-padding);color:red;display:none">Select
+                        transfer source</span>
+
+                    <div class="modal-footer">
+                        <input type="hidden" id="sourceoldId" name="sourceoldId" value="">
+                        <button type="button" class="btn btn-success addButton"  onclick="transferleads()">Transfer</button>
+                        <button type="button" class="btn btn-info" data-dismiss="modal"
+                            onclick="closemodaltransfer()">Close</button>
+                    </div>
+                </div>
+
+            </div>
+        </form>
     </div>
 
 
@@ -510,9 +553,9 @@
                     <select id="manager">
                         <option value="0">Choose Manager</option>
                         <?php 
-                             if (isset($managers) && !empty($managers[0])) {
+                                                     if (isset($managers) && !empty($managers[0])) {
         foreach ($managers as $manager) { 
-                                ?>
+                                                        ?>
                         <option value="<?php        echo $manager->id; ?>">
                             <?php        echo $manager->name; ?>
                         </option>
@@ -536,6 +579,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         var leadscountUrl = "{{ route('sources.leadscount') }}";
+        var transferleadsurl = "{{ route('transferleads') }}";
+
     </script>
     <script>
         $(document).ready(function () {
@@ -545,22 +590,23 @@
                 serverSide: true,
                 searching: false,
                 pageLength: 10,
-                ordering: false,
+                ordering: true,
                 ajax: {
                     url: '{{ route('campaigns_list_ajax_pagination') }}',
                     type: 'GET',
                 },
                 columns: [
-                    { data: 'source_name', name: 'source_name' },
+                    { data: 'source_name_new', name: 'source_name' },
                     { data: 'description', name: 'description' },
-                    { data: 'total_leads', name: 'total_leads' },
-                    { data: 'company_distribution', name: 'company_distribution' },
-                    { data: 'manager_name', name: 'manager_name' },
-                    { data: 'status', name: 'status' },
+                    { data: 'transfer', name: 'transfer',orderable:false },
+                    { data: 'total_leads_new', name: 'total_leads' },
+                    { data: 'company_distribution', name: 'company_distribution',orderable:false },
+                    { data: 'manager_name', name: 'manager_name',orderable:false },
+                    { data: 'status', name: 'status',orderable:false },
 
-                    { data: 'created_at', name: 'created_at' },
-                    { data: 'updated_at', name: 'updated_at' },
-                    { data: 'action', name: 'action' },
+                    { data: 'created_at_new', name: 'created_at',orderable:true },
+                    { data: 'updated_at_new', name: 'updated_at',orderable:true },
+                    { data: 'action', name: 'action',orderable:false },
                 ], drawCallback: function () {
                     // Initialize Switchery for each checkbox
                     $('.switchery').each(function () {
@@ -827,6 +873,89 @@
                 }
             });
         });
+
+        function transfermodal(id, name) {
+            $('#error_company_select').css('display', 'none');
+            $('#error_source_select').css('display', 'none');
+
+
+            $('#transferleadmodal').modal('show');
+
+            // Show loading spinner while content loads
+            let loaderHtml = '<div class="d-flex justify-content-center">' +
+                '<div class="spinner-border" role="status">' +
+                '<span class="sr-only">Loading...</span>' +
+                '</div>' +
+                '</div>';
+            $('#transferleadbody').html(loaderHtml);
+
+            // Load dynamic content
+            var sourceleadtransfer = "{{ url('source-lead-transfer') }}";
+
+            $.ajax({
+                url: sourceleadtransfer + '/' + id,  // Global variable passed from Blade
+                method: "GET",
+                dataType: "json",
+                success: function (response) {
+                    // $('#transferleadbody').html('');
+
+                    $('#transferleadbody').html(response.html);
+                    $('#source_div').html(response.sourcediv);
+
+
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error: ", error);
+                }
+            });
+            // $('#transferleadbody').load('/source-lead-transfer/' + id, function () {
+            // });
+            $('#sourceoldId').val(id);
+
+        }
+
+
+        function transferleads() {
+            var new_source_id = $('#sourcelistid').val();
+            var old_source_id = $('#sourceoldId').val();
+            let selectedValues = [];
+            var is_valid = 1;
+            $('input[name="test[]"]:checked').each(function () {
+                selectedValues.push($(this).val());
+            });
+            if (selectedValues.length === 0) {
+                $('#error_company_select').css('display', 'block');
+                var is_valid = 0;
+                // Stop further processing
+            }
+            if (new_source_id == '') {
+                $('#error_source_select').css('display', 'block');
+                var is_valid = 0;
+            }
+            if (is_valid == 1) {
+
+                $.ajax({
+                    url: transferleadsurl,  // Global variable passed from Blade
+                    method: "POST",
+                    data: { leads: selectedValues, new_source_id, old_source_id },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.status == 200) {
+                            alert(response.message);
+                            location.reload(true);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error: ", error);
+                    }
+                });
+            }
+        }
+
+        function closemodaltransfer() {
+            $('#transferleadmodal').modal('hide');
+
+        }
 
 
     </script>

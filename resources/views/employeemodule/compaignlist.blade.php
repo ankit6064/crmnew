@@ -97,8 +97,8 @@ $(document).ready(function () {
             }
         },
         columns: [
-            { data: 'source_name', name: 'source_name', orderable: false, searchable: true },
-            { data: 'description', name: 'description', orderable: false, searchable: true },
+            { data: 'source_name', name: 'source_name', orderable: true, searchable: true },
+            { data: 'description', name: 'description', orderable: true, searchable: true },
             { data: 'totalLeads', name: 'totalLeads', orderable: true, searchable: false },
         ],
         // Show spinner before each table redraw (pagination, sort, etc.)

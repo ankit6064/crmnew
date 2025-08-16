@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LeadsController;
+use App\Http\Controllers\LogsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReminderController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/managerdashboard', [HomeController::class, 'managerdashboard'])->middleware(['auth', 'verified'])->name('managerdashboard');
+    Route::get('/getmanagergraph', [HomeController::class, 'getmanagergraph'])->middleware(['auth', 'verified'])->name('getmanagergraph');
+
+
 });
 
 Route::get('lead/export/{id}/pdf_down', [LeadClosedController::class,'generateSinglePDF'])->name('generateSinglePDF');
@@ -94,12 +99,14 @@ Route::prefix('manager')->group(function () {
     Route::get('employee/{manager_id}/data', [ManagerController::class, 'getManagerEmloyees'])->name('manager.employees.data');
 });
 Route::post('storemanageremployeedetail', [EmployeeController::class, 'storemanageremployee'])->name('employee.storemanageremployeedetail');
+Route::post('managerstore', [EmployeeController::class, 'managerstore'])->name('managerstore');
 
 Route::prefix('employee')->group(function () {
     Route::get('/', [EmployeeController::class, 'index'])->name('employee.index');
     Route::get('data', [EmployeeController::class, 'getEmployees'])->name('employee.data');
     Route::get('create', [EmployeeController::class, 'create'])->name('employee.create');
     Route::post('store', [EmployeeController::class, 'store'])->name('employee.store');
+
     Route::get('{employee_id}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
     Route::put('{employee_id}', [EmployeeController::class, 'update'])->name('employee.update');
     Route::post('{employee_id}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
@@ -113,13 +120,24 @@ Route::prefix('employee')->group(function () {
     Route::post('create_mom/', [EmployeeController::class,'create_mom'])->name('employee.create_mom');
     Route::get('export/{id}/word_single_down', [EmployeeController::class,'wordEmployeeDownSingle'])->name('wordEmployeeDownSingle');
 
+   
+    Route::get('submanagerlisting', [EmployeeController::class, 'submanagerlisting'])->name('employee.submanagerlisting');
+    Route::get('submanagerlistingdata', [EmployeeController::class, 'submanagerlistingdata'])->name('employee.submanagerlistingdata');
+    Route::get('submanageredit', [EmployeeController::class, 'submanageredit'])->name('employee.submanageredit');
+
+
 });
+
+
 
 Route::post('lhs_report_save', [EmployeeController::class,'lhs_report_save'])->name('employee.lhs_report_save');
 Route::get('lhs_report/edit/{id}', [EmployeeController::class,'edit_lhs_report'])->name('employee.edit_lhs_report');
 Route::post('lhs_report/update', [EmployeeController::class,'update_lhs_report'])->name('employee.update_lhs_report');
 Route::get('lhs_report/view_lhs/{id}', [EmployeeController::class,'view_lhs'])->name('employee.view_lhs');
 Route::post('create_mom', [EmployeeController::class,'create_mom'])->name('employee.create_mom');
+Route::get('manageleadchart', [SourcesController::class,'manageleadchart'])->name('manageleadchart');
+Route::post('filtercampaign', [SourcesController::class,'filtercampaign'])->name('filtercampaign');
+
 
 
 Route::prefix('leads')->group(function (): void {
@@ -131,6 +149,14 @@ Route::prefix('leads')->group(function (): void {
     Route::get('assign_lead_emp/{id?}', [LeadsController::class, 'assign_lead_emp'])->name('leads.assign_lead_emp');
     Route::post('statusUpdate', [EmployeeController::class, 'statusUpdate'])->name('employee.statusUpdate');
     Route::post('manageemployeelogin', [EmployeeController::class, 'manageemployeelogin'])->name('employee.manageemployeelogin');
+    Route::post('assignsubmanager', [EmployeeController::class, 'assignsubmanager'])->name('employee.assignsubmanager');
+    Route::post('transferleademployee', [EmployeeController::class, 'transferleademployee'])->name('employee.transferleademployee');
+    Route::post('assignemployees', [EmployeeController::class, 'assignemployees'])->name('employee.assignemployees');
+    Route::get('viewemployees', [EmployeeController::class, 'viewemployees'])->name('employee.viewemployees');
+    Route::post('removeemployee', [EmployeeController::class, 'removeemployee'])->name('employee.removeemployee');
+    Route::get('createmanager', [EmployeeController::class, 'createmanager'])->name('employee.createmanager');
+
+    
 
     Route::get('campname', [LeadsController::class, 'campname'])->name('leads.campname');
     Route::get('assigned_leads', [LeadsController::class, 'assigned_leads'])->name('leads.assigned_leads');
@@ -141,12 +167,16 @@ Route::prefix('leads')->group(function (): void {
     Route::get('reassigned', [LeadsController::class, 'reassigned'])->name('leads.reassigned');
     Route::get('unapproved_manager_leads_list_pagination', [LeadsController::class, 'unapprovedManagerLeadsajaxPagination'])->name('unapproved_manager_leads_list_pagination');
     Route::get('unapproved_emp_leads_list_pagination', [LeadsController::class, 'unapproved_emp_leads_list_pagination'])->name('unapproved_emp_leads_list_pagination');
+    Route::post('updatelinkedin', [LeadsController::class, 'updatelinkedin'])->name('updatelinkedin');
 
+    
     Route::get('unapprovedLeads', [LeadsController::class, 'unapprovedLeads'])->name('leads.unapprovedLeads');
     Route::post('updateApprovalStatus', [LeadsController::class, 'updateApprovalStatus'])->name('updateApprovalStatus');
     Route::get('unapprovedLeadsemp', [LeadsController::class, 'unapprovedLeadsemp'])->name('leads.unapprovedLeadsemp');
 
     Route::get('closed', [LeadsController::class, 'closed'])->name('closed');
+    Route::get('completed', [LeadsController::class, 'completed'])->name('completed');
+
     Route::get('callbackleads', [LeadsController::class, 'callbackleads'])->name('callbackleads');
     Route::post('changecallbackstatus', [LeadsController::class, 'changecallbackstatus'])->name('changecallbackstatus');
     Route::post('checkpendingcallback', [LeadsController::class, 'checkpendingcallback'])->name('checkpendingcallback');
@@ -182,6 +212,10 @@ Route::get('employee/{id}/daily_report', [DailyReportController::class, 'daily_r
 Route::get('/add_leads/{id}', [SourcesController::class,'create_campaign'])->name('create_campaign');
 Route::post('import_leads', [SourcesController::class,'import_leads'])->name('import_leads');
 Route::get('source-lead/{id}', [SourcesController::class,'getLeadBySourceId']);
+Route::get('source-lead-transfer/{id}', [SourcesController::class,'getLeadBySourceIdtransfer'])->name('getLeadBySourceIdtransfer');
+Route::post('transferleads', [SourcesController::class,'transferleads'])->name('transferleads');
+
+
 Route::get('/campaign/camp_assign_emp', [SourcesController::class,'camp_assign_emp'])->name('camp_assign_emp');
 Route::get('/campaign/camp_assign_list', [SourcesController::class,'camp_assign_list'])->name('camp_assign_list');
 Route::get('/campaign/camp_assign_emp/{id}', [SourcesController::class,'view_camp'])->name('employe.view_camp');
@@ -199,5 +233,17 @@ Route::get('lead/exportCsv/{id}/report_down', [LeadClosedCsv::class,'reportDown'
 
 Route::get('test', [PostController::class, 'index']);
 Route::get('tables', [PostController::class, 'datatables'])->name('test.datatables');
+Route::get('employeelogs', [LogsController::class, 'employeelogs'])->name('employeelogs');
+Route::get('managerlogs', [LogsController::class, 'managerlogs'])->name('managerlogs');
+Route::get('leadslogs', [LogsController::class, 'leadslogs'])->name('leadslogs');
+
+Route::get('filteremployeelogs', [LogsController::class, 'filteremployeelogs'])->name('filteremployeelogs');
+
+Route::get('filterleadslogs', [LogsController::class, 'filterleadslogs'])->name('filterleadslogs');
+Route::get('viewleadlogs/{id}', [LogsController::class, 'viewleadlogs'])->name('viewleadlogs');
+Route::get('viewleadlogstable', [LogsController::class, 'viewleadlogstable'])->name('viewleadlogstable');
+
+
+
 
 require __DIR__ . '/auth.php';

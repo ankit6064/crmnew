@@ -29,6 +29,12 @@
     div#example23_filter {
     display: block !important;
 }
+th[data-orderable="false"]::before,
+th[data-orderable="false"]::after {
+    display: none !important;
+}
+
+
 </style>
 
 @section('content')
@@ -81,7 +87,7 @@
                             cellspacing="0" width="100%">
                             <thead>
                                 <tr>
-                                    <th>Action</th>
+                                    <th data-orderable="false">Action</th>
                                     <th>Campaign Name</th>
                                     <th>Sub-Campaign Name</th>
                                     <th>Company Name</th>
@@ -269,16 +275,16 @@
             ajax: "{{ url('leads/closed') }}",
             columns: [
                 { data: 'action', name: 'action', orderable: false, searchable: false },
-                { data: 'source.source_name', name: 'source.source_name' },
-                { data: 'source.description', name: 'source.description' },
-                { data: 'company_name', name: 'company_name' },
-                { data: 'prospect_first_name', name: 'prospect_first_name' },
-                { data: 'timezone', name: 'timezone' },
-                { data: 'designation', name: 'designation' },
-                { data: 'contact_number_1', name: 'contact_number_1' },
-                { data: 'updated_at', name: 'updated_at' },
+                { data: 'source_name', name: 'sources.source_name',orderable:true,searchable:true },
+                { data: 'description', name: 'sources.description',orderable:true,searchable:true },
+                { data: 'company_name', name: 'company_name',orderable:false },
+                { data: 'prospect_first_name', name: 'prospect_first_name',orderable:false },
+                { data: 'timezone', name: 'timezone',orderable:false,searchable:true },
+                { data: 'designation', name: 'designation',orderable:false },
+                { data: 'contact_number_1', name: 'contact_number_1',orderable:false },
+                { data: 'updated_at', name: 'updated_at',orderable:true },
                 { data: 'last_updated_note', name: 'last_updated_note', orderable: false, searchable: false },
-                { data: 'options', name: 'options' }
+                { data: 'options', name: 'options',orderable:false }
             ]
         });
 

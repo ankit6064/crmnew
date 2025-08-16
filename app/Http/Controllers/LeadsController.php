@@ -14,9 +14,11 @@ use App\Models\conversationType;
 use App\Models\LhsFiles;
 use App\Models\CallbackLeads;
 use App\Models\Checkcallback;
+use App\Models\Logs;
 use Illuminate\Http\Request;
 use App\Http\Requests\AssignLeadRequest;
 use Illuminate\Support\Carbon;
+use Log;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Auth;
@@ -203,8 +205,16 @@ class LeadsController extends Controller
             'approval_status' => $approval_status,
         ];
 
-        Lead::create($data);
+        $lead = Lead::create($data);
         // Get and print the last executed query
+
+        $logs = new Logs();
+        $logs->user_id = Auth::id();
+        $logs->type = 5;
+        $logs->description = 'Lead is added';
+        $logs->reference_id = $lead->id;
+        $logs->source_id = $request->source_id;
+        $logs->save();
 
         if (Auth::user()->is_admin == 1) {
             return redirect('leads/unapprovedLeadsemp')->with('success', 'Lead Added Successfully.');
@@ -621,11 +631,11 @@ class LeadsController extends Controller
                 if (strpos($var, 'linkedin') == -1) {
                     $linkdin = '<td><a href="javascript:void(0)" ><i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i></a></td>';
                 } else {
-                    $linkdin = '<td><a href="" target="_blank">
-                        <i alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>
+                    $linkdin = '<td><a href="' . $var . '" target="_blank">
+                    <i alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>
                 </td>
                 <td>
-                    <button onclick="editmodule(' . $lead["id"] . ', \'' . $var . '\')">Edit</button>
+                    <button onclick="editmodule(' . $lead["id"] . ', \'' . $var . '\')" style="background-color:#192e62;color:#fff;border-radius:3px">Edit</button>
                 </td>';
 
                 }
@@ -649,6 +659,22 @@ class LeadsController extends Controller
                 'recordsFiltered' => $totalRecords,
             ]);
         }
+    }
+
+    public function updatelinkedin(Request $request)
+    {
+        $check = Lead::where('id', $request->leadid)->first();
+        if (!empty($check)) {
+            $check->linkedin_address = $request->linkedinurl;
+            $check->save();
+            echo json_encode(['status' => 200, 'message' => 'Linkedin Updated']);
+            exit;
+        } else {
+            echo json_encode(['status' => 400, 'message' => 'Something went wrong']);
+            exit;
+
+        }
+
     }
 
     public function unapproved_emp_leads_list_pagination(Request $request)
@@ -764,12 +790,29 @@ class LeadsController extends Controller
                             'approval_status' => 1,
                             'asign_to' => $user_id
                         );
+                        $leadDetails = Lead::where('id',$leadId)->first();
                         if ($status == 'approved') {
+    
                             Lead::where('id', $leadId)->update($data1);
+                            
+                            $logs = New Logs();
+                            $logs->user_id = Auth::id();
+                            $logs->description = $leadDetails->company_name.' lead is approved';
+                            $logs->type = 15;
+                            $logs->source_id = $sourceId;
+                            $logs->reference_id = $leadId;
+                            $logs->save();
                             return response()->json(['success' => true, 'message' => 'Lead Has Been Approved Successfully!']);
                         } else {
                             Lead::where('id', $leadId)->update($data1);
                             Lead::where('id', $leadId)->delete();
+                            $logs = New Logs();
+                            $logs->user_id = Auth::id();
+                            $logs->description = $leadDetails->company_name.' lead is disapproved';
+                            $logs->type = 15;
+                            $logs->source_id = $sourceId;
+                            $logs->reference_id = $leadId;
+                            $logs->save();
                             return response()->json(['success' => true, 'message' => 'Lead Request Has Been Cancelled Successfully!']);
                         }
                     } else {
@@ -857,94 +900,195 @@ class LeadsController extends Controller
     public function closed(Request $request)
     {
         if ($request->ajax()) {
-            $query = Lead::with([
-                'source',
-                'momReport',
-                'notes' => function ($query) {
-                    $query->latest()->limit(1); // Eager load only the latest note to optimize query
-                }
+            $query = Lead::select([
+                'leads.*',
+                'sources.source_name as source_name',
+                'sources.description as description'
             ])
-                ->where(['asign_to' => auth()->user()->id])
-                ->where(['status' => '3'])
-                ->whereHas('source', function ($q) {
-                    $q->where('is_active', 1);
-                })
-                ->orderBy('id', 'DESC');
+                ->join('sources', 'leads.source_id', '=', 'sources.id')
+                ->with([
+                    'momReport',
+                    'lhsReport',
+                    'notes' => function ($query) {
+                        $query->latest()->limit(1);
+                    }
+                ])
+                ->where('leads.asign_to', auth()->user()->id)
+                ->where('leads.status', '3')
+                ->where('sources.is_active', 1);
+
+
+            if (
+                !$request->has('order') ||
+                ($request->input('order.0.column') == '0' && $request->input('order.0.dir') === 'asc')
+            ) {
+                $query->orderBy('closed_on', 'DESC')
+                    ->orderBy('leads.updated_at', 'DESC');
+            }
+
+
 
             return DataTables::of($query)
+                // Fix sorting & searching on joined columns
+
+
                 ->addColumn('action', function ($data) {
                     $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
-                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
+                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal"><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
                     return $notesButton . ' ' . $quickNoteButton;
                 })
+
                 ->editColumn('updated_at', function ($data) {
                     if (!empty($data->closed_on)) {
-                        return $data->closed_on->format('d M, Y H:i:s');
+                        return \Carbon\Carbon::parse($data->closed_on)->format('d M, Y H:i:s');
                     } else {
                         return $data->updated_at->format('d M, Y H:i:s');
                     }
                 })
+
                 ->addColumn('last_updated_note', function ($data) {
-                    // Get the latest note
                     $latestNote = $data->notes->first();
                     return $latestNote && strlen($latestNote->feedback) > 20
                         ? substr($latestNote->feedback, 0, 20) . '...'
                         : $latestNote->feedback ?? '';
                 })
+
                 ->addColumn('options', function ($data) {
-                    // Avoid querying LhsReport and MomReport multiple times for the same lead
-                    $getLhsReport = $data->lhsReport; // Already eager loaded
-    
+                    $lhsReport = $data->lhsReport;
                     $actionHtml = '';
 
-                    if ($getLhsReport) {
+                    if ($lhsReport) {
                         $actionHtml .= '
-                        <a href="' . url('/lhs_report/view_lhs', [$data->id]) . '">
-                            <span class="label" data-toggle="tooltip" data-placement="top" title="View LHS Report" style="color:#000;font-size: 15px;">
-                                <i class="fa fa-eye"></i>
-                            </span>
-                        </a>
-                        <a href="' . url('/lhs_report/edit', [$data->id]) . '">
-                            <span class="label" data-toggle="tooltip" data-placement="top" title="Edit LHS Report" style="color:#000;font-size: 15px;">
-                                <i class="fa fa-pencil"></i>
-                            </span>
-                        </a>
-                    ';
-
-                        // Check for MOM report and file path
-                        $momreport = $data->momReport; // Already eager loaded
-                        if (empty($momreport['mom_file_path'])) {
-                            $actionHtml .= '
-                            <a href="' . route('employee.show_mom', [$data->id]) . '">
-                                <span class="label" data-toggle="tooltip" data-placement="top" title="Create MOM Report" style="color:#000;font-size: 15px;">
-                                    <i class="fa fa-file-text-o"></i>
+                            <a href="' . url('/employee/lhs_report', [$data->id]) . '">
+                                <i class="fa fa-plus" title="Add LHS Report"></i>
+                            </a>';
+                        $actionHtml .= '
+                            <a href="' . url('/lhs_report/view_lhs', [$data->id]) . '">
+                                <span class="label" data-toggle="tooltip" data-placement="top" title="View LHS Report" style="color:#000;font-size: 15px;">
+                                    <i class="fa fa-eye"></i>
+                                </span>
+                            </a>
+                            <a href="' . url('/lhs_report/edit', [$data->id]) . '">
+                                <span class="label" data-toggle="tooltip" data-placement="top" title="Edit LHS Report" style="color:#000;font-size: 15px;">
+                                    <i class="fa fa-pencil"></i>
                                 </span>
                             </a>';
-                        } else {
-                            if (isset($momreport['mom_file_path'])) {
-                                $actionHtml .= '
-                                <a href="' . asset('storage/' . $momreport['mom_file_path']) . '">
-                                    <span class="label" data-toggle="tooltip" data-placement="top" title="MOM Download" style="color:#55ce63;font-size: 15px;">
-                                        <i class="ti-download"></i>
+
+                        $momReport = $data->momReport;
+                        if (empty($momReport['mom_file_path'])) {
+                            $actionHtml .= '
+                                <a href="' . route('employee.show_mom', [$data->id]) . '">
+                                    <span class="label" data-toggle="tooltip" data-placement="top" title="Create MOM Report" style="color:#000;font-size: 15px;">
+                                        <i class="fa fa-file-text-o"></i>
                                     </span>
                                 </a>';
-                            }
-                        }
+                        } 
                     } else {
                         $actionHtml .= '
-                        <a href="' . url('/employee/lhs_report', [$data->id]) . '">
-                            <i class="fa fa-plus" title="Add LHS Report"></i>
-                        </a>';
+                            <a href="' . url('/employee/lhs_report', [$data->id]) . '">
+                                <i class="fa fa-plus" title="Add LHS Report"></i>
+                            </a>';
                     }
 
                     return $actionHtml;
                 })
+
                 ->rawColumns(['action', 'last_updated_note', 'options'])
                 ->make(true);
         }
 
         return view('leads.closed');
     }
+
+
+    public function completed(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = Lead::select([
+                'leads.*',
+                'sources.source_name as source_name',
+                'sources.description as description'
+            ])
+                ->join('sources', 'leads.source_id', '=', 'sources.id')
+                ->with([
+                    'momReport',
+                    'lhsReport',
+                    'notes' => function ($query) {
+                        $query->latest()->limit(1);
+                    }
+                ])
+                ->where('leads.asign_to', auth()->user()->id)
+                ->where('leads.status', '5')
+                ->where('sources.is_active', 1);
+
+
+            if (
+                !$request->has('order') ||
+                ($request->input('order.0.column') == '0' && $request->input('order.0.dir') === 'asc')
+            ) {
+                $query->orderBy('closed_on', 'DESC')
+                    ->orderBy('leads.updated_at', 'DESC');
+            }
+            
+
+
+
+            return DataTables::of($query)
+                // Fix sorting & searching on joined columns
+
+
+                ->addColumn('action', function ($data) {
+                    $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
+                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal"><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
+                    return $notesButton . ' ' . $quickNoteButton;
+                })
+
+                ->editColumn('updated_at', function ($data) {
+                    if (!empty($data->closed_on)) {
+                        return \Carbon\Carbon::parse($data->closed_on)->format('d M, Y H:i:s');
+                    } else {
+                        return $data->updated_at->format('d M, Y H:i:s');
+                    }
+                })
+
+                ->addColumn('last_updated_note', function ($data) {
+                    $latestNote = $data->notes->first();
+                    return $latestNote && strlen($latestNote->feedback) > 20
+                        ? substr($latestNote->feedback, 0, 20) . '...'
+                        : $latestNote->feedback ?? '';
+                })
+
+                ->addColumn('options', function ($data) {
+                    $lhsReport = $data->lhsReport;
+                    $actionHtml = '';
+                        $momReport = $data->momReport;
+                        if (empty($momReport['mom_file_path'])) {
+                            $actionHtml .= '
+                                <a href="' . route('employee.show_mom', [$data->id]) . '">
+                                    <span class="label" data-toggle="tooltip" data-placement="top" title="Create MOM Report" style="color:#000;font-size: 15px;">
+                                        <i class="fa fa-file-text-o"></i>
+                                    </span>
+                                </a>';
+                        } elseif (!empty($momReport['mom_file_path'])) {
+                            $actionHtml .= '
+                                <a href="' . asset('storage/' . $momReport['mom_file_path']) . '">
+                                    <span class="label" data-toggle="tooltip" data-placement="top" title="MOM Download" style="color:#55ce63;font-size: 15px;">
+                                        <i class="ti-download"></i>
+                                    </span>
+                                </a>';
+                        }
+                    
+
+                    return $actionHtml;
+                })
+
+                ->rawColumns(['action', 'last_updated_note', 'options'])
+                ->make(true);
+        }
+
+        return view('leads.completed');
+    }
+
 
     public function add_note(Request $request)
     {
@@ -971,6 +1115,14 @@ class LeadsController extends Controller
             $callbackleads->callback_time = $request->callback_time;
             $callbackleads->save();
         }
+
+        $logs = new Logs();
+        $logs->user_id = Auth::id();
+        $logs->type = 1;
+        $logs->description = "Note is added(".$request->reminder_for.")";
+        $logs->reference_id = $request->lead_id;
+        $logs->note_id = $note->id;
+        $logs->save();
 
 
         // dd(config('app.timezone'));
@@ -1050,37 +1202,58 @@ class LeadsController extends Controller
             } else {
                 $callback_status = ["0", "1", "2"];
             }
-            if ($passedleads == 'passed') {
+            // if ($passedleads == 'passed') {
 
-                $callbackleads = CallbackLeads::whereIn('employee_id', $employeeids)
-                    ->whereDate('callback_date', $currentDate)
-                    ->whereTime('callback_time', '<', $currentTime) // 🔍 Only future callbacks
-                    ->where('status', 0)
-                    ->orderBy('callback_time')
-                    ->get();
+            //     $callbackleads = CallbackLeads::whereIn('employee_id', $employeeids)
+            //         ->whereDate('callback_date', $currentDate)
+            //         ->whereTime('callback_time', '<', $currentTime) // 🔍 Only future callbacks
+            //         ->where('status', 0)
+            //         ->orderBy('callback_time')
+            //         ->get();
+            // } else {
+            //     $callbackleads = CallbackLeads::whereIn('employee_id', $employeeids)
+            //         ->whereDate('callback_date', $currentDate)
+            //         ->orderBy('callback_time')
+            //         ->whereIn('status', $callback_status)
+            //         ->get();
+            // }
+            // if (isset($callbackleads) && !empty($callbackleads)) {
+            //     for ($i = 0; $i < count($callbackleads); $i++) {
+            //         $leadDetails = Lead::join('sources', 'sources.id', 'leads.source_id')->where('leads.id', $callbackleads[$i]->lead_id)->first();
+            //         if (!empty($leadDetails)) {
+            //             $callbackleads[$i]->lead_name = $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
+            //             $callbackleads[$i]->source_name = $leadDetails->source_name;
+            //             $callbackleads[$i]->description = $leadDetails->description;
+
+            //         }
+            //         $employee_details = User::where('id', $callbackleads[$i]->employee_id)->first();
+            //         if (!empty($employee_details)) {
+            //             $callbackleads[$i]->employee_name = $employee_details->first_name . ' ' . $employee_details->last_name;
+            //         } else {
+            //             $callbackleads[$i]->employee_name = 'N/A';
+            //         }
+            //     }
+            // }
+            $callbackleads = CallbackLeads::query()
+                ->join('leads', 'leads.id', '=', 'callback_leads.lead_id')
+                ->join('sources', 'sources.id', '=', 'leads.source_id')
+                ->join('users', 'users.id', '=', 'callback_leads.employee_id')
+                ->select(
+                    'callback_leads.*',
+                    DB::raw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) as lead_name"),
+                    'sources.source_name',
+                    'sources.description',
+                    DB::raw("CONCAT(users.first_name, ' ', users.last_name) as employee_name")
+                )
+                ->whereIn('callback_leads.employee_id', $employeeids)
+                ->whereDate('callback_leads.callback_date', $currentDate);
+
+            // Apply conditionally based on $passedleads
+            if ($passedleads === 'passed') {
+                $callbackleads->whereTime('callback_leads.callback_time', '<', $currentTime)
+                    ->where('callback_leads.status', 0);
             } else {
-                $callbackleads = CallbackLeads::whereIn('employee_id', $employeeids)
-                    ->whereDate('callback_date', $currentDate)
-                    ->orderBy('callback_time')
-                    ->whereIn('status', $callback_status)
-                    ->get();
-            }
-            if (isset($callbackleads) && !empty($callbackleads)) {
-                for ($i = 0; $i < count($callbackleads); $i++) {
-                    $leadDetails = Lead::join('sources', 'sources.id', 'leads.source_id')->where('leads.id', $callbackleads[$i]->lead_id)->first();
-                    if (!empty($leadDetails)) {
-                        $callbackleads[$i]->lead_name = $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
-                        $callbackleads[$i]->source_name = $leadDetails->source_name;
-                        $callbackleads[$i]->description = $leadDetails->description;
-
-                    }
-                    $employee_details = User::where('id', $callbackleads[$i]->employee_id)->first();
-                    if (!empty($employee_details)) {
-                        $callbackleads[$i]->employee_name = $employee_details->first_name . ' ' . $employee_details->last_name;
-                    } else {
-                        $callbackleads[$i]->employee_name = 'N/A';
-                    }
-                }
+                $callbackleads->whereIn('callback_leads.status', $callback_status);
             }
             return DataTables::of($callbackleads)
                 ->addIndexColumn()
@@ -1337,18 +1510,31 @@ class LeadsController extends Controller
     {
         if ($request->ajax()) {
             // Eager load the relationships we need (source and notes)
-            $query = Lead::with([
-                'source',
-                'notes' => function ($query) {
-                    $query->latest()->limit(1); // Eager load the latest note only
-                }
+            $query = Lead::select([
+                'leads.*',
+                'sources.source_name as source_name',
+                'sources.description as description'
             ])
-                ->where('asign_to', auth()->user()->id)
-                ->where('status', '4')
-                ->whereHas('source', function ($q) {
-                    $q->where('is_active', 1);
-                })
-                ->orderBy('id', 'DESC');
+                ->join('sources', 'leads.source_id', '=', 'sources.id')
+                ->with([
+                    'momReport',
+                    'lhsReport',
+                    'notes' => function ($query) {
+                        $query->latest()->limit(1);
+                    }
+                ])
+                ->where('leads.asign_to', auth()->user()->id)
+                ->where('leads.status', '4')
+                ->where('sources.is_active', 1);
+
+
+            if (
+                !$request->has('order') ||
+                ($request->input('order.0.column') == '0' && $request->input('order.0.dir') === 'asc')
+            ) {
+                $query->orderBy('closed_on', 'DESC')
+                    ->orderBy('leads.updated_at', 'DESC');
+            }
 
             return DataTables::of($query)
                 ->addColumn('action', function ($data) {
@@ -1396,7 +1582,7 @@ class LeadsController extends Controller
                 $conversationType = $notesCountObj->first('reminder_for')->reminder_for;
                 $html = '';
                 // $hostname = Config::get('app.url');
-                $hostnameNew = "http://203.190.154.132";//Config::get('app.url');
+                $hostnameNew = "http://127.0.0.1:8000";//Config::get('app.url');
                 $Current_url = $hostnameNew . "/employee/lhs_report/" . $request->lead_id . "?status=" . $request->status;
                 $html = '<li class="error_list"><span class="tab">Please add  LHS Report first.</span><a href="' . $Current_url . '" ><span class="tab">Click here to add Lhs Report</span></a></li>';
                 return response()->json(['error' => 'Please add LHS Report first.', 'lhs_link' => $html]);
@@ -1424,6 +1610,11 @@ class LeadsController extends Controller
                 Lead::where('id', $request->lead_id)->update(['status' => $request->status, 'is_notify' => 1, 'is_read' => 1]);
 
             }
+            $logs = new Logs();
+            $logs->user_id = Auth::id();
+            $logs->type = 2;
+            $logs->reference_id = $request->lead_id;
+            $logs->save();
             $notification_count = Lead::where('is_notify', '!=', 0)->count();
             if ($request->status == 2) {
                 $status = 'failed';
@@ -1530,6 +1721,16 @@ class LeadsController extends Controller
         $data->contact_number_1 = $input['contact_number_1'];
         $data->timezone = $input['timezone'];
         $data->save();
+
+        $logs = new Logs();
+        $logs->user_id = Auth::id();
+        $logs->type = 5;
+        $logs->description = 'Lead is edited';
+        $logs->reference_id = $data->id;
+        $logs->source_id = $data->source_id;
+        $logs->save();
+
+
         return redirect()->back()->with('success', 'Lead Updated Successfully.');
 
     }
