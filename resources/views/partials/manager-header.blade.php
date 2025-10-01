@@ -1,7 +1,7 @@
   <!--topbar-->
   <div class="topbar">
 			<div class="logo">
-				<img src="images/logo.png" alt="Revvelocity Logo">
+				<img src="{{ asset('images/logo.png') }}" alt="Revvelocity Logo">
 			</div>
 		<div class="profile-container">
 			<div class="profile-box" id="profileToggle">

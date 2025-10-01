@@ -11,8 +11,8 @@
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">
-            <a href="#"><i class="fas fa-eye"></i> View Submanager</a>
-            <a href="#"><i class="fas fa-plus"></i> Add Submanager</a>
+        <a href="{{ route('employee.submanagerlisting') }}"><i class="fas fa-eye"></i> View Submanager</a>
+            <a href="{{ route('employee.createmanager') }}"><i class="fas fa-plus"></i> Add Submanager</a>
         </div>
     </div>
     <div class="menu-item dropdown">

@@ -1576,7 +1576,15 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
 
     public function submanagerlisting(Request $request)
     {
-        return view('employee.submanagerlisting');
+         $inactive = User::where('is_admin', SUBMANAGER)
+                ->where('user_id', Auth::id())
+                ->where('is_active',operator: 2)
+                ->count();
+         $active = User::where('is_admin', SUBMANAGER)
+                ->where('user_id', Auth::id())
+                ->where('is_active',1)
+                ->count();
+        return view('employee.submanagerlisting',compact('inactive','active'));
     }
 
     public function submanagerlistingdata(Request $request)
@@ -1589,12 +1597,6 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
                 ->get();
 
             return DataTables::of($managers)
-                ->addColumn('status', function ($data) {
-                    // Determine if the checkbox should be checked
-                    $checked = $data->is_active == 1 ? 'checked' : '';
-                    $status = '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checked . '>';
-                    return $status;
-                })
                 ->addColumn('totalemployees', function ($data) {
                     // Count users where user_id matches the current data id
                     $totalemployees = User::where('user_id', $data->id)->count();
@@ -1602,18 +1604,34 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
                     // Return an anchor tag with the count
                     return '<p  class="view_emp" title="View Employee" onclick="viewemployees(' . $data->id . ')">' . $totalemployees . '</p>';
                 })
+                ->addColumn('totalcampaigns', function ($data) {
+                    // Count users where user_id matches the current data id
+                    $totalcampaigns = Source::where(function ($q) use ($data) {
+                        $q->where('user_id', $data->id)
+                            ->orWhere('assign_to_manager', $data->id);
+                    })
+                        ->where('is_active', 1)
+                        ->count();
+
+                    // Return an anchor tag with the count
+                    return $totalcampaigns;
+                })
+
 
                 ->addColumn('actions', function ($data) {
                     // Customize the action buttons
-                    $editLink = '<a href="' . route('employee.submanageredit', ['employee_id' => $data->id]) . '">
-                    <span class="material-symbols-outlined text-success editEmployee">edit_square</span>
-                </a>';
+                    $editLink = '<i class="fa-solid fa-pen-to-square text-success editEmployee" 
+                data-url="' . route('employee.submanageredit', ['employee_id' => $data->id]) . '"></i>';
+
+                    $checked = $data->is_active == 1 ? 'checked' : '';
+                    $editLink .= '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checked . '>';
+                    $editLink .= '<i class="fa-solid fa-trash"></i>';
 
 
                     return $editLink;
                 })
 
-                ->rawColumns(['actions', 'status', 'totalemployees'])
+                ->rawColumns(['actions', 'status', 'totalemployees','totalcampaigns'])
                 ->toJson();
         }
         return response()->json(['error' => 'Invalid request'], 400);

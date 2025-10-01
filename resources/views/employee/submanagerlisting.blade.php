@@ -1,5 +1,6 @@
 @extends('layouts.admin')
 @section('content')
+
     <style>
         .message-box {
             padding: 15px 20px;
@@ -45,86 +46,91 @@
             transform: scale(1.2);
             cursor: pointer;
         }
-        .view_emp{
+
+        .view_emp {
             cursor: pointer;
             color: blue;
         }
     </style>
-    <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">Dashboard</h3>
-        </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                <li class="breadcrumb-item active">Sub Manager</li>
-            </ol>
-        </div>
-    </div>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-outline-info">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <!-- Manager Name and Employees -->
-                        <h4 class="m-b-0 text-white">Sub Manager Listing</h4>
-                        <!-- Back Button on the Right -->
-                        <a href="{{ url()->previous() }}" class="btn btn-light d-flex align-items-center">
-                            <span class="material-symbols-outlined mr-2">
-                                arrow_back
-                            </span>
-                            Back
-                        </a>
-                    </div>
-
-                    <div class="modal fade" id="employeelisting" tabindex="-1" role="dialog"
-                        aria-labelledby="totalLeadsLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="totalLeadsLabel">Employee Listing</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                                        onclick="closemodal()">
-                                        <span aria-hidden="true" style="color: black;">&times;</span>
-                                    </button>
-                                </div>
-                                <!-- <form action="" method="post" id="submanagerform"> -->
-
-                                <div id="employeelistingbody" class="modal-body">
 
 
-                                </div>
-                                <!-- </form> -->
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-info" data-dismiss="modal"
-                                        onclick="closemodal()">Close</button>
-                                </div>
+
+    <div class="main-right">
+        <div class="right-side">
+            <h2>Submanager Listing</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="card-header">
+                            <h4>Active</h4>
+                            <div class="card-icon acti">
+                                <i class="fa-regular fa-user"></i>
                             </div>
-
                         </div>
-                        </form>
+                        <div class="card-body">
+                            <h2>{{$active}}</h2>
+                            <!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
+                        </div>
                     </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="card-header">
+                            <h4>Inactive</h4>
+                            <div class="card-icon inactive">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{$inactive}}</h2>
+                            <!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="graph">
+                <div class="row">
+                    <div class="add-submanager"><a href="{{ route('employee.createmanager') }}">Add Submanager</a></div>
+                </div>
+                <div class="modal fade" id="employeelisting" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="totalLeadsLabel">Employee Listing</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                                    onclick="closemodal()">
+                                    <span aria-hidden="true" style="color: black;">&times;</span>
+                                </button>
+                            </div>
+                            <!-- <form action="" method="post" id="submanagerform"> -->
+
+                            <div id="employeelistingbody" class="modal-body">
 
 
-                    <div class="card-body align-right">
-                        <a type="button" href="{{ route('employee.createmanager') }}"
-                            class="btn btn-success addButton addEmployee"><span class="material-symbols-outlined">
-                                person_add
-                            </span>
-                        </a>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-info" data-dismiss="modal"
+                                    onclick="closemodal()">Close</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="table">
+                    <div class="table-container">
                         <table class="table table-striped table-hover" id="employee-table">
-                            <thead>
+                            <thead class="thead-main">
                                 <tr>
                                     <th>First Name</th>
                                     <th>Last Name</th>
-                                    <th>Image</th>
                                     <th>Email</th>
                                     <th>Password</th>
-                                    <th>Address</th>
-                                    <th>Phone No</th>
-                                    <th>Change Status</th>
-                                    <th>Assigned Employees</th>
-                                    <th>Action</th>
+                                    <th>Phone</th>
+                                    <th>Assigned Emp</th>
+                                    <th>Assigned Cmp</th>
+                                    <th>Actions </th>
                                 </tr>
                             </thead>
                         </table>
@@ -168,11 +174,6 @@
                     name: 'last_name'
                 },
                 {
-                    data: 'image',
-                    name: 'image',
-                    orderable: false
-                },
-                {
                     data: 'email',
                     name: 'email',
                     orderable: false,
@@ -183,30 +184,25 @@
                     orderable: false,
                 },
                 {
-                    data: 'address',
-                    name: 'address',
-                    orderable: false,
-                },
-                {
                     data: 'phone_no',
                     name: 'phone_no',
                     orderable: false
                 },
-                
                 {
-                    data: 'status',
-                    name: 'status',
+                    data: 'totalemployees',
+                    name: 'totalemployees',
                     orderable: false,
                     searchable: false
-                },
-                {
-                    data:'totalemployees',
-                    name:'totalemployees',
-                    orderable:false,
-                    searchable:false
 
                 },
-                
+                {
+                    data: 'totalcampaigns',
+                    name: 'totalcampaigns',
+                    orderable: false,
+                    searchable: false
+
+                },
+
                 {
                     data: 'actions',
                     name: 'actions',
@@ -348,7 +344,7 @@
             });
         });
 
-        function viewemployees(managerid){
+        function viewemployees(managerid) {
             $.ajax({
                 url: "{{ route('employee.viewemployees') }}", // Corrected route syntax
                 method: 'get',
@@ -360,8 +356,10 @@
 
                 success: function (response) {
                     if (response.status == 200) {
-                       $('#employeelisting').modal('show');
-                       $('#employeelistingbody').html(response.html);
+                        // $('#employeelisting').modal('show');
+                        let modal = new bootstrap.Modal(document.getElementById('employeelisting'));
+                        modal.show();
+                        $('#employeelistingbody').html(response.html);
                     } else {
                         alert('Something went wrong.');
                     }
@@ -373,11 +371,23 @@
             });
         }
 
-        function closemodal(){
+        function closemodal() {
             $('#employeelisting').modal('hide');
 
         }
 
- 
+
+
+
     </script>
+
+    <script>
+        document.addEventListener("click", function (e) {
+            if (e.target.classList.contains("editEmployee")) {
+                const url = e.target.getAttribute("data-url");
+                window.location.href = url; // redirect
+            }
+        });
+    </script>
+
 @endpush

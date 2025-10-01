@@ -11,15 +11,17 @@
     background-image: url("../../images/blue-bg.jpg") !important;
     background-repeat: no-repeat !important;
     background-position: right !important;
+    background-size: contain;
 }
-.login-bg
-{
-	margin: 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	height: 100vh;
-	font-family: "Poppins", sans-serif;
+.login-bg {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Poppins", sans-serif;
+    padding: 40px 15px;
+    height: 100vh;
+    overflow: hidden;
 }
 .login-bg .container {
     display: flex;
@@ -133,6 +135,35 @@ input[type="email"]::placeholder, input[type="password"]::placeholder, input[typ
 
 
 /*-media-query-*/
+@media screen and (max-width: 1366px)
+{
+   .login-bg .container {
+    width: 100%;
+    max-width: 1000px;
+}
+.login-bg .right-panel {
+    padding: 30px !important;
+}
+.login-bg .left-panel img {
+    width: 100%;
+    max-width: 300px;
+}
+
+}
+
+@media screen and (max-width: 1240px)
+{
+  .login-bg .left-panel p {
+    font-size: 16px;
+    text-align: center;
+    line-height: 26px;
+}
+.login-bg .subtitle {
+    font-size: 17px;
+}
+}
+
+
 @media screen and (max-width: 992px)
 {
 	.right-panel {
@@ -140,19 +171,29 @@ input[type="email"]::placeholder, input[type="password"]::placeholder, input[typ
 }
 }
 
+.login-bg .left-panel img {
+    width: 100%;
+    border-radius: 5px;
+    margin-bottom: 40px;
+    max-width: 350px;
+    margin: 0px auto;
+}
+
 /*-media-query-*/
 	
 @media screen and (max-width: 767px)
 {
-	.container
-	{
-		flex-direction: column;
-	}
-	.login-bg .right-panel {
+.login-bg .right-panel {
     padding: 50px 50px;
 }
 .login-bg {
     height: auto;
+}
+.login-bg .container {
+    flex-direction: column;
+}
+.login-bg {
+    background-image: none !important;
 }
 }
 
@@ -167,6 +208,7 @@ input[type="email"]::placeholder, input[type="password"]::placeholder, input[typ
 }
 .login-bg {
     background-image: none !important;
+    padding:0px;
 }
 .login-bg .subtitle {
     text-align: center;

@@ -130,6 +130,12 @@ a {
     overflow: auto;
     height: calc(100vh - 111px);
 }
+.sidebar .menu-item:hover, a:hover .submenu a {
+    color: #000 !important;
+}
+.sidebar .submenu:hover a {
+    color: #000;
+}
 
 .card-body h2 {
     margin-top: 10px !important;
@@ -148,11 +154,8 @@ a:hover {
     text-decoration: none;
 }
 
-.submenu a {
-    color: #000;
-}
 
-.submenu a:hover {
+.sidebar .submenu a:hover {
     color: #000 !important;
 }
 
@@ -163,12 +166,15 @@ a:hover {
     cursor: pointer;
 }
 
+.sidebar .menu-item.dropdown:active .submenu a {
+    color: #000 !important;
+}
 .arrow {
     font-size: 14px;
     transition: transform 0.3s;
 }
 
-.submenu {
+.sidebar .submenu {
     display: none;
     padding-left: 20px;
 }
@@ -176,7 +182,7 @@ a:hover {
 .submenu a {
     padding: 8px 0;
     display: block;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .dropdown.active .submenu {
@@ -211,8 +217,8 @@ a:hover {
 }
 
 .main-right .stat-card .arrow-icon {
-    font-size: 20px;
-    transform: rotate(4deg);
+    font-size: 25px;
+    transform: rotate(-35deg);
     margin-right: 12px;
 }
 
@@ -228,6 +234,7 @@ a:hover {
     color: #000;
     opacity: 0.6;
     font-family: "Inter", sans-serif;
+    margin-bottom:0;
 }
 
 .main-content {
@@ -295,7 +302,7 @@ a:hover {
     margin-bottom: 25px;
 }
 
-.filter-container {
+.graph .filter-container {
     display: flex;
     gap: 20px;
     margin-bottom: 25px;
@@ -305,10 +312,9 @@ a:hover {
     width: 100%;
 }
 
-.filter-select,
-.filter-date {
-    padding: 12px 15px;
-    font-size: 16px;
+.graph .filter-select, .filter-date {
+    padding: 12px 15px !important;
+    font-size: 14px;
     border: 1px solid #DDDDDD;
     border-radius: 8px;
     background-color: #fff;
@@ -316,7 +322,6 @@ a:hover {
     outline: none;
     font-family: "Inter", sans-serif;
     appearance: none;
-    min-width: 160px;
     background-image: url("../images/dropdown-arrow.png");
     background-repeat: no-repeat;
     background-position: right 10px center;
@@ -324,7 +329,31 @@ a:hover {
     font-weight: 500;
     color: #00000087;
     width: 100%;
-    max-width: 175px;
+    max-width: 190px;
+}
+.daterangepicker.ltr.show-calendar.opensleft td.available {
+    padding: 15px 20px !important;
+}
+div#employee-table_paginate a.paginate_button:hover {
+    padding: 13px 20px !important;
+    border: none !important;
+    border-radius: 5px !important;
+    transition: 0.3s;
+    background: #0d3a6b !important;
+    color: #fff !important;
+}
+.graph button#filterLogs {
+    width: 100%;
+    max-width: 150px;
+    font-family: "Inter", sans-serif;
+}
+table#employee-table {
+    width: 100% !important;
+}
+.graph button#reset {
+    width: 100%;
+    max-width: 150px;
+    font-family: "Inter", sans-serif;
 }
 
 .graph .filter-container input.filter-date {
@@ -356,7 +385,7 @@ a:hover {
 }
 
 .card-body h2 {
-    font-size: 45px !important;
+    font-size: 35px !important;
     font-weight: 600 !important;
     font-family: "Poppins", sans-serif;
     margin-top: 0px !important;
@@ -402,5 +431,420 @@ a.stat-button:hover {
 .card-icon.icon8 {
     background: #5FBC01;
 }
+.daterangepicker {
+    width: 100% !important;
+    max-width: 670px !important;
+}
 
 /*-dashboard-*/
+
+/*-submanager-listing-*/
+.right-side.submanager .card-icon.acti {
+    background: #5FBC01;
+}
+.card-icon.acti {
+    background: #5FBC01;
+}
+.card-icon.inactive {
+    background: #FF0202;
+}
+.add-submanager a:hover {
+    color: #fff;
+    transition: 0.3s;
+}
+.right-side.submanager .card-icon.inactive {
+    background: red;
+}
+ .add-submanager a {
+    background: #0E3C70;
+    width: 100%;
+    max-width: 200px;
+    text-align: center;
+    float: right;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 40px;
+    margin-right: 17px;
+}
+.right-side.submanager .add-submanager a:hover {
+color:#fff;
+}
+
+/*-table-*/
+.graph thead.thead-main tr th {
+    padding: 30px 18px !important;
+    background: #0d3a6b;
+    color: #fff;
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+}
+.graph table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+}
+.graph tr td {
+    padding: 30px 15px !important;
+    font-family: "Inter", sans-serif;
+    font-weight: 500;
+}
+.graph thead {
+    background: #0d3a6b;
+}
+.graph tr td:nth-child(6) {
+    text-align: center;
+}
+.graph tr td:nth-child(7) {
+    text-align: center;
+}
+.graph tbody tr:nth-child(even) {
+    border-bottom: 1px solid #ddd !important;
+}
+.graph tbody tr:nth-child(even) {
+    border-bottom: 0;
+}
+.graph th, td {
+    padding: 30px 20px;
+    text-align: left;
+    font-size: 14px;
+}
+.graph tbody tr:nth-child(even) {
+    background: #F6F6F6;
+}
+.graph .table-container {
+    border: 1px solid #ddd;
+    border-radius: 10px !important;
+}
+.graph tbody tr:hover {
+    background: #f1f1f1;
+}
+.right-side.submanager .actions i {
+    margin: 0 5px;
+    cursor: pointer;
+    color: #555;
+	background: #0d3a6b;
+    padding: 5px;
+    border-radius: 5px;
+    color: #fff;
+}
+.right-side.submanager .actions i:hover {
+    color: #fff;
+}
+.right-side.submanager .pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 35px;
+    gap: 5px;
+}
+.right-side.submanager .pagination button {
+    background: #F5F5F5;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    border: 1px solid #ddd;
+}
+.right-side.submanager .pagination button.active {
+    background: #51C1C8;
+    color: #fff;
+}
+
+.right-side.submanager .pagination button:hover {
+    background: #51C1C8;
+    color: white;
+}
+.right-side.submanager thead tr th:nth-child(3) {
+    text-align: center;
+}
+.right-side.submanager .add-submanager a:hover {
+    background: #51c1c8;
+}
+div#employee-table_paginate a.paginate_button.current {
+    background: #f5f5f5;
+    border-radius: 5px;
+    border: 1px solid #DDDDDD;
+    padding: 10px 20px;
+    font-size: 18px;
+    margin-top: 37px;
+    margin-bottom: 35px;
+    background:transparent !important;
+}
+table#employee-table {
+    margin: 0;
+    padding: 0;
+}
+.view_emp {
+    color: #212529 !IMPORTANT;
+    margin-bottom: 0;
+}
+div#employee-table_length {
+    padding: 25px;
+}
+.modal-header {
+    background: #071e38;
+    color: #fff;
+    border: none;
+}
+.modal-header span {
+    color: #fff !important;
+    font-size: 28px;
+}
+.modal-header button.close {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    color: #fff;
+    padding: 0;
+}
+.modal-footer button.btn.btn-info {
+    background: #0E3C70;
+    color: #ffff;
+    font-weight: 700;
+}
+table.table.table-bordered {
+    border-collapse: collapse !important;
+    font-family: "Inter", sans-serif;
+}
+table.table.table-bordered thead tr
+{
+  font-family: "Poppins", sans-serif;
+}
+table.table.table-bordered thead tr th {
+    background: #f5f5f5 !important;
+}
+table.table.table-bordered tbody tr td {
+    padding: 20px !important;
+}
+div#employeelistingbody {
+    padding-bottom: 0;
+}
+.modal-footer {
+    border: none;
+    padding-top: 0;
+}
+.modal-footer button.btn.btn-info:hover {
+    background: #0E3C70;
+    transition: 0.3s;
+}
+.graph tbody tr.odd td:last-child {
+    display: flex;
+    gap: 11px;
+    align-items: center;
+}
+.graph tbody tr.even td:last-child {
+    display: flex;
+    gap: 11px;
+    align-items: center;
+}
+.graph a {
+    margin-right: 0px !important;
+}
+.graph select {
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+    box-shadow: 0px -1px 9px #dddddd70;
+    padding: 8px 5px !important;
+    font-size: 15px;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    min-width: 80px;
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    background-image: url(data:image/svg+xml;utf8,<svg fill='black' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>);
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px 16px;
+}
+div#employee-table_paginate a.paginate_button.current {
+    margin-top: 0px !important;
+    margin-bottom: 0 !important;
+}
+div#employee-table_paginate {
+    padding: 25px 5px;
+    font-family: "Inter", sans-serif;
+    background: transparent;
+}
+div#employee-table_info {
+    padding: 35px 20px !important;
+    background: transparent;
+    font-family: "Inter", sans-serif;
+}
+div#employee-table_paginate a.paginate_button.current {
+    background: #0d3a6b !important;
+    border: none !important;
+    color: #fff !important;
+}
+div#employee-table_length label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: #333;
+}
+.graph .table-container div#employee-table_length {
+    background: transparent !important;
+}
+.graph tbody tr.odd td:last-child i.fa-solid.fa-trash {
+    color: red !important;
+}
+.graph tbody tr.even td:last-child i.fa-solid.fa-trash {
+    color: red !important;
+}
+div#employee-table_filter input[type="search"] {
+    box-shadow: 0px -1px 9px #dddddd70;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-left: 13px;
+}
+div#employee-table_filter {
+    margin-top: 20px;
+    margin-right: 5px;
+}
+/*-table-*/
+
+/*-submanager-listing-*/
+
+/*-addsubmanager-*/
+.main-right.addsubmanager .form-row {
+    display: flex;
+    gap: 35px;
+    margin-bottom: 40px;
+}
+.main-right.addsubmanager .form-group {
+    flex: 1;
+}
+
+    .main-right.addsubmanager .form-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .main-right.addsubmanager .form-group input, select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        background-color: #f9f9f9;
+    }
+
+    .main-right.addsubmanager .form-group .btn-group {
+        margin-top: 15px;
+    }
+
+    .btn {
+        padding: 10px 30px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+
+    .btn-save {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .btn-cancel {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+.btn:hover {
+opacity: 0.9;
+ }
+.main-right.addsubmanager .form-group label {
+    font-size: 18px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: #000;
+    opacity: 0.8;
+}
+.main-right.addsubmanager .form-group input[type="text"] {
+    background: transparent;
+    padding: 20px 15px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+.main-right.addsubmanager input[type="text"]::placeholder {
+    color: #00000069;
+	font-family: "Inter", sans-serif;
+}
+.main-right.addsubmanager select {
+    padding: 20px 15px;
+    background: transparent;
+    color: #00000073;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+.main-right.addsubmanager select {
+	background-image: url("../images/dropdown-arrow.png");
+	background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+.main-right.addsubmanager .btn-group {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+.main-right.addsubmanager button.btn.btn-save {
+    background: #5FBC01;
+    border-radius: 10px;
+    border-top-right-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+    padding: 16px 60px;
+    font-size: 18px;
+    font-weight: 600;
+}
+.main-right.addsubmanager button.btn.btn-save {
+    width: 100%;
+    min-width: 160px;
+    height: 60px;
+}
+.main-right.addsubmanager button.btn.btn-cancel {
+    width: 100%;
+    min-width: 160px;
+    height: 60px;
+}
+.main-right.addsubmanager .btn-group button:hover {
+    color: #fff;
+    transition: 0.3S;
+}
+.main-right.addsubmanager button.btn.btn-cancel {
+    background: #FF0202;
+    border-radius: 10px;
+    border-top-right-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+    padding: 16px 50px;
+    font-size: 18px;
+    font-weight: 600;
+}
+.main-right.addsubmanager .form-row .btn-group
+{
+	font-family: "Inter", sans-serif;
+}
+.main-right.addsubmanager .form-row .btn-group button.btn.btn-cancel {
+    background: #FF0202;
+}
+.main-right.addsubmanager input[type="email"] {
+    padding: 20px 15px;
+    background: transparent;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    color: #00000063;
+	font-family: "Inter", sans-serif;
+}
+.form-group button.btn.dropdown-toggle.btn-light.bs-placeholder {
+    background: transparent;
+    border: 1px solid #ddd;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+/*-addsubmanager-*/
