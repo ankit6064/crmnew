@@ -51,6 +51,10 @@
             cursor: pointer;
             color: blue;
         }
+        .menu-title.active {
+    background-color: transparent;
+    font-weight: bold;
+}
     </style>
 
 
@@ -90,9 +94,9 @@
             </div>
 
             <div class="graph">
-                <div class="row">
+                <!-- <div class="row">
                     <div class="add-submanager"><a href="{{ route('employee.createmanager') }}">Add Submanager</a></div>
-                </div>
+                </div> -->
                 <div class="modal fade" id="employeelisting" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
                     aria-hidden="true">
                     <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">

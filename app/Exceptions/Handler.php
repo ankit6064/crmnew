@@ -45,4 +45,6 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    // REMOVE the custom render method entirely or use the safe version below
 }

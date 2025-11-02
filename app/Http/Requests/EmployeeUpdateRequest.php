@@ -27,7 +27,7 @@ class EmployeeUpdateRequest extends FormRequest
         return [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'phone_no' => 'required|numeric|digits:10',
+            'phone_no' => 'required|numeric',
             'email' => 'required|email|unique:users,email,' . $employeeId,  // Ensure email is unique except for the current employee
             'address' => 'nullable|string|max:255',
             'manager' => 'nullable|exists:users,id', // Only managers that exist in the users table

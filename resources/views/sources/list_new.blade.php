@@ -272,126 +272,78 @@
     $defaultLeadFieldsArray = Config::get('constants.default_lead_fields');
     $customLeadFieldsArray = Config::get('constants.custom_lead_fields');
     $url = url(''); ?>
-    <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">Dashboard</h3>
-        </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                <li class="breadcrumb-item active">Campaigns</li>
-            </ol>
-        </div>
-        <div>
-            <!--<button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i class="ti-settings text-white"></i></button>--->
-        </div>
-    </div>
+  
+  <div class="main-right">
+						<div class="right-side submanager">
+							<h2>Campaign Listing</h2>
+						<div class="row">
+							<div class="col-md-3">
+								<div class="stat-card">
+										<div class="card-header">
+											<h4>Active</h4>
+												<div class="card-icon acti">
+													<i class="fa-regular fa-user"></i>
+												</div>
+										</div>
+								<div class="card-body">
+									<h2>{{$active}}</h2>
+									<!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
+									</div>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="stat-card">
+										<div class="card-header">
+											<h4>Inactive</h4>
+												<div class="card-icon inactive">
+												<i class="fa-solid fa-user-tie"></i>
+											</div>
+										</div>
+								<div class="card-body">
+									<h2>{{$inactive}}</h2>
+									<!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="graph campaignslist">
+							<div class="row">
 
-    <div class="container-fluid">
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
-        <div class="row">
-            <div class="col-12">
+                            @if(Auth::user()->is_admin == SUBMANAGER)
+                            @if(!empty($permissions) && $permissions->campaign->add == 1)
+                            <div class="add-submanager"><a href="{{ route('sources.create') }}">Add Campaign</a></div>	
 
-                @if (Session::has('success'))
-                    <div class="alert alert-success" role="alert">
-                        {!! Session::get('success') !!}
-                    </div>
-                @elseif (Session::has('error'))
-                    <div class="alert alert-danger" role="alert">
-                        {{ Session::get('error') }}
-                    </div>
-                @endif
+                            @endif
+                        @else
+                        <div class="add-submanager"><a href="{{ route('sources.create') }}">Add Campaign</a></div>	
 
-                <div class="card card-outline-info">
-                    <div class="card-header">
-                        <h4 class="m-b-0 text-white">Campaigns</h4>
-
-                    </div>
-
-                    <div id="myModal" class="modal fade in " tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-                        aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title" id="myModalLabel">Add Lable</h4>
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                </div>
-                                <div class="modal-body">
-                                    <form id="ajaxform">
-
-                                        <meta name="csrf-token" content="{{ csrf_token() }}" />
-
-                                        <div class="alert alert-danger print-error-msg" style="display:none">
-                                            <ul></ul>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="col-md-12">Date</label>
-                                            <div class="col-md-12">
-                                                <input type="date" class="form-control" placeholder="Date" name="date">
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label class="col-md-12">Amount</label>
-                                            <div class="col-md-12">
-                                                <input type="text" class="form-control" placeholder="Amount" name="amount">
-                                            </div>
-                                        </div>
-
-
-                                        <input type="hidden" id="source_id" name="source_id">
-                                        </from>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-info waves-effect save-data"
-                                        data-dismiss="modal">Save</button>
-                                    <button type="button" class="btn btn-default waves-effect"
-                                        data-dismiss="modal">Cancel</button>
-                                </div>
-                            </div>
-                            <!-- /.modal-content -->
-                        </div>
-                        <!-- /.modal-dialog -->
-                    </div>
-
-                    <div class="card-body">
-                        <!--<h4 class="card-title">Data Export </h4>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <h6 class="card-subtitle">Copy, CSV, PDF & Print</h6>-->
-                        <a type="button" href="{{ route('sources.create') }}" class="btn btn-success addButton"> + Add
-                            Campaign</a>
-                        <div class="table-responsive m-t-40" id="table_data">
-                            <table id="sources" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
-                                <thead class="heading-custom">
+                        @endif
+							</div>
+                            <div class="table-container" id="table_data">
+									<table id="employee-table">
+										<thead class="thead-main">
                                     <tr>
 
-                                        <th width="200" style="text-align:center">Campaign</th>
-                                        <th width="200" style="text-align:center">Sub-Campaign Name</th>
-                                        <th width="200" style="text-align:center">Transfer Company</th>
-                                        <th width="50" style="text-align:center">Total Leads</th>
-                                        <th width="50" style="text-align:center">Company Distribution</th>
+                                    <th width="200" style="text-align:center">Campaign</th>
+                                        <th width="200" style="text-align:center">Name</th>
+                                        <th width="200" style="text-align:center">Transfer</th>
+                                        <th width="50" style="text-align:center">Leads</th>
+                                        <th width="50" style="text-align:center">Distribution</th>
                                         <th width="50" style="text-align:center">Manager</th>
                                         <th width="50" style="text-align:center">Status</th>
 
-                                        <th style="text-align:center">Created On </th>
-                                        <th style="text-align:center">Modified On </th>
+                                        <th style="text-align:center">Created On</th>
+                                        <th style="text-align:center">Modified On</th>
 
                                         <!--<th>Total Amount</th>-->
-                                        <th style="text-align:center">Action</th>
+                                        <th style="text-align:center">Actions</th>
                                     </tr>
                                 </thead>
                             </table>
                         </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-    </div>
+					</div>
+				</div>
+			</div>
 
     <!-- Modal to show leads by company name and lead status -->
     <div class="modal fade" id="totalLeadsModal" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
@@ -585,7 +537,7 @@
     <script>
         $(document).ready(function () {
             // Initializing the DataTable (for example)
-            $('#sources').DataTable({
+            $('#employee-table').DataTable({
                 processing: false,
                 serverSide: true,
                 searching: false,

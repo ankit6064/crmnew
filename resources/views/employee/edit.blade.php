@@ -1,121 +1,182 @@
 @extends('layouts.admin')
-@section('content')
-    <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">Dashboard</h3>
-        </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ url('employees') }}">Employees</a></li>
-                <li class="breadcrumb-item active">Update Employee</li>
-            </ol>
-        </div>
-        <div>
-        </div>
-    </div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card card-outline-info">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="m-b-0 text-white">Update Employee</h4>
-                        <!-- Back Button on the Right -->
-                        <a href="{{ url()->previous() }}" class="btn btn-light d-flex align-items-center">
-                            <span class="material-symbols-outlined mr-2">
-                                arrow_back
-                            </span>
-                            Back
-                        </a>
+@section('content')
+
+    <!-- Bootstrap Select CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap Select JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
+
+    <style>
+        .bootstrap-select>.dropdown-toggle {
+            padding: 20px 15px;
+        }
+    </style>
+
+    <div class="main-right addsubmanager">
+        <div class="right-side">
+            <h2>Update Employee</h2>
+            <div class="graph">
+                <form method='post' id="employeeForm">
+                    @csrf
+                    @method('PUT')
+
+                    <input type="hidden" id="employee_id" value="{{ $employee->id }}">
+                    <input type="hidden" name="manager" id="manager" value="{{ Auth::id() }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="first_name" name='first_name' class="form-control"
+                                placeholder="Enter First Name" value="{{ old('first_name', $employee->first_name) }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="last_name" name='last_name' class="form-control"
+                                placeholder="Enter Last Name" value="{{ old('last_name', $employee->last_name) }}">
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <form method='post' action="{{ route('employee.update', [$employee->id]) }}"
-                            enctype="multipart/form-data">
-                            @csrf
-                            @method('PUT')
-                            <div class="form-body add_custom_table">
-                                <div class="row p-t-20">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="control-label">First Name</label>
-                                            <input type="text" id="first_name" name='first_name' class="form-control"
-                                                placeholder="Enter First Name"
-                                                value="{{ old('first_name', $employee->first_name) }}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="control-label">Last Name</label>
-                                            <input type="text" id="last_name" name='last_name'
-                                                class="form-control form-control-danger" placeholder="Enter Last Name"
-                                                value="{{ old('last_name', $employee->last_name) }}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="control-label">Phone No</label>
-                                            <input type="text" id="phone_no" name='phone_no' class="form-control"
-                                                placeholder="Enter Phone No" value="{{ old('phone_no', $employee->phone_no) }}">
-                                            @if ($errors->has('phone_no'))
-                                                <div class="alert alert-danger">{{ $errors->first('phone_no') }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="control-label">Email</label>
-                                            <input type="text" id="email" name='email' class="form-control"
-                                                placeholder="Enter Email" value="{{ old('email', $employee->email) }}">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="control-label">Address</label>
-                                            <input type="text" id="address" name='address' class="form-control"
-                                                placeholder="Enter Address" value="{{ old('address', $employee->address) }}">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="control-label">Select Manager</label>
-                                            <select name="manager" id="manager" class="form-control custom-select"
-                                                data-placeholder="Select Manager" tabindex="1">
-                                                <option value="">Select Manager</option>
-                                                @foreach ($managers as $id => $manager)
-                                                    <option value='{{ $id }}'
-                                                        {{ $employee->user_id == $id ? 'selected' : '' }}>{{ $manager }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label">Password</label>
-                                                <input type="text" id="orignal_password" name='orignal_password'
-                                                    class="form-control" placeholder="Enter New Password"
-                                                    value="{{ old('orignal_password', $employee->orignal_password) }}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i>
-                                        Save</button>
-                                    <input type="reset" class="btn btn-inverse" value="Cancel" />
-                                    <a href="{{ url('employees') }}"><button type="button"
-                                            class="btn btn-info">Back</button></a>
-                                </div>
-                        </form>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" id="phone_no" name='phone_no' class="form-control"
+                                placeholder="Enter Phone No" value="{{ old('phone_no', $employee->phone_no) }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="text" id="email" name='email' class="form-control" placeholder="Enter Email"
+                                value="{{ old('email', $employee->email) }}">
+                        </div>
                     </div>
-                </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Address</label>
+                            <input type="text" id="address" name='address' class="form-control" placeholder="Enter Address"
+                                value="{{ old('address', $employee->address) }}">
+                        </div>
+                        <div class="form-group">
+
+                            <label>Password</label>
+                            <input type="text" id="orignal_password" name='orignal_password' class="form-control"
+                                placeholder="Enter New Password"
+                                value="{{ old('orignal_password', $employee->orignal_password) }}">
+                        </div>
+
+                    </div>
+
+
+
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-save" onclick="submitform();">Update</button>
+                        <button type="button" class="btn btn-cancel" onclick="window.history.back();">Cancel</button>
+                    </div>
+
+                </form>
             </div>
         </div>
+
+
+        <!-- Modal Popup -->
+        <div class="popupcenter" id="successModal">
+            <div class="popupp">
+                <div class="success-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <p>Employee has been <br> updated successfully.</p>
+            </div>
+        </div>
+
+
+
+        @push('scripts')
+            <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
+
+            <script>
+                $(document).ready(function () {
+                    $('.selectpicker').selectpicker();
+                });
+
+                function submitform() {
+                    let is_valid = $('#employeeForm').valid();
+                    if (!is_valid) return;
+
+                    var form = $('#employeeForm')[0];
+                    var formData = new FormData(form);
+                    var employeeId = $('#employee_id').val();
+
+                    $.ajax({
+                        url: "/employee/" + employeeId,
+                        method: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('input[name="_token"]').val(),
+                            'X-HTTP-Method-Override': 'PUT'
+                        },
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.status == 200) {
+                                // Show modal popup
+                                $('#successModal').css('display', 'flex');
+
+                                // Redirect after 2 seconds
+                                setTimeout(function () {
+                                    window.location.href = "{{ route('employee.manageremployeeindex') }}";
+                                }, 2000);
+                            } else {
+                                alert(response.message || 'Something went wrong.');
+                            }
+                        }
+                        ,
+                        error: function (xhr) {
+                            console.error(xhr);
+                            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                                let errors = xhr.responseJSON.errors;
+                                let messages = Object.values(errors).map(msg => msg.join("\n")).join("\n");
+                                alert(messages);
+                            } else {
+                                alert('An error occurred while submitting the form.');
+                            }
+                        }
+                    });
+                }
+
+
+                // jQuery Validation
+                $('#employeeForm').validate({
+                    rules: {
+                        first_name: "required",
+                        last_name: "required",
+                        phone_no: "required",
+                        email: {
+                            required: true,
+                            email: true
+                        },
+                        address: "required"
+                    },
+                    messages: {
+                        first_name: "Please enter first name",
+                        last_name: "Please enter last name",
+                        phone_no: "Please enter phone number",
+                        email: {
+                            required: "Please enter email",
+                            email: "Enter a valid email"
+                        },
+                        address: "Please enter address"
+                    },
+                    errorClass: 'text-danger'
+                });
+            </script>
+        @endpush
     </div>
 @endsection

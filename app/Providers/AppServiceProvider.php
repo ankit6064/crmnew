@@ -22,5 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         date_default_timezone_set(config('app.timezone')); // Force PHP to use correct timezone
         Carbon::setLocale(config('app.locale'));
+        ini_set('memory_limit', '2G');
+
     }
 }

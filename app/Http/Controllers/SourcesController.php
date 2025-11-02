@@ -11,6 +11,7 @@ use App\Models\Lead;
 use App\Models\Note;
 use App\Models\Relation;
 use App\Models\Logs;
+use App\Models\SubmanagerPermissions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Auth;
@@ -162,7 +163,7 @@ class SourcesController extends Controller
             $logs->source_id = $source_id->id;
             $logs->save();
 
-            return redirect('sources')->with('success', 'Source Added Successfully.');
+            return redirect()->route('sources.create')->with('success', 'Campaign added successfully');
         }
         return response()->json(['error' => $validator->errors()->all()]);
     }
@@ -264,12 +265,13 @@ class SourcesController extends Controller
         //Lead::where('source_id', $request->source_id)->update([]);
         return response()->json(['success' => 'Updated Successfully.']);
     }
-
     public function campaignsAjaxPagination(Request $request)
     {
+        ini_set('memory_limit', '512M');  // Increase memory limit if needed
+    
         if ($request->ajax()) {
             if (Auth::user()->is_admin == null) {
-                $sources = Source::select(
+                $query = Source::select(
                     "id",
                     "source_name",
                     "description",
@@ -278,173 +280,137 @@ class SourcesController extends Controller
                     "assign_to_manager",
                     "is_active",
                     DB::raw("'N/A' as company_distribution"),
-                    DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads"), // Optimized lead count
+                    DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads")
                 )
-                    ->leftJoinSub(
-                        Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
-                            ->groupBy('source_id'),
-                        'leads_count',
-                        'leads_count.source_id',
-                        'sources.id'
-                    )
-                    ->with(['closed_leads', 'leadNotImported'])
-                    ->get();
+                ->leftJoinSub(
+                    Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
+                        ->groupBy('source_id'),
+                    'leads_count',
+                    'leads_count.source_id',
+                    'sources.id'
+                )
+                ->with(['closed_leads', 'leadNotImported']);
             } else {
-
-                // Build the query with necessary conditions
-                $sources = Source::where(function ($query) {
+                $query = Source::where(function ($query) {
                     $query->where('user_id', auth()->user()->id)
                         ->orWhere('assign_to_manager', auth()->user()->id);
                 })
-                    ->where('is_active', 1) // Applied outside for better query optimization
-                    ->select(
-                        "id",
-                        "source_name",
-                        "description",
-                        "created_at",
-                        "updated_at",
-                        "assign_to_manager",
-                        "is_active",
-                        DB::raw("'N/A' as company_distribution"),
-                        DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads"), // Optimized lead count
-                        DB::raw("(SELECT SUM(amount) FROM money WHERE money.source_id = sources.id) as amount")
-                    )
-                    ->leftJoinSub(
-                        Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
-                            ->groupBy('source_id'),
-                        'leads_count',
-                        'leads_count.source_id',
-                        'sources.id'
-                    )
-                    ->with(['closed_leads', 'leadNotImported'])
-                    ->get();
+                ->where('is_active', 1)
+                ->select(
+                    "id",
+                    "source_name",
+                    "description",
+                    "created_at",
+                    "updated_at",
+                    "assign_to_manager",
+                    "is_active",
+                    DB::raw("'N/A' as company_distribution"),
+                    DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads"),
+                    DB::raw("(SELECT SUM(amount) FROM money WHERE money.source_id = sources.id) as amount")
+                )
+                ->leftJoinSub(
+                    Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
+                        ->groupBy('source_id'),
+                    'leads_count',
+                    'leads_count.source_id',
+                    'sources.id'
+                )
+                ->with(['closed_leads', 'leadNotImported']);
             }
-
-
-            return DataTables::of($sources)
-                ->editColumn('total_leads_new', function ($data) {
-                    // if(Auth::user()->is_admin == 2){
-                    // $totalLeads = '<a href="javascript:void(0)" data-sid="' . $data->id . '" onclick="clickmodal(' . $data->id . ');">' . $data->total_leads . '</a>';
-                    // }else{
-                    //     $totalLeads = '<p>' . $data->total_leads . '</p>';
     
-                    // }
-                    $totalLeads = '<a href="javascript:void(0)" data-sid="' . $data->id . '" onclick="clickmodal(' . $data->id . ');">' . $data->total_leads . '</a>';
-
-                    return $totalLeads;
-
+            return DataTables::eloquent($query)
+                ->editColumn('total_leads_new', function ($data) {
+                    return '<p data-sid="' . $data->id . '" onclick="clickmodal(' . $data->id . ');" style="color:#5FBC01 !important">' . $data->total_leads . '</p>';
                 })
                 ->editColumn('source_name_new', function ($data) {
                     return '<div class="tooltip1 source-item source-item-' . $data->id . '" data-source-id="' . $data->id . '">' . $data->source_name . '</div>';
-
                 })
-
                 ->editColumn('created_at_new', function ($data) {
-                    $created_at = \Carbon\Carbon::parse($data->created_at)->format('d-m-Y');
-                    return $created_at;
-
+                    return \Carbon\Carbon::parse($data->created_at)->format('d-m-Y');
                 })
                 ->editColumn('updated_at_new', function ($data) {
-                    $updated_at = \Carbon\Carbon::parse($data->updated_at)->format('d-m-Y');
-                    return $updated_at;
-
+                    return \Carbon\Carbon::parse($data->updated_at)->format('d-m-Y');
                 })
                 ->addColumn('manager_name', function ($row) {
                     $assigned_manager = $row->assign_to_manager;
                     $manager_data = User::where(['id' => $assigned_manager, 'is_admin' => '2'])->first();
-                    if (isset($manager_data->name) && !empty($manager_data->name)) {
-                        $manager_name = $manager_data->name;
-                    } else {
-                        $manager_name = 'N/A';
-                    }
-                    return $manager_name;
+                    return $manager_data->name ?? 'N/A';
                 })
                 ->addColumn('status', function ($row) {
                     $checked = $row->is_active == 1 ? 'checked' : '';
-                    $status = '<input data-sid = "' . $row->id . '" class="switchery" type="checkbox" ' . $checked . ' onchange="updatestatus(' . $row->id . ');">';
-                    return $status;
+                    return '<input data-sid="' . $row->id . '" class="switchery" type="checkbox" ' . $checked . ' onchange="updatestatus(' . $row->id . ');">';
                 })
                 ->addColumn('action', function ($row) {
                     $checkMomReport = MomReport::join('leads', 'mom_report.lead_id', '=', 'leads.id')
                         ->where('leads.source_id', $row->id)
                         ->whereNotNull('mom_report.mom_file_path')
                         ->first();
-                    $html =
-                        '<a href="' . url('/sources/' . $row->id . '/leadview') . '" target="_blank">
-                        <span class="label" data-toggle="tooltip" data-placement="top" title="View Leads" 
-                            style="color:#000;font-size: 15px;">
-                            <i class="fa fa-eye" aria-hidden="true"></i>
-                        </span>
-                    </a> 
-                    
-                    <a href="' . url('/lead/exportCsv/' . $row->id . '/report_down') . '">
-                        <span class="label" data-toggle="tooltip" data-placement="top" title="Download Excel Report" 
-                            style="color:#000;font-size: 15px;">
-                            <i class="fa fa-file-excel-o" aria-hidden="true"></i>
-                        </span>
-                    </a>
-                    <a href="' . url('/lead/export/' . $row->id . '/pdf_down') . '">
-                        <span class="label" data-toggle="tooltip" data-placement="top" title="Word Download" 
-                            style="color:#55ce63;font-size: 15px;">
-                            <i class="ti-download"></i>
-                        </span>
-                    </a>';
-
+    
+                    $html = '
+                        <a href="' . url('/sources/' . $row->id . '/leadview') . '" target="_blank">
+                            <span class="label" data-toggle="tooltip" data-placement="top" title="View Leads" style="color:#000;font-size: 15px;">
+                                <i class="fa-solid fa-eye"></i>
+                            </span>
+                        </a> 
+    
+                        <a href="' . url('/lead/exportCsv/' . $row->id . '/report_down') . '">
+                            <span class="label" data-toggle="tooltip" data-placement="top" title="Download Excel Report" style="color:#000;font-size: 15px;">
+                                <i class="fa-solid fa-file-excel"></i>
+                            </span>
+                        </a>
+    
+                        <a href="' . url('/lead/export/' . $row->id . '/pdf_down') . '">
+                            <span class="label" data-toggle="tooltip" data-placement="top" title="Word Download" style="color:#55ce63;font-size: 15px;">
+                                <i class="fa-solid fa-file-word"></i>
+                            </span>
+                        </a>';
+    
                     if (!empty($checkMomReport)) {
-                        $html .=
-                            '<a href="' . url('download-mom-report', ['source_id' => $row->id]) . '">
-                            <span class="label" data-toggle="tooltip" data-placement="top" title="Dowload Mom Report" 
-                                style="color:blue;font-size: 15px;">
-                                <i class="ti-download"></i>
-                            </span>
-                        </a>';
+                        $html .= '
+                            <a href="' . url('download-mom-report', ['source_id' => $row->id]) . '">
+                                <span class="label" data-toggle="tooltip" data-placement="top" title="Download Mom Report" style="color:blue;font-size: 15px;">
+                                    <i class="fa-solid fa-file-download"></i>
+                                </span>
+                            </a>';
                     }
-
-
-
+    
                     if (Auth::user()->is_admin == 2) {
-                        $html .= ' <a href="' . url('/add_leads/' . $row->id) . '" target="_blank">
-                        <span class="label" data-toggle="tooltip" data-placement="top" title="Import Leads" 
-                            style="color:#000;font-size: 15px;">
-                            <i class="fa fa-upload" aria-hidden="true"></i>
-                        </span>
-                    </a> ';
+                        $html .= '
+                            <a href="' . url('/add_leads/' . $row->id) . '" target="_blank">
+                                <span class="label" data-toggle="tooltip" data-placement="top" title="Import Leads" style="color:#000;font-size: 15px;">
+                                    <i class="fa-solid fa-upload"></i>
+                                </span>
+                            </a>';
                     }
-
-                    // Append an additional link if `leadNotImported` exists
+    
                     if (!empty($row->leadNotImported)) {
-                        $html .=
-                            '<a href="#">
-                            <span class="label" data-toggle="tooltip" data-placement="top" title="Download leads not imported" 
-                                style="color:#ac2609;font-size: 15px;">
-                                <i class="ti-download"></i>
-                            </span>
-                        </a>';
+                        $html .= '
+                            <a href="#">
+                                <span class="label" data-toggle="tooltip" data-placement="top" title="Download leads not imported" style="color:#ac2609;font-size: 15px;">
+                                    <i class="fa-solid fa-file-download"></i>
+                                </span>
+                            </a>';
                     }
+    
                     if (Auth::user()->is_admin == null) {
                         if (!empty($row->assign_to_manager)) {
                             $html .= '<a href="javascript:void(0);"><span class="label label-warning">Assigned</span></a>';
                         } else {
-                            $html .= '<a href="#" class="assignToManagerBtn" id="campaign_id_new" onclick="assignmanager(' . $row->id . ');"><span  class="label label-warning">Assign to Manager</span></a>';
+                            $html .= '<a href="#" class="assignToManagerBtn" id="campaign_id_new" onclick="assignmanager(' . $row->id . ');"><span class="label label-warning">Assign to Manager</span></a>';
                         }
-                        $html .=
-                            '<a href="' . url('sources/delete', ['id' => $row->id]) . '" 
-                        onclick="return confirm(\'Are you sure you want to delete this item?\')">
-                        <span class="label" data-toggle="tooltip" data-placement="top" title="Delete" 
-                            style="color:#dc3545;font-size: 15px;">
-                            <i class="ti-trash"></i>
-                        </span>
-                    </a>';
-                        $html .=
-                            '<a href="' . url('sources/source-edit', $row->id) . '">
-                        <span class="label" data-toggle="tooltip" data-placement="top" title="Edit" 
-                            style="color:#000;font-size: 15px;">
-                            <i class="ti-pencil"></i>
-                        </span>
-                    </a>';
-
+                        $html .= '
+                            <a href="' . url('sources/delete', ['id' => $row->id]) . '" onclick="return confirm(\'Are you sure you want to delete this item?\')">
+                                <span class="label" data-toggle="tooltip" data-placement="top" title="Delete" style="color:#dc3545;font-size: 15px;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </span>
+                            </a>
+                            <a href="' . url('sources/source-edit', $row->id) . '">
+                                <span class="label" data-toggle="tooltip" data-placement="top" title="Edit" style="color:#000;font-size: 15px;">
+                                    <i class="fa-solid fa-pen"></i>
+                                </span>
+                            </a>';
                     }
-
+    
                     return $html;
                 })
                 ->addColumn('transfer', function ($row) {
@@ -454,6 +420,7 @@ class SourcesController extends Controller
                 ->toJson();
         }
     }
+    
 
     public function sourceEdit($id)
     {
@@ -1188,7 +1155,12 @@ class SourcesController extends Controller
         })->get();
         // dd($data);
         $externalManagers = DB::table('users')->where('is_admin', 2)->where('deleted_at', NULL)->where('manager_type', 2)->get()->toArray();
-        return view('sources.list_new')->with(['managers' => $managers, 'externalManagers' => $externalManagers]);
+        $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
+
+        $active = Source::where('is_active',1)->count();
+        $inactive = Source::where('is_active',2)->count();
+
+        return view('sources.list_new')->with(['managers' => $managers, 'externalManagers' => $externalManagers,'permissions'=>$permissions,'active'=>$active,'inactive'=>$inactive]);
     }
 
     public function leadscount(Request $request)

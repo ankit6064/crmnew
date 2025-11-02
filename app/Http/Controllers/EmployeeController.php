@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Source;
+use App\Models\SubmanagerPermissions;
 use App\Models\conversationType;
 use App\Models\Lead;
 use App\Models\Logs;
@@ -195,8 +196,10 @@ class EmployeeController extends Controller
             $employee->update($request->all());
             if (Auth::user()->is_admin == 2) {
 
-                return redirect()->route('employee.manageremployeeindex')->with('success', 'Employee updated successfully!');
+                // return redirect()->route('employee.manageremployeeindex')->with('success', 'Employee updated successfully!');
 
+                echo json_encode(['status'=>200,'message'=>'Employee Details Updated']);
+                exit;
             }
             // Redirect with a success message
             return redirect()->route('manager.index')->with('success', 'Manager updated successfully!');
@@ -248,7 +251,25 @@ class EmployeeController extends Controller
             ->orderBy('first_name')
             ->get();
 
-        return view('employee.manageremployeeindex', compact('employees'));
+        $subamangerpermissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
+        if (isset($subamangerpermissions) && !empty($subamangerpermissions)) {
+            $permissions = json_decode($subamangerpermissions->user_permissions);
+        } else {
+            $permissions = [];
+        }
+
+        $active = User::where('is_admin', USER)
+        ->where('user_id', Auth::id())
+        ->where('is_active', 1)
+        ->count();
+
+        $deactive = User::where('is_admin', USER)
+        ->where('user_id', Auth::id())
+        ->where('is_active', 2)
+        ->count();
+
+
+        return view('employee.manageremployeeindex', compact('employees', 'permissions','active','deactive'));
     }
 
     public function createmanageremployees()
@@ -272,7 +293,7 @@ class EmployeeController extends Controller
                 'orignal_password' => $password,
                 'password' => Hash::make($password),
                 'is_admin' => USER,
-                'user_id' => $request->manager
+                'user_id' => Auth::id()
             ]);
             // Create the new employee
             User::create($validated);
@@ -282,7 +303,7 @@ class EmployeeController extends Controller
             $logs->type = 7;
             $logs->save();
             // Redirect with success message
-            return redirect()->route('employee.manageremployeeindex')->with('success', 'Employee created successfully.');
+            echo json_encode(['status'=>200,'message'=>'Employee Created']);
         } catch (\Exception $e) {
             // Catch any other general exception and log it
             \Log::error('Error creating employee: ' . $e->getMessage(), [
@@ -332,8 +353,18 @@ class EmployeeController extends Controller
                 <span class="material-symbols-outlined text-danger deleteEmployee">delete</span>
             </a>';
 
+            $check = RestrictEmployeelogin::where(['employee_id' => $data->id])->first();
+            if (isset($check) && !empty($check)) {
+                $checked = '';
+            } else {
+                $checked = 'checked';
+            }
+            $login_permission = '<input data-sid="' . $data->source_id . '" data-id="' . $data->id . '" class="switchery" type="checkbox" onchange="disablelogin(' . $data->id . ', \'' . addslashes($data->email) . '\');" ' . $checked . '>';
 
-                    return $editLink . '' . $deleteLink;
+
+            $checkedd = $data->is_active == 1 ? 'checked' : '';
+            $changestatus = '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checkedd . '>';
+                    return $login_permission.''.$editLink . '' . $deleteLink.''.$changestatus;
                 })
                 ->addColumn('sub_manager', function ($data) {
                     // Customize the action buttons
@@ -1524,24 +1555,24 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
             ->where('is_active', 1)
             ->orderBy('first_name')
             ->get();
+            // dd($sources);
 
-        if (!empty($sources[0])) {
+        // if (!empty($sources[0])) {
             $html = view('employee.submanagermodal', compact('employees', 'sources', 'request'))->render();
             echo json_encode(['status' => 400, 'message' => '.', 'html' => $html]);
             exit;
-        } else {
-            User::where('id', $request->employeeid)->update(['is_admin' => 3]);
+        // } else {
+        //     User::where('id', $request->employeeid)->update(['is_admin' => 3]);
+        //     $userdetails = User::where('id', $request->employeeid)->first();
 
-            $userdetails = User::where('id', $request->employeeid)->first();
-
-            $logs = new Logs();
-            $logs->user_id = Auth::id();
-            $logs->description = $userdetails->first_name . ' ' . $userdetails->last_name . ' is assigned as sub manager';
-            $logs->type = 10;
-            $logs->save();
-            echo json_encode(['status' => 200, 'message' => 'There is no assigned campaign to this employee']);
-            exit;
-        }
+        //     $logs = new Logs();
+        //     $logs->user_id = Auth::id();
+        //     $logs->description = $userdetails->first_name . ' ' . $userdetails->last_name . ' is assigned as sub manager';
+        //     $logs->type = 10;
+        //     $logs->save();
+        //     echo json_encode(['status' => 200, 'message' => 'There is no assigned campaign to this employee']);
+        //     exit;
+        // }
     }
 
     public function transferleademployee(Request $request)
@@ -1599,7 +1630,7 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
             return DataTables::of($managers)
                 ->addColumn('totalemployees', function ($data) {
                     // Count users where user_id matches the current data id
-                    $totalemployees = User::where('user_id', $data->id)->count();
+                    $totalemployees = User::where('user_id', $data->id)->where('is_admin',1)->count();
 
                     // Return an anchor tag with the count
                     return '<p  class="view_emp" title="View Employee" onclick="viewemployees(' . $data->id . ')">' . $totalemployees . '</p>';
@@ -1625,7 +1656,7 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
 
                     $checked = $data->is_active == 1 ? 'checked' : '';
                     $editLink .= '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checked . '>';
-                    $editLink .= '<i class="fa-solid fa-trash"></i>';
+                    // $editLink .= '<i class="fa-solid fa-trash"></i>';
 
 
                     return $editLink;
