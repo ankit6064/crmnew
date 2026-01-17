@@ -30,60 +30,11 @@
     @endphp
 
 
-    <div class="main-right view-camp">
+    <div class="main-right">
         <div class="right-side submanager">
             <h2>Leads Listing</h2>
 
-   
-            <div class="employee-filterss">
-    <div class="filter-container">
-
-        <form class="form-horizontal form-label-left input_mask" 
-              id="assignForm" 
-              method="post" 
-              action="">
-            @csrf
-
-            <!-- Campaign Select -->
-            <select name="source_id" id="source_id" class="filter-select">
-                <option value="">Select Campaigns</option>
-                @foreach($sources as $sources)
-                    @if ($source_ids == $sources['id'])
-                        <option value="{{ $sources['id'] }}" selected>
-                            {{ $sources['source_name'] }} ({{ $sources['description'] }})
-                        </option>
-                    @else
-                        <option value="{{ $sources['id'] }}">
-                            {{ $sources['source_name'] }} ({{ $sources['description'] }})
-                        </option>
-                    @endif
-                @endforeach
-            </select>
-
-            @if($errors->has('source_id'))
-                <div class="alert alert-danger">{{ $errors->first('source_id') }}</div>
-            @endif
-
-            <!-- Filter/Search Button -->
-            <button type="button" id="submitButton" class="filter-btn filter-blue" onclick="search();">
-                Filter
-            </button>
-
-            <!-- Import Leads Button (only non admin 2)
-            @if(Auth::user()->is_admin != 2)
-            <a href="{{ url('/add_leads').'/'.$source_ids }}" 
-               class="btn btn-success addButton" 
-               style="margin-left: 10px;">
-                Import Leads +
-            </a>
-            @endif -->
-
-        </form>
-
-    </div>
-</div>
-
-            <div class="graph campaignslist logstable">
+            <div class="graph campaignslist logstable lead-listing">
 
                 <div class="table">
         <div class="table-container">
@@ -98,7 +49,7 @@
                                     <th>Phone No.</th>
                                     <th>Date</th>
                                     <th>Status</th>
-                                    <th>Action</th>
+                                    <th class="action_th" style="width: auto">Action</th>
                                 </tr>
             </thead>
           </table>
@@ -122,10 +73,7 @@
                 processing: false,
                 serverSide: true,
                 ajax: {
-                    url: "{{ route('getsourceslead') }}",
-                    data: function (d) {
-                        d.source_id = $('#source_id').val(); // Pass source_id from filter
-                    }
+                    url: "{{ route('allgetsourceslead') }}",
                 },
                 columns: [
                     { data: 'campaign_name', name: 'campaign_name' },

@@ -264,6 +264,25 @@
         opacity: unset !important;
         position: static !important;
     }
+
+    /* Dim background modal when child modal opens */
+.modal.dimmed {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* Ensure active modal stays normal */
+/* .modal.show {
+    opacity: 1 !important;
+    pointer-events: auto;
+} */
+
+
+.modal.removedimmed {
+    opacity: 1;
+    pointer-events: none;
+}
+
 </style>
 {{-- @endpush --}}
 
@@ -272,78 +291,80 @@
     $defaultLeadFieldsArray = Config::get('constants.default_lead_fields');
     $customLeadFieldsArray = Config::get('constants.custom_lead_fields');
     $url = url(''); ?>
-  
-  <div class="main-right">
-						<div class="right-side submanager">
-							<h2>Campaign Listing</h2>
-						<div class="row">
-							<div class="col-md-3">
-								<div class="stat-card">
-										<div class="card-header">
-											<h4>Active</h4>
-												<div class="card-icon acti">
-													<i class="fa-regular fa-user"></i>
-												</div>
-										</div>
-								<div class="card-body">
-									<h2>{{$active}}</h2>
-									<!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
-									</div>
-								</div>
-							</div>
-							<div class="col-md-3">
-								<div class="stat-card">
-										<div class="card-header">
-											<h4>Inactive</h4>
-												<div class="card-icon inactive">
-												<i class="fa-solid fa-user-tie"></i>
-											</div>
-										</div>
-								<div class="card-body">
-									<h2>{{$inactive}}</h2>
-									<!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="graph campaignslist">
-							<div class="row">
 
-                            @if(Auth::user()->is_admin == SUBMANAGER)
-                            @if(!empty($permissions) && $permissions->campaign->add == 1)
-                            <div class="add-submanager"><a href="{{ route('sources.create') }}">Add Campaign</a></div>	
+    <div class="main-right">
+        <div class="right-side submanager">
+            <h2>Campaign Listing</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="card-header">
+                            <h4>Active</h4>
+                            <div class="card-icon acti">
+                                <i class="fa-regular fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{$active}}</h2>
+                            <!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="card-header">
+                            <h4>Inactive</h4>
+                            <div class="card-icon inactive">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{$inactive}}</h2>
+                            <!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="graph campaignslist">
+                <div class="row">
 
-                            @endif
-                        @else
-                        <div class="add-submanager"><a href="{{ route('sources.create') }}">Add Campaign</a></div>	
+                    @if(Auth::user()->is_admin == SUBMANAGER)
+                        @if(!empty($permissions) && $permissions->campaign->add == 1)
+                            <div class="add-submanager"><a href="{{ route('sources.create') }}">Add Campaign</a></div>
 
                         @endif
-							</div>
-                            <div class="table-container" id="table_data">
-									<table id="employee-table">
-										<thead class="thead-main">
-                                    <tr>
+                    @else
+                        <div class="add-submanager"><a href="{{ route('sources.create') }}">Add Campaign</a></div>
+
+                    @endif
+                </div>
+                <div class="table-container" id="table_data">
+                    <div class="table-container-inner">
+                        <table id="employee-table">
+                            <thead class="thead-main">
+                                <tr>
 
                                     <th width="200" style="text-align:center">Campaign</th>
-                                        <th width="200" style="text-align:center">Name</th>
-                                        <th width="200" style="text-align:center">Transfer</th>
-                                        <th width="50" style="text-align:center">Leads</th>
-                                        <th width="50" style="text-align:center">Distribution</th>
-                                        <th width="50" style="text-align:center">Manager</th>
-                                        <th width="50" style="text-align:center">Status</th>
+                                    <th width="200" style="text-align:center">Sub Campaign</th>
+                                    <th width="200" style="text-align:center">Transfer</th>
+                                    <th width="50" style="text-align:center">Leads</th>
+                                    <th width="50" style="text-align:center">Distribution</th>
+                                    <th width="50" style="text-align:center">Manager</th>
+                                    <th width="50" style="text-align:center">Status</th>
 
-                                        <th style="text-align:center">Created On</th>
-                                        <th style="text-align:center">Modified On</th>
+                                    <th style="text-align:center">Created On</th>
+                                    <th style="text-align:center">Modified On</th>
 
-                                        <!--<th>Total Amount</th>-->
-                                        <th style="text-align:center">Actions</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-					</div>
-				</div>
-			</div>
+                                    <!--<th>Total Amount</th>-->
+                                    <th style="text-align:center">Actions</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal to show leads by company name and lead status -->
     <div class="modal fade" id="totalLeadsModal" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
@@ -393,16 +414,18 @@
                             </div>
                         </div>
                     </div>
-                    <span id="error_company_select" style="padding-left: var(--bs-modal-padding);color:red;display:none">Select
+                    <span id="error_company_select"
+                        style="padding-left: var(--bs-modal-padding);color:red;display:none">Select
                         atleast any one company</span>
                     <div id="source_div" style="padding-left: var(--bs-modal-padding);">
                     </div>
-                    <span id="error_source_select" style="padding-left: var(--bs-modal-padding);color:red;display:none">Select
+                    <span id="error_source_select"
+                        style="padding-left: var(--bs-modal-padding);color:red;display:none">Select
                         transfer source</span>
 
                     <div class="modal-footer">
                         <input type="hidden" id="sourceoldId" name="sourceoldId" value="">
-                        <button type="button" class="btn btn-success addButton"  onclick="transferleads()">Transfer</button>
+                        <button type="button" class="btn btn-success addButton" onclick="transferleads()">Transfer</button>
                         <button type="button" class="btn btn-info" data-dismiss="modal"
                             onclick="closemodaltransfer()">Close</button>
                     </div>
@@ -466,8 +489,15 @@
 
 
     <!-- Modal to show users list that are currently assigned -->
-    <div class="modal fade" id="leadsAssignedUsers" tabindex="-1" role="dialog" aria-labelledby="leadsAssignedUsersLabel"
-        aria-hidden="true">
+    <div class="modal fade"
+     id="leadsAssignedUsers"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="leadsAssignedUsersLabel"
+     aria-hidden="true"
+     data-backdrop="static"
+     data-keyboard="false">
+
         <div class="modal-dialog modal-dialog-scrollable modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -505,9 +535,9 @@
                     <select id="manager">
                         <option value="0">Choose Manager</option>
                         <?php 
-                                                     if (isset($managers) && !empty($managers[0])) {
+                                                                         if (isset($managers) && !empty($managers[0])) {
         foreach ($managers as $manager) { 
-                                                        ?>
+                                                                            ?>
                         <option value="<?php        echo $manager->id; ?>">
                             <?php        echo $manager->name; ?>
                         </option>
@@ -540,7 +570,7 @@
             $('#employee-table').DataTable({
                 processing: false,
                 serverSide: true,
-                searching: false,
+                searching: true,
                 pageLength: 10,
                 ordering: true,
                 ajax: {
@@ -550,26 +580,64 @@
                 columns: [
                     { data: 'source_name_new', name: 'source_name' },
                     { data: 'description', name: 'description' },
-                    { data: 'transfer', name: 'transfer',orderable:false },
+                    { data: 'transfer', name: 'transfer', orderable: false },
                     { data: 'total_leads_new', name: 'total_leads' },
-                    { data: 'company_distribution', name: 'company_distribution',orderable:false },
-                    { data: 'manager_name', name: 'manager_name',orderable:false },
-                    { data: 'status', name: 'status',orderable:false },
+                    { data: 'company_distribution', name: 'company_distribution', orderable: false },
+                    { data: 'manager_name', name: 'manager_name', orderable: false },
+                    { data: 'status', name: 'status', orderable: false },
 
-                    { data: 'created_at_new', name: 'created_at',orderable:true },
-                    { data: 'updated_at_new', name: 'updated_at',orderable:true },
-                    { data: 'action', name: 'action',orderable:false },
-                ], drawCallback: function () {
+                    { data: 'created_at_new', name: 'created_at', orderable: true },
+                    { data: 'updated_at_new', name: 'updated_at', orderable: true },
+                    { data: 'action', name: 'action', orderable: false },
+                ],
+
+
+                initComplete: function () {
+                    $('#spinner-overlay').hide();
+
+                    // Add placeholder to the default DataTable search bar
+                    $('.dataTables_filter input[type="search"]')
+                        .attr('placeholder', 'Search Campaign Name')
+                        .css('width', '250px'); // optional styling
+                },
+
+                drawCallback: function () {
                     // Initialize Switchery for each checkbox
+
+                    // Initialize Switchery + Tippy on each checkbox
                     $('.switchery').each(function () {
-                        if (!$(this).data('switchery')) {
-                            new Switchery(this, {
-                                color: '#192e62',
-                                secondaryColor: '#f9f9f9',
-                                jackColor: '#d3da44',
-                                size: 'small'
-                            });
-                        }
+
+// 1️⃣ Initialize Switchery ONLY once on checkbox
+if (!this.switchery) {
+    this.switchery = new Switchery(this, {
+        color: '#192e62',
+        secondaryColor: '#f9f9f9',
+        jackColor: '#d3da44',
+        size: 'small'
+    });
+}
+
+// 2️⃣ Switchery UI element is NEXT sibling
+var switcheryUI = this.nextSibling;
+
+// 3️⃣ Destroy existing tooltip if present
+if (switcheryUI._tippy) {
+    switcheryUI._tippy.destroy();
+}
+
+// 4️⃣ Attach tooltip to Switchery UI
+tippy(switcheryUI, {
+    content: 'Manage Status',
+    theme: 'light-border',
+    placement: 'top'
+});
+});
+
+
+                    // 🔥 INIT TIPPY (NEW)
+                    tippy('[data-tippy-content]', {
+                        theme: 'light-border',
+                        placement: 'top',
                     });
 
                 }
@@ -591,6 +659,15 @@
                 } else {
                     $('#spinner-overlay').hide();
                 }
+            });
+
+            $('#employee-table').on('preXhr.dt', function () {
+                $('#spinner-overlay').show();
+            });
+
+            // Hide loader after data is loaded
+            $('#employee-table').on('xhr.dt', function () {
+                $('#spinner-overlay').hide();
             });
 
         });
@@ -653,6 +730,7 @@
                         $(".loader-ajax").show();
                     },
                     success: function (response) {
+                        $('#totalLeadsModal').addClass('dimmed');
                         $(".loader-ajax").hide();
                         $('#assignLeadsType').val(leadsType);
                         $('#companyName').val(companyName);
@@ -760,24 +838,52 @@
 
         function closeleadassignmodal() {
             $('#leadsAssignToUserModal').modal('hide');
+            $('#totalLeadsModal').removeClass('dimmed');
+
         }
         function leadassignedmodal() {
             $('#leadsAssignedUsers').modal('hide');
+            $('#totalLeadsModal').removeClass('dimmed');
+
         }
 
         function updatestatus(id) {
-            $.ajax({
-                type: 'POST',
-                url: "{{ route('statusUpdate') }}",
-                data: {
-                    "_token": "{{ csrf_token() }}",
-                    "source_id": id,
-                },
-                success: function (response) {
-                    console.log('status updated ' + id);
-                }
+    $.ajax({
+        type: 'POST',
+        url: "{{ route('statusUpdate') }}",
+        data: {
+            _token: "{{ csrf_token() }}",
+            source_id: id,
+        },
+        dataType: 'json',
+        success: function (response) {
+            if (response.status === 200) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Status Updated',
+                    text: response.message || 'Status updated successfully',
+                    confirmButtonText:"Ok",
+                    // timer: 2000,
+                    showConfirmButton: true
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed',
+                    text: response.message || 'Unable to update status'
+                });
+            }
+        },
+        error: function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again.'
             });
         }
+    });
+}
+
 
         function assignmanager(id) {
             $('#campaign_id_new').val(id);
@@ -911,5 +1017,18 @@
 
 
     </script>
+
+<script>
+    // When child modal opens → dim parent modal
+    $('#leadsAssignedUsers').on('shown.bs.modal', function () {
+        $('#employeeleads').addClass('dimmed');
+    });
+
+    // When child modal closes → restore parent modal
+    $('#leadsAssignedUsers').on('hidden.bs.modal', function () {
+        $('#employeeleads').removeClass('dimmed');
+    });
+</script>
+
 
 @endsection

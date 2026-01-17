@@ -42,7 +42,7 @@
 .profile-name {
     font-size: 14px;
     font-weight: 600;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
     margin-right: 5px;
 }
 
@@ -79,7 +79,7 @@
     padding: 10px;
     text-decoration: none;
     color: #333;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
     text-align: center;
     font-weight: 600;
     margin-bottom: 0px !important;
@@ -127,10 +127,18 @@ a {
     color: white;
     padding-top: 30px;
     padding-left: 15px;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
     padding-right: 15px;
     overflow: auto;
     height: calc(100vh - 111px);
+}
+.sidebar a {
+    color: #fff !important;
+    text-decoration: none !important;
+}
+.sidebar a:hover {
+    color: #000 !important;
+    background:#fff !important;
 }
 .sidebar .menu-item:hover, a:hover .submenu a {
     color: #000 !important;
@@ -138,28 +146,31 @@ a {
 .sidebar .submenu:hover a {
     color: #000;
 }
-
 .card-body h2 {
     margin-top: 10px !important;
     margin-bottom: 10px !important;
 }
-
+.sidebar .menu-link.active {
+    color: #000 !important;
+    background: #fff;
+    text-decoration: none;
+}
+.sidebar .menu-link.active:hover {
+    background: #fff !important;
+}
 .sidebar i {
     margin-right: 6px;
     font-size: 18px;
 }
-
 .menu-item:hover,
 a:hover {
     background: #fff;
     color: #000;
     text-decoration: none;
 }
-
 .sidebar .submenu a:hover {
     color: #000 !important;
 }
-
 .menu-title {
     display: flex;
     align-items: center;
@@ -174,18 +185,15 @@ a:hover {
     font-size: 14px;
     transition: transform 0.3s;
 }
-
 .sidebar .submenu {
     display: none;
     padding-left: 20px;
 }
-
 .submenu a {
     padding: 8px 0;
     display: block;
     font-size: 13px;
 }
-
 .dropdown.active .submenu {
     display: block;
 }
@@ -199,11 +207,18 @@ a:hover {
     font-weight: 700;
     margin-bottom: 30px;
 }
-
-.row.second-card {
-    margin-top: 20px;
+.main-right.managersubmanagerclass .col-md-3 a.stat-card-link {
+    margin-bottom: 0;
 }
-
+.row.second-card a {
+    padding: 0 !important;
+}
+.row.second-card {
+    margin-top: 20px !important;
+}
+.row.first-card a {
+    padding: 0 !important;
+}
 .main-right .stat-card {
     background: white;
     border-radius: 12px;
@@ -232,7 +247,7 @@ a:hover {
     font-weight: 600;
     color: #000;
     opacity: 0.6;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
     margin-bottom:0;
 }
 
@@ -299,17 +314,23 @@ a:hover {
     box-shadow: 2px 2px 10px #ddd;
     margin: 25px auto;
 }
-
+.graph.custom-submanager table#employee-table {
+    display: inline-table !important;
+}
 .graph .filter-container {
     display: flex;
     gap: 20px;
     margin-bottom: 25px;
+    flex-wrap:wrap;
 }
 
 .chart img {
     width: 100%;
 }
-
+.graph input#daterange {
+    color: #00000087 !important;
+    min-width: auto !important;
+}
 .graph .filter-select, .filter-date {
     padding: 12px 15px !important;
     font-size: 14px;
@@ -318,7 +339,7 @@ a:hover {
     background-color: #fff;
     cursor: pointer;
     outline: none;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
     appearance: none;
     background-image: url("../images/dropdown-arrow.png");
     background-repeat: no-repeat;
@@ -327,7 +348,16 @@ a:hover {
     font-weight: 500;
     color: #00000087;
     width: 100%;
-    max-width: 190px;
+    max-width: 230px;
+}
+.graph.customclass th:last-child {
+    text-align: center !important;
+}
+.graph.customclass tr th.sorting_disabled:nth-child(6) {
+    text-align: center !important;
+}
+.graph tbody tr.odd td:last-child a:hover {
+    background: transparent;
 }
 .daterangepicker.ltr.show-calendar.opensleft td.available {
     padding: 15px 20px !important;
@@ -336,14 +366,14 @@ div#employee-table_paginate a.paginate_button:hover {
     padding: 13px 20px !important;
     border: none !important;
     border-radius: 5px !important;
-    transition: 0.3s;
+    transition: 0.1s;
     background: #0d3a6b !important;
     color: #fff !important;
 }
 .graph button#filterLogs {
     width: 100%;
     max-width: 150px;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 table#employee-table {
     width: 100% !important;
@@ -351,7 +381,7 @@ table#employee-table {
 .graph button#reset {
     width: 100%;
     max-width: 150px;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 .main-right .right-side h2 {
     margin-top: 30px;
@@ -366,7 +396,7 @@ table#employee-table {
     margin-top: 30px;
     margin-bottom: 50px;
     flex-wrap: wrap;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 
 .stat-button {
@@ -472,7 +502,7 @@ color:#fff;
 
 /*-table-*/
 .graph thead.thead-main tr th {
-    padding: 25px 18px !important;
+    padding: 25px 15px !important;
     background: #0d3a6b;
     color: #fff;
     font-family: "Poppins", sans-serif;
@@ -486,7 +516,7 @@ color:#fff;
 }
 .graph tr td {
     padding: 25px 15px !important;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
     font-weight: 500;
 }
 .graph thead {
@@ -611,7 +641,7 @@ div#employee-table_length {
 }
 table.table.table-bordered {
     border-collapse: collapse !important;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 table.table.table-bordered thead tr
 {
@@ -680,13 +710,13 @@ div#employee-table_paginate a.paginate_button.current {
 }
 div#employee-table_paginate {
     padding: 25px 5px;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
     background: transparent;
 }
 div#employee-table_info {
     padding: 35px 20px !important;
     background: transparent;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 div#employee-table_paginate a.paginate_button.current {
     background: #0d3a6b !important;
@@ -717,7 +747,12 @@ div#employee-table_filter input[type="search"] {
 }
 div#employee-table_filter {
     margin-top: 20px;
-    margin-right: 5px;
+    margin-right: 25px;
+}
+div#assignsubmanager p.message-box {
+    background: #ff0000a1;
+    box-shadow: none;
+    margin-bottom: 25px;
 }
 /*-table-*/
 
@@ -815,19 +850,35 @@ opacity: 0.9;
     border-radius: 10px;
     border-top-right-radius: 10px !important;
     border-bottom-right-radius: 10px !important;
-    padding: 16px 60px;
+    padding: 10px 40px;
     font-size: 18px;
     font-weight: 600;
 }
+div#assignempmanager .modal-dialog.modal-dialog-scrollable.modal-lg .modal-footer {
+    border-top: 1px solid #ddd !important;
+    padding: 10px !important;
+}
+div#assignempmanagerbody .card-body .form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+div#assignempmanagerbody .card-body .form-check label.form-check-label {
+    font-size: 13px;
+}
+div#assignempmanager .modal-dialog.modal-dialog-scrollable.modal-lg .modal-footer button {
+    padding: 10px 24px;
+    border-radius: 6px !important;
+}
 .main-right.addsubmanager button.btn.btn-save {
     width: 100%;
-    min-width: 160px;
-    height: 60px;
+    min-width: 120px;
+    height: 56px;
 }
 .main-right.addsubmanager button.btn.btn-cancel {
     width: 100%;
-    min-width: 160px;
-    height: 60px;
+    min-width: 120px;
+    height: 56px;
 }
 .main-right.addsubmanager .btn-group button:hover {
     color: #fff;
@@ -838,7 +889,6 @@ opacity: 0.9;
     border-radius: 10px;
     border-top-right-radius: 10px !important;
     border-bottom-right-radius: 10px !important;
-    padding: 16px 50px;
     font-size: 18px;
     font-weight: 600;
 }
@@ -863,9 +913,13 @@ opacity: 0.9;
 }
 /*-addsubmanager-*/
 .menu-item.dropdown.active .submenu a {
+    display: flex;
+    align-items: center;
+    color: #fff !important;
+}
+.menu-item.dropdown.active:hover .submenu a {
     color: #000 !important;
 }
-
 #successModal {
     display: none; /* HIDE by default */
     position: fixed;
@@ -888,7 +942,7 @@ opacity: 0.9;
     border-bottom: 20px solid #5fbc0166;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
-    font-family: "Inter", sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 
 .success-icon i {
@@ -905,7 +959,7 @@ opacity: 0.9;
 
 /*-campaignslist-*/
 .graph.campaignslist tr td {
-    padding: 30px 14px !important;
+    padding: 25px 15px !important;
 }
 .graph.campaignslist tr td:nth-child(5) {
     text-align: center;
@@ -931,15 +985,42 @@ opacity: 0.9;
 .graph.campaignslist tbody td p {
     margin-bottom: 0;
     cursor: pointer;
+	font-weight:bold;
 }
 .graph.campaignslist tbody tr.odd td:last-child a:hover {
     background: none !important;
 }
 .graph.campaignslist tbody tr.odd td:last-child {
     gap: 0px !important;
+	float:right !important;
 }
 .graph.campaignslist tbody tr td:last-child {1
     float: right;
+}
+.graph.campaignslist tbody tr.even td:last-child {
+    gap: 0;
+    float: right;
+}
+.graph.campaignslist thead.thead-main tr th
+{
+	white-space: nowrap;
+}
+.graph.campaignslist tr td:nth-child(8) {
+    text-align: center;
+}
+.graph.campaignslist tr td:nth-child(9) {
+    text-align: center;
+}
+.graph.campaignslist tbody tr td:last-child a {
+    margin-bottom: 0px !important;
+    padding: 8px !important;
+    background: transparent;
+}
+.graph.campaignslist tr th:first-child {
+    text-align: left !important;
+}
+.graph.campaignslist tr td:nth-child(2) {
+    text-align: center;
 }
 /*-campaignslist-*/
 
@@ -960,7 +1041,7 @@ opacity: 0.9;
 .custom-file-upload {
     background-color: #0b2e57;
     color: #fff;
-    padding: 17.5px 40px;
+    padding: 13px 40px;
     font-size: 18px;
     font-weight: 500;
     cursor: pointer;
@@ -1035,6 +1116,13 @@ button.btn.btn-success.addButton {
 .graph tbody tr.odd td:last-child:hover a {
     background: none !important;
 }
+.graph.customclass tr td:nth-child(6) button {
+    padding: 0;
+    background: transparent !important;
+    border: none;
+    color: #5FBC01 !important;
+    font-weight: 600;
+}
 .graph tr td:nth-child(6) button {
     padding: 8px 20px;
 }
@@ -1042,13 +1130,1006 @@ button.btn.btn-success.addButton {
     margin-bottom: 0px !important;
     padding-left: 0px;
     padding-right: 0px;
-    padding-top: 0px !important;
     padding-bottom: 0 !important;
+    padding-top:0px !important;
 }
 .graph.customclass td:last-child {
-    gap: 5px !important;
-    align-items: baseline !important;
+    gap: 10px !important;
+    align-items: center !important;
+    justify-content: end;
+}
+.graph.customclass div#employee-table_wrapper table#employee-table {
+    display: inline-table !important;
 }
 /*-addcampaigns-*/
 
-/* Popup Box */
+/*-updateemployee-*/
+
+.main-right.addsubmanager.Update .employee-table {
+    width: 80%;
+    margin: 50px auto;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.main-right.addsubmanager.Update .header-btn-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+}
+.main-right.addsubmanager.Update .employee-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.main-right.addsubmanager.Update h2.section-heading {
+    margin-bottom: 0;
+}
+.employee-table-update thead th {
+    background-color: #0a3158;
+    color: #fff;
+    padding: 15px;
+    text-align: left;
+    font-size: 16px;
+}
+.employee-table-update tbody td {
+    padding: 15px;
+    font-size: 15px;
+}
+.employee-table-update .alt-row {
+    background-color: #f7f7f7;
+}
+.employee-table-update .remove-btn {
+    padding: 8px 15px;
+    background-color: red;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+.employee-table-update .remove-btn:hover {
+    opacity: 0.8;
+}
+.main-right.addsubmanager.Update .header-btn-container {
+    margin-bottom: 50px;
+}
+.main-right.addsubmanager.Update .graph .header-btn-container.employeetomanager {
+    margin-bottom: 30px !important;
+}
+.main-right.addsubmanager.Update .graph .header-btn-container.employeetomanager button.back-btn {
+    padding: 15px 25px !important;
+}
+.main-right.addsubmanager.Update .header-btn-container .back-btn {
+    background-color: #0a3158;
+    color: #fff;
+    padding: 15px 45px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom:0px ;
+}
+.employee-table-update table th:nth-child(2),
+.employee-table-update table td:nth-child(2) {
+    border-left: 1px solid #dcdcdc;
+}
+.employee-table-update table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.employee-table-update table th,
+.employee-table-update table td {
+    width: 50%; 
+}
+.employee-table-update button.addemployemanager {
+    margin-bottom: 50px;
+    float: right;
+	background-color: #0a3158;
+    color: #fff;
+    padding: 15px 45px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer
+}
+
+.header-btn-container.employeetomanager {
+    text-align: right !important;
+    display: block !important;
+}
+div#assignsubmanager .modal-footer button {
+    border-radius: 8px !important;
+    padding: 10px 30px !important;
+    border: none;
+}
+select.form-control.custom-select {
+    padding: 12px;
+    box-shadow: 0 2px 6px 0 #ddd;
+}
+/*-updateemployee-*/
+
+/*-leadchart-*/
+.main-right.addsubmanager.Update.leadchart input[type="date"] {
+    background: transparent;
+    padding: 20px 15px;
+	box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+.main-right.addsubmanager.Update.leadchart button.back-btn.clear {
+    background: red !important;
+}
+.main-right.addsubmanager.Update.leadchart .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+.leadchart .campaign-card {
+    width: 49%;
+    border: 1px solid #e0e0e0;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+.leadchart .campaign-header h2 {
+    font-weight: 600 !important;
+}
+.leadchart .campaign-header {
+  background-color: #0d3c6e; /* Dark Blue */
+  padding: 20px 20px;
+}
+.leadchart .campaign-header h2 {
+    font-size: 20px !important;
+    margin-bottom: 0px !important;
+	color:#fff !important;
+}
+.leadchart .campaign-body {
+  padding: 20px;
+  height: 350px; /* Adjust depending on chart height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.leadchart .campaign-body canvas#leadsChart {
+    height: auto !important;
+    width: 100% !important;
+}
+.main-right.addsubmanager.Update.leadchart .campaign-card.dates .date-section {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+.leadchart .campaign-card.dates .campaign-body {
+    display: block;
+}
+.leadchart .chart-placeholder {
+  width: 100%;
+  height: 100%;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #999;
+}
+.leadchart .date-item {
+    border-bottom: 1px solid #eee;
+    margin: 15px 0;
+}
+.leadchart .date-item p.date {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+.leadchart .date-item:last-child {
+    border: none;
+}
+.leadchart .date-item p.status {
+    color: #333333c4;
+}
+.main-right.addsubmanager.Update.leadchart h2.section-heading {
+    margin-bottom: 30px !important;
+}
+.main-right.addsubmanager.Update.leadchart .cards {
+    justify-content: space-between !important;
+}
+.main-right.addsubmanager.Update.leadchart select#categoryFilter {
+    padding: 15px !important;
+    height: auto;
+}
+.main-right.addsubmanager.Update.leadchart input#dateFilter {
+    padding: 15px !important;
+    height: auto;
+}
+/*-leadchart-*/
+
+
+/*employeelogs-*/
+.employee-filterss .filter-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  .employee-filterss .filter-select, .filter-date::placeholder {
+      color: #0000003d !important;
+  }
+  .employee-filterss .filter-select, .filter-date {
+      padding: 15px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background-color: #fff;
+      font-size: 14px;
+      color: #555 !important;
+      outline: none;
+      min-width: 220px;
+      min-height:51px;
+      transition: all 0.2s ease;
+  }
+  .employee-filterss .filter-select:focus,
+  .filter-date:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+  }
+  .employee-filterss .filter-btn {
+      padding: 15px 45px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s ease;
+  }
+  .employee-filterss .filter-blue {
+    background-color: #0a2b63;
+    color: #fff;
+  }
+  .employee-filterss .filter-blue:hover {
+    background-color: #093060;
+  }
+  .employee-filterss .filter-red {
+    background-color: #e71d1d;
+    color: #fff;
+  }
+  .employee-filterss .filter-red:hover {
+    background-color: #cc1818;
+  }
+  .employee-filterss table.custom-table th {
+      color: #fff;
+  }
+  .employee-filterss .graph.campaignslist.logstable th {
+      color: #fff;
+  }
+  /*employeelogs-*/
+
+  
+  /* /-myselflogs-/ */
+  .graph.campaignslist.logstable.myself-logs th:nth-child(3) {
+      text-align: left;
+  }
+  .graph.campaignslist.logstable.myself-logs td:nth-child(3) {
+      text-align: left;
+  }
+.graph.campaignslist.logstable tr td:last-child {
+    justify-content: center;
+}
+.graph.campaignslist.logstable tr td:nth-child(5) {
+    text-align: left !important;
+}
+.graph.campaignslist.logstable tr td:nth-child(4) {
+    text-align: left !important;
+}
+.graph.campaignslist.logstable tr td:nth-child(3) {
+    text-align: left !important;
+}
+.graph.campaignslist.logstable tr th:nth-child(3) {
+    text-align: left !important;
+}
+.graph.campaignslist.logstable.myself-logs tr th:first-child {
+    text-align: center;
+}
+.graph.campaignslist.logstable.myself-logs tr td:first-child {
+    text-align: left;
+}
+.graph.campaignslist.logstable.myself-logs tr th:last-child {
+    text-align: center;
+}
+.graph.campaignslist.logstable.myself-logs tr td:last-child {
+    text-align: left !important;
+    float: none !important;
+}
+.graph.campaignslist.logstable tr td:nth-child(2) {
+    text-align: left;
+}
+  /* /-myselflogs-/ */
+
+    /*-leads-*/
+.main-right.addsubmanager.addlead button.btn.btn-back {
+    background: #0d3a6b;
+    border-radius: 10px !important;
+    padding: 16px 50px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff !important;
+}
+/*-leads-*/
+
+/*-completeleads-*/
+.add-submanager input#global_filter {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0px 1px 10px #ddd;
+}
+.add-submanager input#global_filter {
+    float: right;
+    margin-bottom: 30px;
+    margin-right: 15px;
+}
+.right-side.submanager.completed-leads .table-container {
+    overflow-x: auto;
+}
+.right-side.submanager.completed-leads th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.right-side.submanager.completed-leads td
+{
+	white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.right-side.submanager.completed-leads td:nth-child(8) {
+    color: #5fbc01;
+}
+.right-side.submanager.completed-leads.closed-leads td.actions i.fa-solid.fa-trash {
+    background: red !important;
+}
+.right-side.submanager.completed-leads td:nth-child(9) {
+    text-align: left;
+}
+.right-side.submanager.completed-leads.closed-leads td.actions i.fa-solid.fa-pen-to-square {
+    background: #5fbc01;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(5) a {
+    color: #000;
+    padding-right: 0;
+}
+.right-side.submanager.completed-leads.closed-leads .filter-row {
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+.right-side.submanager.completed-leads.closed-leads select#campaign_name, select#company_s, select#company_time, select#closedon {
+    min-width: 360px;
+}
+.right-side.submanager.completed-leads.closed-leads input#global_filter {
+    margin-right: 0px !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(5) {
+    display: flex;
+    align-items: center;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(3) {
+    text-align: left;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(5) a:hover {
+    background: transparent;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(7) {
+    text-align: left;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child i.fas.fa-edit.label-new {
+    color: rgb(25 135 84);
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child i {
+    background: transparent !important;
+    padding: 0 !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child i.fas.fa-comment.label-new {
+    color: #000;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child i.fas.fa-eye.label-new {
+    color: #000;
+}
+.right-side.submanager.completed-leads.closed-leads td:last-child {
+    gap: 5px !important;
+}
+.right-side.submanager.completed-leads.closed-leads td:last-child a {
+    padding: 5px;
+    font-size: 15px !important;
+}
+.right-side.submanager.completed-leads.closed-leads td:last-child a:hover {
+    background: transparent !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(5) a {
+    margin: 0px !important;
+    font-size: 14px;
+    color: #212529;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.main-right.addsubmanager.addlead select#source_id {
+    padding: 15px !important;
+    color: #000;
+}
+.main-right.addsubmanager.addlead .form-row.appended_items {
+    display: none !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(5) i.fa-brands.fa-linkedin {
+    color: #0A66C2;
+    font-size: 20px;
+}
+.right-side.submanager.completed-leads.closed-leads tr th:nth-child(3) {
+    text-align: left;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(8) {
+    color: red !important;
+}
+div#employee-table_processing {
+    background: transparent !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child {
+    float: none !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child a {
+    padding: 0px !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child {
+    gap: 10px !important;
+}
+/*-completeleads-*/
+
+/*-daily-report-*/
+.graph.campaignslist.logstable.myself-logs.daily-report tr td:first-child {
+    display: flex;
+    gap: 0;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report tr td:first-child a {
+    color: #212529!important;
+    font-size: 14px;
+    padding-right: 0;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report tr td:first-child i {
+    color: #0d3a6b !important;
+}
+.graph.campaignslist.logstable.myself-logs tr th:nth-child(2) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report .add-submanager a:first-child {
+    background: #0E3C70 !important;
+    padding: 15px 24px !important;
+    width: auto !important;
+}
+.graph.campaignslist.logstable.myself-logs tr th:first-child {
+    text-align: left;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report td a:hover {
+    background: transparent;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report tr td:last-child {
+    float: none !important;
+}
+.employee-filterss.daily-report-filter .filter-container {
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 2px 2px 10px #ddd;
+    border-radius: 10px;
+}
+.employee-filterss.daily-report-filter .filter-container form#searchform:first-child .filter-row {
+    margin-bottom: 20px;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report .add-submanager a {
+    margin-bottom: 12px;
+}
+.employee-filterss.daily-report-filter .filter-select, .filter-date {
+    width: 100%;
+    min-width: 490px !important;
+    -webkit-appearance: none !important;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    -moz-appearance: none;
+}
+.employee-filterss.daily-report-filter .filter-group {
+    flex: none !important;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report tbody td:last-child p {
+    background: red;
+    padding: 8px 20px;
+    border-radius: 5px;
+    color: #fff;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report tr td:first-child a {
+    margin-bottom: 0;
+    padding: 0;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report tr td:first-child i {
+    margin-left: 5px;
+    font-size: 20px;
+    color:#0A66C2;
+}
+/*-daily-report-*/
+
+/*-assignleads-*/
+.main-right.addsubmanager.assignlead button.btn.btn-save {
+    background: #0d3a6b !important;
+    padding: 15px 31px;
+    font-size: 16px;
+    font-weight: 500;
+}
+form.assignleadform {
+    background: #f6f6f675;
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    margin-top: 35px;
+    margin-bottom: 35px;
+}
+form.assignleadform input[type="text"] {
+    background: #fff !important;
+}
+.assignleadform .actions {
+    text-align: center;
+}
+.assignleadform .action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+.btn-action {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    transition: 0.2s;
+}
+.main-right.addsubmanager.assignlead .table td.actions .action-buttons button.btn-action.Withdraw {
+    background: #FF0202;
+}
+.main-right.addsubmanager.assignlead .table td.actions .action-buttons button.btn-action.Reassign {
+    background: #5FBC01;
+}
+.assignleadform .btn-action:hover {
+    opacity: 0.85;
+}
+form.assignleadform .form-row {
+    margin-bottom: 0pc !important;
+}
+.main-right.addsubmanager.assignlead td.actions {
+    float: left;
+}
+form.assignleadform .input-box {
+    position: relative;
+}
+form.assignleadform .input-box input {
+    width: 100%;
+    padding: 8px 40px 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+form.assignleadform .input-box .edit-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #555;
+    font-size: 16px;
+    cursor: pointer;
+}
+.main-right.addsubmanager.assignlead .table-container.add_table {
+    border: none;
+}
+.main-right.addsubmanager.assignlead .form-row {
+    margin-bottom: 0;
+}
+.main-right.addsubmanager.assignlead select#source_id {
+    padding: 15px !important;
+}
+.main-right.addsubmanager.assignlead .table-container.add_table {
+    margin-top: 30px;
+}
+.table-container.assigned_table th:last-child {
+    text-align: right;
+}
+.table-container.assigned_table td.actions {
+    float: right !important;
+}
+.table-container.add_table tbody {
+    background: #f6f6f6;
+}
+.graph.assigned_table_graph tr th {
+    width: 371px !important;
+}
+.table-container.add_table tr td:last-child {
+    text-align: left;
+}
+.table-container.assigned_table td.actions .action-buttons {
+    display: flex !important;
+    gap: 10px !important;
+}
+.graph.customclass tr td:last-child a:hover {
+    background: transparent !important;
+}
+.main-right.view-camp select#source_id {
+    margin-bottom: 25px;
+}
+.main-right.view-camp .filter-container {
+    display: block !important;
+}
+.main-right.view-camp .table-container tbody tr td:nth-child(3) a {
+    color: #000;
+    padding: 0;
+}
+.main-right.view-camp .table-container tbody tr td:nth-child(3) a:hover {
+background: transparent !important;
+}
+.main-right.view-camp .table-container tr td {
+    white-space: nowrap;
+}
+.main-right.view-camp tr td:nth-child(8) {
+    color: red;
+}
+.main-right.view-camp .table .table-container tr td:last-child {
+    float: none !important;
+    display: block !important;
+}
+.main-right.view-camp .table .table-container tr td:nth-child(3) {
+    display: flex !important;
+    flex-wrap: wrap;
+    width: 280px;
+    gap: 10px;
+}
+.main-right.view-camp .table .table-container tr td:nth-child(3) i {
+    color: #0A66C2;
+    font-size: 20px;
+}
+.main-right.view-camp .table .table-container tr td:last-child a {
+    padding: 0px !important;
+    margin: 0px !important;
+}
+.main-right.view-camp tr td:nth-child(8) p.pending {
+    color: #ff0000 !important;
+    font-weight: 400 !important;
+cursor: inherit !important;
+}
+.main-right.view-camp tr td:nth-child(8) p.completed {
+    color: #008000 !important;
+    font-weight: 400 !important;
+    cursor: inherit !important;
+}
+.main-right.view-camp .table .table-container tr td:nth-child(3) a {
+    margin-bottom: 0px !important;
+}
+.main-right.addsubmanager.addlead a.btn.btn-success.btn-sm {
+    background: #0e3c70;
+}
+.main-right.addsubmanager.addlead h2 {
+    margin-bottom: 50px;
+    font-weight: 700;
+}
+
+/*-assignleads-*/
+
+/*-MOM-*/
+form.mom-form input.form-control {
+    padding: 15px !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+form.mom-form select.form-control {
+    padding: 14px !important;
+}
+form.mom-form input.form-control.bg-light {
+    background: transparent !important;
+}
+form.mom-form textarea.form-control {
+box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+div#employee-table_wrapper table#employee-table {
+    display: block !important;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+div#employee-table_wrapper {
+    padding: 0px !important;
+}
+.table input[type="search"] {
+    padding: 8px !important;
+}
+.table input[type="search"]::placeholder {
+    font-size: 13px;
+}
+div#assignsubmanager .modal-footer {
+    margin-bottom: 20px;
+}
+form#transferform .form-group.mt-3 {
+    width: 100%;
+    max-width: 766px;
+}
+form#transferform .form-group.mt-3 {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+form#transferform .form-group.mt-3 select#sourcelistid {
+    flex: 1;
+    padding: 10px;
+}
+form#transferform .modal-footer {
+    margin-bottom: 25px;
+}
+.modal-footer button.btn.btn-info {
+    margin-right: 5px !important;
+    background: red !important;
+}
+form#assignForm {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report table#employee-table {
+    display: inline-table !important;
+}
+.graph.campaignslist.logstable table#employee-table {
+    display: inline-table !important;
+}
+.graph.campaignslist.logstable.myself-logs table#employee-table {
+    display: inline-table !important;
+}
+div#totalLeadsModal .modal-dialog.modal-dialog-scrollable.modal-lg div#totalLeadsModalBody table#sources td:last-child a {
+    background: #5fbc01;
+    padding: 5px;
+}
+div#totalLeadsModal .modal-dialog.modal-dialog-scrollable.modal-lg div#totalLeadsModalBody table#sources td:last-child a span {
+    color: #fff !important;
+    font-weight: 500;
+}
+.main-right.addsubmanager.Update.leadchart .chart-container {
+    width: 100%;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table#employee-table {
+    display: inline-table !important;
+}
+.menu-item.dropdown.open:hover .submenu a
+{
+ color:#000 !important;
+}
+div#RevertModel button#save-data-reassigned {
+    background: #5FBC01 !important;
+    padding: 7px 20px;
+    font-weight: 600;
+}
+div#RevertModel button.btn.btn-default.waves-effect {
+    background: red;
+    color: #fff;
+    font-weight: 500;
+    padding: 7px 20px;
+    margin-right: 0;
+}
+div#RevertModel div#employe label.control-label {
+    font-size: 15px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #000;
+}
+div#RevertModel select.form-control.ReassignedCustomer {
+    font-size: 14px;
+    color: #8f8f8f;
+    font-weight: 400;
+}
+div#RevertModel select.form-control.ReassignedCustomer {
+    padding: 10px;
+    box-shadow: 0px -1px 9px #dddddd70;
+}
+.graph.custom-submanager table#employee-table th:nth-child(6) {
+    text-align: center;
+}
+.graph.custom-submanager table#employee-table th:nth-child(7) {
+    text-align: center;
+}
+.graph.customclass .table th:last-child {
+    text-align: left !important;
+}
+.graph.campaignslist input[type="search"] {
+    padding: 10px !important;
+    font-size: 14px;
+}
+.modal-dialog.modal-dialog-scrollable.modal-sm .modal-content button.btn.btn-success {
+    background: #5fbc01;
+}
+/*-MOM-*/
+
+
+/*-leadlisting-*/
+.graph.campaignslist.logstable.lead-listing td:nth-child(3) a {
+    color: #000 !important;
+    padding: 0;
+    margin-bottom: 0;
+        font-size: 14px;
+}
+.graph.campaignslist.logstable.lead-listing td:nth-child(3) i.fa-brands.fa-linkedin {
+    color: #0A66C2;
+    font-size: 20px;
+}
+.graph.campaignslist.logstable.lead-listing tr td:nth-child(3) {
+    text-align: left !important;
+    color: #212529 !important;
+}
+.graph.campaignslist.logstable.lead-listing td:nth-child(3) a:hover {
+    background: transparent;
+}
+.graph.campaignslist.logstable.lead-listing td:nth-child(3) a {
+    color: #212529 !important;
+}
+.graph.campaignslist.logstable.lead-listing td:last-child {
+    float: none !important;
+    gap: 0 !important;
+}
+.graph.campaignslist.logstable.lead-listing tr td:nth-child(3) {
+    text-align: center;
+    display: flex;
+    gap: 10px;
+}
+.graph.campaignslist.logstable.lead-listing div#employee-table_wrapper table#employee-table {
+    display: block !important;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+.graph.campaignslist.logstable.lead-listin tbody tr td:last-child a {
+    margin-bottom: 0px !important;
+    padding: 0px !important
+}
+.graph.campaignslist.logstable.lead-listing table td:last-child a {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+.graph.campaignslist.logstable.lead-listing td:nth-child(8) p.pending {
+    color: red;
+    font-weight: 500;
+}
+.graph.campaignslist.logstable.lead-listing td:nth-child(8) p.in-progress {
+    color: #5fbc01;
+    font-weight: 500;
+}
+.graph.campaignslist.logstable div#employee-table_wrapper table#employee-table {
+    display: inline-table !important;
+}
+/*-leadlisting-*/
+
+/*-mediaquery-*/
+@media screen and (max-width: 1366px) and (min-width: 1200px) {
+  .main-right .card-header h4 {
+    font-size: 14px !important;
+  }
+.main-right .right-side .card-icon {
+    width: 40px;
+    height: 40px;
+}
+.card-icon i {
+    font-size: 15px !important;
+}
+.sidebar {
+    width: 21vw;
+}
+}
+
+@media screen and (max-width: 1199px) and (min-width: 768px)
+{
+  .sidebar {
+    width: 250px !important;
+}
+.main-right {
+    width: calc(100% - 250px) !important;
+}
+.main-right .row .col-md-3 {
+    width: 50% !important;
+    margin-bottom: 20px;
+}
+.row.second-card {
+    margin-top: 0;
+}
+.main-right .graph{
+    margin: 0 auto;
+}
+}
+
+@media screen and (max-width: 767px) and (min-width: 320px)
+{
+   .sidebar .menu-title {
+    font-size: 0px !important;
+}
+   .sidebar a{
+    font-size: 0px !important;
+}
+.main-right .row .col-md-3 {
+    margin-bottom: 10px;
+}
+.graph {
+    padding: 30px 15px;
+}
+.graph .filter-select, .filter-date {
+    max-width: 100%;
+}
+.graph button#filterLogs {
+    max-width: 100%;
+}
+.graph button#reset {
+    max-width: 100%;
+}
+.stat-button {
+   max-width: 100%;
+}
+.row.second-card {
+    margin-top: 0;
+}
+.sidebar .menu-item, a {
+    padding: 14px 2px;
+}
+.graph {
+    margin: 0 auto !important;
+}
+.logo img {
+    max-height: 50px;
+}
+.profile-img {
+    width: 30px;
+    height: 30px;
+}
+.profile-name {
+    font-size: 12px;
+}
+.topbar {
+    padding: 15px 10px;
+}
+.right-side h2:first-child {
+    font-size: 25px;
+    margin-bottom: 25px;
+}
+.sidebar .submenu {
+    padding-left: 0;
+}
+.menu-item.dropdown:active {
+    background: transparent !important;
+    color: #fff !important;
+}
+.main-right.managersubmanagerclass .graph input#daterange {
+    width: 100% !important !important;
+}
+.sidebar .menu-title {
+    justify-content: center !important;
+}
+.menu-item.dropdown.active .submenu a {
+    color: #fff !important;
+    justify-content: center;
+}
+.menu-item.dropdown.open:hover .submenu a {
+    color: #000 !important;
+}
+.sidebar a {
+    text-align: center !important;
+}
+.menu-item a:hover {
+    background: transparent !important;
+}
+.sidebar .menu-link.active {
+    color: #fff!important;
+    background: transparent !important;
+}
+.sidebar .menu-item, a {
+    background: transparent !important;
+}
+.dashboard-screen .stats-container .stat-button.active {
+    background: #51c1c8 !important;
+}
+.dashboard-screen .sidebar i {
+    margin-right: 3px;
+    font-size: 16px;
+}
+
+
+}
+/*-mediaquery-*/

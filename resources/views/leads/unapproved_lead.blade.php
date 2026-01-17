@@ -1,251 +1,168 @@
 @extends('layouts.admin')
 @section('content')
-    <style type="text/css">
-        ul.pagination {
-            float: right;
-            margin-right: 25px;
-        }
 
-        .filterform {
-            display: flex;
-            justify-content: end;
-            margin-right: 25px;
-        }
-
-        .padd-all {
-            padding: 1.25rem;
-        }
-
-        span.group_actions {
-            padding-right: 12px;
-            cursor: pointer;
-        }
-
-        span i.fa.fa-check.green-color.onchange_element_approve {
-            padding-right: 8px;
-        }
-    </style>
-
-    <form id="Reassignedform">
-        <div id="RevertModel" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-            aria-hidden="true" style="display: none;">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Update Linkedin Address</h4>
-                        <button type="button" id="modelclose" class="close" data-dismiss="modal" aria-hidden="true"
-                            style="color:black" onclick="closemodallinkedin();">×</button>
-                    </div>
-                    <div class="modal-body">
-
-                        <div class="NoResponseData">
-                            <div class="form-group" id="employe" name="employe">
-                                <label class="control-label">Linkedin</label>
-                                <input type="hidden" id="leadid" name="leadid" value="" class="form-control ">
-                                <input type="text" id="linkedinurl" name="linkedinurl" value="" class="form-control ">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
-                        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal"
-                            onclick="closemodallinkedin();">Close</button>
-                        {{-- <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i> Save</button> --}}
-                        <button id="save-data-reassigned" type="button" class="btn btn-info waves-effect waves-light "
-                            onclick="updatelinkedin();">Update</button>
+{{-- LinkedIn Update Modal --}}
+<form id="Reassignedform">
+    <div id="RevertModel" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Update Linkedin Address</h4>
+                    <button type="button" class="close" data-dismiss="modal" onclick="closemodallinkedin();">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Linkedin</label>
+                        <input type="hidden" id="leadid">
+                        <input type="text" id="linkedinurl" class="form-control">
                     </div>
                 </div>
-            </div>
-        </div>
-    </form>
-    <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">Dashboard</h3>
-        </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                <li class="breadcrumb-item active">Unapproved Leads</li>
-            </ol>
-        </div>
-    </div>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                @if (Session::has('success'))
-                    <div class="alert alert-success" role="alert">
-                        {{ Session::get('success') }}
-                    </div>
-                @elseif (Session::has('error'))
-                    <div class="alert alert-danger" role="alert">
-                        {{ Session::get('error') }}
-                    </div>
-                @endif
-
-                <div class="card card-outline-info">
-                    <div class="card-header">
-                        <h4 class="m-b-0 text-white">Unapproved Leads</h4>
-                    </div>
-                    <div class="filterform"></div>
-                    <div class="container_search" style="display: none;">
-                        <div class="card-body"></div>
-                    </div>
-                    <div class="table-responsive m-t-40 padd-all" id="table_data" style="padding-bottom: 50px;">
-                        <table id="unapprovedLeadsTable"
-                            class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                            width="100%">
-                            <thead>
-                                <tr>
-                                    <th>Action</th>
-                                    <th>LinkedIn</th>
-                                    <th>Employee Name</th>
-                                    <th>Company Name</th>
-                                    <th>Prospect Name</th>
-                                    <th>Designation</th>
-                                    <th>Date</th>
-                                    <th>Campaign Name</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" data-dismiss="modal" onclick="closemodallinkedin()">Close</button>
+                    <button id="save-data-reassigned" type="button" class="btn btn-info" onclick="updatelinkedin()">Update</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            const _token = $('input[name="_token"]').val();
-            const spinnerOverlay = $('#spinner-overlay');
-            const unapprovedLeadsTable = $('#unapprovedLeadsTable');
-            $('#spinner-overlay').show(); // Show full-page spinner
-
-            // Initialize DataTable with server-side processing
-            const table = unapprovedLeadsTable.DataTable({
-                processing: false,
-                serverSide: true,
-                ordering:true,
-                ajax: '{{ route("unapproved_manager_leads_list_pagination") }}',
-                columns: [
-                    { data: "action", orderable: false },
-                    { data: "LinkedIn", orderable: false },
-                    { data: "employee_name", orderable: false },
-                    { data: "company_name",orderable:true },
-                    {
-                        data: "prospect_full_name",
-                        render: function (data, type, row) {
-                            return `${data}`;
-                        }
-                    },
-                    { data: "designation" },
-                    { data: "created_at" },
-                    { data: "source_name" },
-                ],
-                lengthMenu: [[10, 20, 30], [10, 20, 30]],
-                searching: true,
-                drawCallback: function () {
-                    $('#spinner-overlay').hide(); // Show full-page spinner
-
-                    this.api().rows().every(function () {
-                        const $row = $(this.node());
-                        const $selectBox = $row.find('select');
-                        const dataId = $selectBox.data('id');
-                        if (dataId) {
-
-                            $selectBox.val(dataId).trigger('change');
-                        }
-                    });
-                    // Show spinner overlay on processing start
-                    table.on('preXhr.dt', function (e, settings, data) {
-                        $('#spinner-overlay').show(); // Show full-page spinner
-                    });
-
-                    // Hide spinner overlay when data is loaded
-                    table.on('xhr.dt', function (e, settings, json, xhr) {
-                        $('#spinner-overlay').hide(); // Hide full-page spinner
-                    });
-                },
-                initComplete: function () {
-                    $(document).on('change', '.unapproved_lead', function () {
-                        const leadId = $(this).attr('id');
-                        $(`#icons_${leadId}`).show();
-                    });
-
-                    handleAction('.onchange_element_approve', 'approved');
-                    handleAction('.onchange_element_cross', 'cancel');
-                }
-            });
-
-            // Generic handler for approve/cancel actions
-            function handleAction(selector, status) {
-                $(document).on('click', selector, function () {
-                    const leadId = $(this).data('id');
-                    const empId = $(this).data('emp-id') || '';
-                    const selectedValue = $(`#${leadId}`).val();
-
-                    if (leadId && confirm(`Do you want to ${status} this lead?`)) {
-                        $.ajax({
-                            url: '{{ route("updateApprovalStatus") }}',
-                            type: 'POST',
-                            data: {
-                                leadId,
-                                sourceId: selectedValue,
-                                status,
-                                user_id: empId,
-                                _token
-                            },
-                            success: () => table.ajax.reload(),
-                            error: (jqXHR, textStatus, errorThrown) => console.error(`Error: ${textStatus}`, errorThrown)
-                        });
-                    }
-                });
-            }
-        });
-
-        function editmodule(id, url) {
-            $('#leadid').val(id);
-            $('#linkedinurl').val(url);
-            $('#linkedinurl').css('border','');
-            $('#RevertModel').modal('show');
-        }
-
-        function closemodallinkedin() {
-            $('#RevertModel').modal('hide');
-
-        }
-
-        function updatelinkedin() {
-            const _token = $('input[name="_token"]').val();
-            var leadid = $('#leadid').val();
-            var linkedinurl = $('#linkedinurl').val();
-            if(linkedinurl != ''){
-            $.ajax({
-                url: '{{ route("updatelinkedin") }}',
-                type: 'POST',
-                data: {
-                    leadid,
-                    linkedinurl,
-                    _token
-                },
-                dataType:'json',
-                success:function(response){
-                    if(response.status == 200){
-                        alert(response.message);
-                        location.reload(true);
+</form>
 
 
-                    }else{
-                        alert(response.message);
-                        location.reload(true);
-                    }
+<div class="main-right">
+    <div class="right-side submanager completed-leads closed-leads unaproved-leads">
+        <h2>Unapproved Leads</h2>
 
-                } 
-            });
-        }else{
-            $('#linkedinurl').css('border','1px solid red');
-        }
-        }
-    </script>
+        <div class="graph campaignslist">
+            <!-- <div class="row">
+                <div class="add-submanager">
+                    <input type="search" id="search" name="search" placeholder="search...">
+                </div>
+            </div> -->
+
+            <div class="table">
+                <div class="table-container">
+                    <table id="employee-table">
+                        <thead class="thead-main">
+                            <tr>
+                                <th>Linkdin</th>
+                                <th>Employee Name</th>
+                                <th>Company Name</th>
+                                <th>Prospect Name</th>
+                                <th>Designation</th>
+                                <th>Date</th>
+                                <th>Campaign Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="new-table-body"></tbody>
+                    </table>
+                </div>
+
+                {{-- CUSTOM PAGINATION --}}
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{{-- Scripts --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function () {
+    $('#spinner-overlay').show();
+
+const table = $('#employee-table').DataTable({
+    processing: false,
+    serverSide: true,
+    ajax: '{{ route("unapproved_manager_leads_list_pagination") }}',
+    ordering: true,
+    autoWidth: false,     // 🔴 IMPORTANT
+    deferRender: true,    // performance
+    columns: [
+        { data: "LinkedIn", orderable: false },
+        { data: "employee_name", orderable: false },
+        { data: "company_name", orderable: false },
+        { data: "prospect_full_name", orderable: false },
+        { data: "designation", orderable: false },
+        { data: "created_at", orderable: true },
+        { data: "source_name", orderable: false },
+        { data: "action", orderable: false }
+    ],
+
+    initComplete: function () {
+        // Force correct width AFTER arrows are added
+        this.api().columns.adjust();
+
+        // Small delay ensures DOM is fully painted
+        setTimeout(() => {
+            $('#spinner-overlay').hide();
+        }, 100);
+    }
+});
+
+/* Show spinner on every ajax reload */
+table.on('preXhr.dt', function () {
+    $('#spinner-overlay').show();
+});
+
+/* Hide spinner after redraw (ordering, paging, search) */
+table.on('draw.dt', function () {
+    $('#spinner-overlay').hide();
+});
+
+    // Custom search input → DataTable search
+    $('#search').keyup(function () {
+        table.search(this.value).draw();
+    });
+
+    // Approve / Cancel Actions
+    $(document).on('click', '.onchange_element_approve', function () {
+        updateStatus($(this).data('id'), 'approved', $(this).data('emp-id'));
+    });
+
+    $(document).on('click', '.onchange_element_cross', function () {
+        updateStatus($(this).data('id'), 'cancel', $(this).data('emp-id'));
+    });
+});
+
+// Update approve/cancel
+function updateStatus(leadId, status, empId = '') {
+    if (!confirm(`Do you want to ${status} this lead?`)) return;
+
+    $.post('{{ route("updateApprovalStatus") }}', {
+        leadId, status, user_id: empId, _token: '{{ csrf_token() }}'
+    }, function () {
+        $('#unapprovedLeadsTable').DataTable().ajax.reload();
+    });
+}
+
+// LinkedIn update modal functions
+function editmodule(id, url) {
+    $('#leadid').val(id);
+    $('#linkedinurl').val(url);
+    $('#RevertModel').modal('show');
+}
+
+function closemodallinkedin() {
+    $('#RevertModel').modal('hide');
+}
+
+function updatelinkedin() {
+    const leadid = $('#leadid').val();
+    const linkedinurl = $('#linkedinurl').val();
+
+    if (!linkedinurl.trim()) {
+        $('#linkedinurl').css('border', '1px solid red');
+        return;
+    }
+
+    $.post('{{ route("updatelinkedin") }}', {
+        leadid, linkedinurl, _token: '{{ csrf_token() }}'
+    }, function (response) {
+        alert('Linkedin address updated');
+        location.reload();
+    });
+}
+</script>
+
 @endsection

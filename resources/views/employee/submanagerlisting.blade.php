@@ -51,10 +51,11 @@
             cursor: pointer;
             color: blue;
         }
+
         .menu-title.active {
-    background-color: transparent;
-    font-weight: bold;
-}
+            background-color: transparent;
+            font-weight: bold;
+        }
     </style>
 
 
@@ -93,10 +94,10 @@
                 </div>
             </div>
 
-            <div class="graph">
+            <div class="graph custom-submanager">
                 <!-- <div class="row">
-                    <div class="add-submanager"><a href="{{ route('employee.createmanager') }}">Add Submanager</a></div>
-                </div> -->
+                                    <div class="add-submanager"><a href="{{ route('employee.createmanager') }}">Add Submanager</a></div>
+                                </div> -->
                 <div class="modal fade" id="employeelisting" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
                     aria-hidden="true">
                     <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
@@ -111,6 +112,32 @@
                             <!-- <form action="" method="post" id="submanagerform"> -->
 
                             <div id="employeelistingbody" class="modal-body">
+
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-info" data-dismiss="modal"
+                                    onclick="closemodal()">Close</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal fade" id="campaignlisting" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="totalLeadsLabel">Campaign Listing</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                                    onclick="closemodal()">
+                                    <span aria-hidden="true" style="color: black;">&times;</span>
+                                </button>
+                            </div>
+                            <!-- <form action="" method="post" id="submanagerform"> -->
+
+                            <div id="campaignlistingbody" class="modal-body">
 
 
                             </div>
@@ -143,6 +170,16 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Popup -->
+    <div class="popupcenter" id="successModal">
+        <div class="popupp">
+            <div class="success-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <p>Employee has been <br> added successfully.</p>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -169,70 +206,104 @@
                 serverSide: true,
                 ajax: '{{ route('employee.submanagerlistingdata') }}',
                 pageLength: 10,
-                columns: [{
-                    data: 'first_name',
-                    name: 'first_name'
-                },
-                {
-                    data: 'last_name',
-                    name: 'last_name'
-                },
-                {
-                    data: 'email',
-                    name: 'email',
-                    orderable: false,
-                },
-                {
-                    data: 'orignal_password',
-                    name: 'orignal_password',
-                    orderable: false,
-                },
-                {
-                    data: 'phone_no',
-                    name: 'phone_no',
-                    orderable: false
-                },
-                {
-                    data: 'totalemployees',
-                    name: 'totalemployees',
-                    orderable: false,
-                    searchable: false
+                columns: [
+    {
+        data: 'first_name',
+        name: 'first_name',
+        render: function (data) {
+            return data && data !== "" ? data : "N/A";
+        }
+    },
+    {
+        data: 'last_name',
+        name: 'last_name',
+        render: function (data) {
+            return data && data !== "" ? data : "N/A";
+        }
+    },
+    {
+        data: 'email',
+        name: 'email',
+        orderable: false,
+        render: function (data) {
+            return data && data !== "" ? data : "N/A";
+        }
+    },
+    {
+        data: 'orignal_password',
+        name: 'orignal_password',
+        orderable: false,
+        render: function (data) {
+            return data && data !== "" ? data : "N/A";
+        }
+    },
+    {
+        data: 'phone_no',
+        name: 'phone_no',
+        orderable: false,
+        render: function (data) {
+            return data && data !== "" ? data : "N/A";
+        }
+    },
+    {
+        data: 'totalemployees',
+        name: 'totalemployees',
+        orderable: false,
+        searchable: false,
+        render: function (data) {
+            return data && data !== "" ? data : "0"; // or "N/A"
+        }
+    },
+    {
+        data: 'totalcampaigns',
+        name: 'totalcampaigns',
+        orderable: false,
+        searchable: false,
+        render: function (data) {
+            return data && data !== "" ? data : "0"; // or "N/A"
+        }
+    },
+    {
+        data: 'actions',
+        name: 'actions',
+        orderable: false,
+        searchable: false
+    }
+],
 
-                },
-                {
-                    data: 'totalcampaigns',
-                    name: 'totalcampaigns',
-                    orderable: false,
-                    searchable: false
-
-                },
-
-                {
-                    data: 'actions',
-                    name: 'actions',
-                    orderable: false,
-                    searchable: false
-                }
-                ],
                 drawCallback: function () {
                     // Initialize Switchery for each checkbox
                     $('.switchery').each(function () {
                         if (!$(this).data('switchery')) {
-                            new Switchery(this, {
+
+                            // Initialize Switchery
+                            var switchery = new Switchery(this, {
                                 color: '#192e62',
                                 secondaryColor: '#f9f9f9',
                                 jackColor: '#d3da44',
                                 size: 'small'
                             });
+
+                            // Add Tippy tooltip on the switch element (Switchery creates the next sibling)
+                            let switchElement = $(this).next('.switchery')[0];
+
+                            tippy(switchElement, {
+                                content: 'Change Status',
+                                placement: 'top',
+                                arrow: true,
+                                animation: 'scale'
+                            });
                         }
                     });
+
+
                     tippy('.viewEmployee', {
                         content: 'View Employees',
                         placement: 'top',
                         arrow: true,
                         animation: 'scale'
                     });
-                    tippy('.editManager', {
+                    tippy('.editEmployee', {
                         content: 'Edit Manager',
                         placement: 'top',
                         arrow: true,
@@ -245,6 +316,12 @@
                         animation: 'scale'
                     });
                 }
+            });
+
+            table.on('init.dt', function () {
+                $('div.dataTables_filter input')
+                    .attr('placeholder', 'Search by name,email')
+                    .css({ 'width': '250px', 'display': 'inline-block' });
             });
 
             // Show spinner overlay on processing start
@@ -335,10 +412,24 @@
                 dataType: "json",
 
                 success: function (response) {
-                    if (response.status == 200) {
-                        alert('Status Changed successfully!');
+                    if (response.status == 200 && response.data == 'disabled') {
+
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Status disabled successfully!',
+                            icon: 'success',
+                            confirmButtonColor: '#192e62',
+                        });
+
                     } else {
-                        alert('Failed to toggle status.');
+
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Status enabled successfully!',
+                            icon: 'success',
+                            confirmButtonColor: '#192e62',
+                        });
+
                     }
                 },
                 error: function (error) {
@@ -375,9 +466,37 @@
             });
         }
 
+   
+        function viewCampaigns(managerid) {
+            $.ajax({
+                url: "{{ route('employee.viewcampaigns') }}", // Corrected route syntax
+                method: 'get',
+                data: {
+                    managerid: managerid,
+                    _token: $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
+                },
+                dataType: "json",
+
+                success: function (response) {
+                    if (response.status == 200) {
+                        // $('#employeelisting').modal('show');
+                        let modal = new bootstrap.Modal(document.getElementById('campaignlisting'));
+                        modal.show();
+                        $('#campaignlistingbody').html(response.html);
+                    } else {
+                        alert('Something went wrong.');
+                    }
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        }
+
         function closemodal() {
             $('#employeelisting').modal('hide');
-
+            $('#campaignlisting').modal('hide'); 
         }
 
 

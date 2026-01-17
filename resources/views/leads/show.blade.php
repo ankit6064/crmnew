@@ -1,8 +1,5 @@
 @extends('layouts.admin')
-
-
 @section('content')
-
     <?php
     $fullName = '';
     if ($data['prospect_first_name'] != 'NA' && $data['prospect_last_name'] == 'NA') {
@@ -13,977 +10,622 @@
         $fullName = $data['prospect_first_name'] . ' ' . $data['prospect_last_name'];
     }
     ?>
-    <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">Dashboard</h3>
-        </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                @if (auth()->user()->manager_type != 2)
-                    <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                @else
-                    <li class="breadcrumb-item"><a href="{{ url('performanceExternalManager') }}">Performance</a></li>
-                @endif
-                @if (Auth::user()->is_admin == 1)
-                    <?php $last_url = redirect()
-                        ->getUrlGenerator()
-                        ->previous(); ?>
-                    <li class="breadcrumb-item"><a href="{{ $last_url }}">View Campaign Leads</a></li>
-                @else
+
+    <div class="main-right addsubmanager addlead">
+        <div class="right-side add-sub">
+            <div class="graph">
+
+                <!-- Action Buttons -->
+                <div class="button_edit edit_leads mb-3" style="text-align: right;">
                     @if (auth()->user()->manager_type != 2)
-                        <li class="breadcrumb-item"><a href="{{ url('leads') }}">Leads</a></li>
+                        <a class="btn btn-success btn-sm" href="{{ url('/editlead/' . $data['id']) }}">
+                            <i class="ti-pencil"></i> Edit Lead
+                        </a>
                     @endif
+
+                    <?php
+    $lhs = App\Models\LhsReport::where(['lead_id' => $data['id']])->first();
+    $urls = '?employee_id=' . request()->get('employee_id') . '&campaign_id=' . request()->get('campaign_id') . '&date_from=' . request()->get('date_from') . '&date_to=' . request()->get('date_to');
+                    ?>
+
+                    @if (!empty($lhs))
+                        <a href="{{ url('/employee/export/' . $data['id'] . '/word_single_down') . $urls }}"
+                            class="btn btn-warning btn-sm">
+                            <i class="ti-download"></i> Word
+                        </a>
+                        <a href="{{ route('employee.show_mom', [$data['id']]) }}" class="btn btn-info btn-sm">
+                            Create MoM
+                        </a>
+                    @endif
+
+                    @if (!empty($lhsFiles))
+                        <a href="{{ url($lhsFiles->file_path . '/' . $lhsFiles->file_name) }}" class="btn btn-primary btn-sm"
+                            download="file.mp3">
+                            <i class="ti-download"></i> File
+                        </a>
+                    @endif
+                </div>
+
+                <h2>Lead Details: {{ $fullName }}</h2>
+
+                <!-- Lead Information Section -->
+                <form method="post" action="{{ route('leads.update', $data['id']) }}" id="leadForm">
+
+                    @csrf
+                    {{ method_field('PATCH') }}
+
+                    <input type="hidden" id="edit_mode" value="1">
+
+                    <!-- Row 1 -->
+                    <div class="form-row">
+
+                        <!-- CAMPAIGN -->
+                        <div class="form-group">
+                            <label>Campaign Name</label>
+                            <input type="text" id="prospect_email" name="campaign_name" placeholder="Enter Email"
+                                value="{{ $data['source']['source_name'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('source_name') }}</small>
+                        </div>
+                        <!-- EMAIL -->
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="text" id="prospect_email" name="prospect_email" placeholder="Enter Email"
+                                value="{{ $data['prospect_email'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('prospect_email') }}</small>
+                        </div>
+                    </div>
+
+                    <!-- AJAX LOADED SUB-CAMPAIGN -->
+                    <div class="form-row appended_items"></div>
+
+                    <!-- Row 2 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="prospect_first_name" name="prospect_first_name"
+                                value="{{ $data['prospect_first_name'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('prospect_first_name') }}</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="prospect_last_name" name="prospect_last_name"
+                                value="{{ $data['prospect_last_name'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('prospect_last_name') }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Row 3 -->
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label>Organization Industry</label>
+                            <input type="text" id="company_industry" name="company_industry"
+                                value="{{ $data['company_industry'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('company_industry') }}</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Organization</label>
+                            <input type="text" id="company_name" name="company_name" value="{{ $data['company_name'] }}"
+                                readonly>
+                            <small class="text-danger error">{{ $errors->first('company_name') }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Row 4 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Contact No</label>
+                            <input type="text" id="contact_number_1" name="contact_number_1"
+                                value="{{ $data['contact_number_1'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('contact_number_1') }}</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Second Contact No</label>
+                            <input type="text" id="contact_number_2" name="contact_number_2"
+                                value="{{ $data['contact_number_2'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('contact_number_2') }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Row 5 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prospect Name</label>
+                            <input type="text" id="prospect_name" name="prospect_name"
+                                value="{{ $data['prospect_first_name'] }} {{ $data['prospect_last_name'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('prospect_name') }}</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Designation</label>
+                            <input type="text" id="designation" name="designation" value="{{ $data['designation'] }}"
+                                readonly>
+                            <small class="text-danger error">{{ $errors->first('designation') }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Row 6 -->
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label>LinkedIn Address</label>
+                            <input type="text" id="linkedin_address" name="linkedin_address"
+                                value="{{ $data['linkedin_address'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('linkedin_address') }}</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Business Function</label>
+                            <input type="text" id="bussiness_function" name="bussiness_function"
+                                value="{{ $data['bussiness_function'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('bussiness_function') }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Row 7 -->
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label>Designation Level</label>
+                            <input type="text" id="designation_level" name="designation_level"
+                                value="{{ $data['designation_level'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('designation_level') }}</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Time Zone</label>
+                            <input type="text" id="timezone" name="timezone" value="{{ $data['timezone'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('timezone') }}</small>
+                        </div>
+                    </div>
+
+                </form>
+
+                <div class="form-group">
+    <label class="control-label" style="font-weight: 600; margin-bottom: 8px;">Status</label>
+    <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #e9ecef;">
+        
+        <!-- Status Indicator -->
+        <div style="margin-bottom: 10px;">
+            @if ($data['status'] == 1)
+                <span style="background: #ffc107; color: #212529; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
+                    <i class="ti-time"></i> Pending
+                </span>
+            @elseif($data['status'] == 2)
+                <span style="background: #dc3545; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
+                    <i class="ti-close"></i> Failed
+                </span>
+            @elseif($data['status'] == 4)
+                <span style="background: #ffc107; color: #212529; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
+                    <i class="ti-reload"></i> In Progress
+                </span>
+            @else
+                <span style="background: #28a745; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
+                    <i class="ti-check"></i> Closed
+                </span>
+            @endif
+        </div>
+
+        <!-- Action Buttons -->
+        @if (auth()->user()->manager_type != 2)
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                
+                @if (in_array($data['status'], [1, 4]))
+                    <button type="button" 
+                            onclick="showstatusmodal('{{ $data['id'] }}')"
+                            data-toggle="modal" 
+                            data-target="#status-modal"
+                            style="background: transparent; border: 1px solid #007bff; color: #007bff; padding: 6px 15px; border-radius: 20px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.3s;">
+                        <i class="ti-exchange-vertical" style="font-size: 12px;"></i>
+                        Change Status
+                    </button>
                 @endif
 
-                @if (Auth::user()->is_admin == 1)
-                    <?php $last_url = redirect()
-                        ->getUrlGenerator()
-                        ->previous(); ?>
-                    <li class="breadcrumb-item active">View Lead</li>
-                @else
-                    <li class="breadcrumb-item active">View Leads</li>
+                <button type="button" 
+                        onclick="showaddmodal('{{ $data['id'] }}')"
+                        data-toggle="modal" 
+                        data-target="#status-modal-quicknote"
+                        style="background: transparent; border: 1px solid #6c757d; color: #6c757d; padding: 6px 15px; border-radius: 20px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.3s;">
+                    <i class="ti-pencil-alt" style="font-size: 12px;"></i>
+                    Add Quick Note
+                </button>
+
+                @if ($data['status'] == 3)
+                    <a href="{{ url('/employee/lhs_report/view_lhs', [$data['id']]) }}" 
+                       style="background: transparent; border: 1px solid #28a745; color: #28a745; padding: 6px 15px; border-radius: 20px; font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 5px; transition: all 0.3s;">
+                        <i class="ti-file" style="font-size: 12px;"></i>
+                        View Report
+                    </a>
                 @endif
 
+            </div>
+        @endif
 
-            </ol>
-        </div>
-        <div>
-            <!--<button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i class="ti-settings text-white"></i></button>--->
-        </div>
     </div>
+</div>
 
-    <div class="container-fluid">
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
-        <div class="row">
-            <div class="col-12">
+                <!-- Notes History Section -->
+                <div class="notes-history mt-4">
+                    <h3>Notes History</h3>
+                    <?php
+    $notesCount = App\Models\Note::where(['lead_id' => $data['id']])->count();
+    $LhsReportCount = App\Models\LhsReport::where(['lead_id' => $data['id']])->count();
+                    ?>
+                    <input type="hidden" id="notes_count_{{ $data['id'] }}" name="notes_count" value="{{ $notesCount }}">
+                    <input type="hidden" id="Lhsreport_count_{{ $data['id'] }}" name="Lhsreport_count"
+                        value="{{ $LhsReportCount }}">
 
-                @if (Session::has('success'))
-                    <div class="alert alert-success" role="alert">
-                        {{ Session::get('success') }}
-                    </div>
-                @elseif (Session::has('error'))
-                    <div class="alert alert-danger" role="alert">
-                        {{ Session::get('error') }}
-                    </div>
-                @endif
-
-                <div class="card card-outline-info">
-                    <div class="card-header">
-                        <h4 class="m-b-0 text-white">{{ $fullName }}</h4>
-                    </div>
-
-                    <div class="button_edit edit_leads">
-                        @if (auth()->user()->manager_type != 2)
-                            <a class="button_edit_anchor" href="{{ url('/editlead/' . $lead_ID) }}">
-                                <span class="label label-success edit_leads">Edit Lead</span>
-                            </a>
-                        @endif
-                        <?php
-                        $lhs = App\Models\LhsReport::where(['lead_id' => $lead_ID])->first();
-                        $urls = '?employee_id=' . request()->get('employee_id') . '&campaign_id=' . request()->get('campaign_id') . '&date_from=' . request()->get('date_from') . '&date_to=' . request()->get('date_to');
-                        ?>
-                        @if (!empty($lhs))
-                            <a href="{{ url('/employee/export/' . $lead_ID . '/word_single_down') . $urls }}"
-                                class="button_edit_anchor"><span class="label label-warning">
-                                    <i class="ti-download"> </i> Word</span></a>
-                            <a href="{{ route('employee.show_mom', [$data['id']]) }}" class="button_edit_anchor"><span
-                                    class="label label-warning"> Create MoM</span></a>
-                        @endif
-                        @if (!empty($lhsFiles))
-                            <a href="{{ url($lhsFiles->file_path . '/' . $lhsFiles->file_name) }}"
-                                class="button_edit_anchor"><span class="label label-warning" download="file.mp3">
-                                    <i class="ti-download"> </i>File</span>
-                            </a>
-                        @endif
-                    </div>
-                    <div class="card-body">
-                        <!--<h4 class="card-title">Data Export</h4>
-                                    <h6 class="card-subtitle">Export data to Copy, CSV, Excel, PDF & Print</h6>-->
-
-
-
-                        <div class="form-body vw-lead ">
-
-                            <!--<div class="row p-t-20">
-                                                <div class="col-md-6">
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                                <label class="control-label labelstyle">Job Title</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <div class="form-group">
-                                          
-                                                                <input class="form-control" type="text" name="lead_name" value="{{ $data['lead_name'] }}" readonly>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                                <label class="control-label labelstyle">Company Name</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <div class="form-group">
-                                              
-                                                                <input class="form-control" type="text" name="company_name" value="{{ $data['company_name'] }}" readonly>
-                                                            </div>
-                                                        </div>
-                                                    
-                                                    </div>
-                                                </div>
-                                            </div>-->
-
-
-                            <!-- <div class="row p-t-20">
-                                                <div class="col-md-6 show_lead">
-                                                    <div class="row ">
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                                <label class="control-label labelstyle">First Name</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <div class="form-group">
-                                   
-                                                                <input class="form-control" type="text" name="prospect_first_name" value="{{ $data['prospect_first_name'] }}" readonly>
-                                                            </div>
-                                                        </div>
-                                                    
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6 show_lead">
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                                <label class="control-label labelstyle">Last Name</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <div class="form-group">
-                                                                
-                                                                <input class="form-control" type="text" name="prospect_last_name" value="{{ $data['prospect_last_name'] }}" readonly>
-                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div> -->
-                            <div class="row p-t-20">
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Email</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-                                                @if ($fiedsArray['emailAccessible'] == true)
-                                                    <input class="form-control" type="text" name="prospect_email"
-                                                        value="{{ $data['prospect_email'] }}" readonly>
-                                                @else
-                                                    <input class="form-control" type="text" name="prospect_email"
-                                                        value="**********" readonly>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Campaign Name</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-
-                                                <input class="form-control" type="text" name="source_name"
-                                                    value="{{ $data['source']['source_name'] }}" readonly>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row p-t-20">
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Contact No 1</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-                                                @if ($fiedsArray['phoneAccessible'] == true)
-                                                    <input class="form-control" type="text" name="contact_number_1"
-                                                        value="{{ $data['contact_number_1'] }}" readonly>
-                                                @else
-                                                    <input class="form-control" type="text" name="contact_number_1"
-                                                        value="**********" readonly>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Contact No 2</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-                                                @if ($fiedsArray['phoneAccessible'] == true)
-                                                    <input class="form-control" type="text" name="contact_number_2"
-                                                        value="{{ $data['contact_number_2'] }}" readonly>
-                                                @else
-                                                    <input class="form-control" type="text" name="contact_number_2"
-                                                        value="**********" readonly>
-                                                @endif
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row p-t-20">
-
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Organization Industry</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-                                                <input class="form-control" type="text" name="company_industry"
-                                                    value="{{ $data['company_industry'] }}" readonly>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Organization</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-
-                                                <input class="form-control" type="text" name="company_name"
-                                                    value="{{ $data['company_name'] }}" readonly>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row p-t-20">
-                                <!-- <div class="col-md-6 show_lead">
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                            <label class="control-label labelstyle">Prospect Name</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <div class="form-group">
-                                                           
-                                                            <input class="form-control" type="text" name="prospect_name" value="{{ $data['prospect_first_name'] }} {{ $data['prospect_last_name'] }}" readonly>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div> -->
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Designation</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-
-                                                <input class="form-control" type="text" name="designation"
-                                                    value="{{ $data['designation'] }}" readonly>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Linkedin Address</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-                                                @if ($fiedsArray['linkdinAccessible'] == true)
-                                                    <a href="<?php
-                                                    $var = $data['linkedin_address'];
-                                                    // $var = $data[6]['linkedin_address'];
-                                                    if (strpos($var, 'http://') !== 0 && strpos($var, 'https://') !== 0) {
-                                                        echo $kasa = 'https://' . $var;
-                                                    } else {
-                                                        echo $var;
-                                                    }
-                                                    ?>" target="_blank">
-                                                        <input type="text" class="form-control"
-                                                            value="<?php
-                                                            $var = $data['linkedin_address'];
-                                                            // $var = $data[6]['linkedin_address'];
-                                                            if (strpos($var, 'http://') !== 0 && strpos($var, 'https://') !== 0) {
-                                                                echo $kasa = 'https://' . $var;
-                                                            } else {
-                                                                echo $var;
-                                                            }
-                                                            ?>" readonly></a>
-                                                @else
-                                                    <input type="text" class="form-control" value="**********"
-                                                        readonly>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="row p-t-20">
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Business Function</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-
-                                                <input class="form-control" type="text" name="bussiness_function"
-                                                    value="{{ $data['bussiness_function'] }}" readonly>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Designation Level</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-
-                                                <input class="form-control" type="text" name="designation_level"
-                                                    value="{{ $data['designation_level'] }}" readonly>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row p-t-20">
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Timezone</label>
-
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-
-                                                <input class="form-control" type="text" name="timezone"
-                                                    value="{{ $data['timezone'] }}" readonly>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Location</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-
-                                                <input class="form-control" type="text" name="location"
-                                                    value="{{ $data['location'] }}" readonly>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <!--<div class="row p-t-20">
-                                                <div class="col-md-6">
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                            <label class="control-label labelstyle">Country</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <div class="form-group">
-                                                   
-                                                            <input class="form-control" type="text" name="country" value="{{ $data['country'] }}" readonly>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
-                                                            <label class="control-label labelstyle">Linkedin Address</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-8">
-                                                            <div class="form-group">
-                                                           
-                                                            <input class="form-control" type="text" name="linkedin_address" value="{{ $data['linkedin_address'] }}" readonly>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-                                                </div>
-                                            </div>-->
-
-                            <div class="row p-t-20">
-                                <div class="col-md-6 show_lead">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label class="control-label labelstyle">Status</label><br>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-                                                @if ($data['status'] == 1)
-                                                    <span class="label label-warning statusbtnmargin">Pending</span>
-                                                    @if (auth()->user()->manager_type != 2)
-                                                        <span class="label label-info"
-                                                            onclick="showstatusmodal('{{ $data['id'] }}')"
-                                                            data-toggle="modal" data-target="#status-modal">Change
-                                                            Status</span>
-                                                    @endif
-                                                @elseif($data['status'] == 2)
-                                                    <span class="label label-danger statusbtnmargin">Failed</span>
-                                                @elseif($data['status'] == 4)
-                                                    <span class="label label-warning statusbtnmargin">In Progress</span>
-                                                    @if (auth()->user()->manager_type != 2)
-                                                        <span class="label label-info"
-                                                            onclick="document.getElementById('lead_id').value={{ $data['id'] }}"
-                                                            data-toggle="modal" data-target="#status-modal">Change
-                                                            Status</span>
-                                                    @endif
-                                                @else
-                                                    <span class="label label-success statusbtnmargin">Closed</span>
-                                                    @if (auth()->user()->manager_type != 2)
-                                                        <a
-                                                            href="{{ url('/employee/lhs_report/view_lhs', [$data['id']]) }}"><button
-                                                                type="button" class="btn btn-info">View
-                                                                Report</button></a>
-                                                    @endif
-                                                @endif
-                                                </h6>
-                                                @if (auth()->user()->manager_type != 2)
-                                                    <span class="label label-info"
-                                                        onclick="showaddmodal('{{ $data['id'] }}')"
-                                                        data-toggle="modal" data-target="#status-modal-quicknote">Add
-                                                        Quick note</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php
-                            $notesCount = App\Models\Note::where(['lead_id' => $lead_ID])->count();
-                            $LhsReportCount = App\Models\LhsReport::where(['lead_id' => $lead_ID])->count();
-                            ?>
-                            <input type="hidden" id="notes_count_{{ $lead_ID }}" name="notes_count"
-                                value="{{ $notesCount }}">
-                            <input type="hidden" id="Lhsreport_count_{{ $lead_ID }}" name="Lhsreport_count"
-                                value="{{ $LhsReportCount }}">
-
-                            <table id="example23d" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
-                                <thead>
+                    @if(count($record['notes'] ?? []) > 0)
+                        <div class="table-container" id="table_data">
+                            <table id="employee-table">
+                                <thead class="thead-main">
                                     <tr>
-
-
-                                        {{-- <th>Lead Name</th> --}}
                                         <th>Note</th>
-                                        <th>Reminder Date </th>
+                                        <th>Reminder Date</th>
                                         <th>Conversation Type</th>
                                         <th>Updated On</th>
-                                        {{-- @if (auth()->user()->is_admin == 1)
-                                                    <th>Action</th>
-                                                    @endif --}}
-
-
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($record['notes'] as $record)
-                                        <tr>
-                                            <!--<td>{{ $record['created_at'] }}</td>-->
-                                            {{-- <td>{{ $record['lead']['prospect_first_name'].' '.$record['lead']['prospect_last_name'] }}</td> --}}
-                                            <td class="feedback_td" width="300">
-                                                <p class="notes_comment">{{ $record['feedback'] }}</p>
-                                            </td>
-                                            <td>
-                                                <?php
-                                                if (isset($record['reminder_date']) && !empty($record['reminder_date'])) {
-                                                    echo date('d M, Y', strtotime($record['reminder_date']));
-                                                } else {
-                                                    echo 'N/A';
-                                                }
-                                                
-                                                ?>
-
-                                            </td>
-                                            <td class="feedback_td">{{ $record['reminder_for'] }}</td>
-                                            <td style="text-align:center;white-space:nowrap !important">
-                                            <?php 
-                                            $date = \Carbon\Carbon::parse($record['updated_at']);
-                                            ?>
-                                                {{ date('d M, Y h:i A', strtotime($date)) }}
-                                            </td>
-                                            {{-- @if (auth()->user()->is_admin == 1)
-                                                    <td><a href="{{ url('/notes/' . $record['id'] . '/edit') }}"><span class="label" data-toggle="tooltip" data-placement="top" title="Edit Lead" style="color:#000;font-size: 15px;"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></span></a></td>
-                                                    @endif --}}
-
-                                        </tr>
+                                    @foreach (($record['notes'] ?? []) as $note)
+                                                            <tr>
+                                                                <td width="300">
+                                                                    <p class="notes_comment">{{ $note['feedback'] }}</p>
+                                                                </td>
+                                                                <td>
+                                                                    <?php
+                                        if (isset($note['reminder_date']) && !empty($note['reminder_date'])) {
+                                            echo date('d M, Y', strtotime($note['reminder_date']));
+                                        } else {
+                                            echo 'N/A';
+                                        }
+                                                                        ?>
+                                                                </td>
+                                                                <td>{{ $note['reminder_for'] }}</td>
+                                                                <td style="white-space:nowrap !important">
+                                                                    <?php 
+                                                                        $date = \Carbon\Carbon::parse($note['updated_at']);
+                                                                        ?>
+                                                                    {{ date('d M, Y h:i A', strtotime($date)) }}
+                                                                </td>
+                                                            </tr>
                                     @endforeach
-
-
                                 </tbody>
                             </table>
-
                         </div>
+                    @else
+                        <div class="alert alert-info">
+                            No notes found for this lead.
+                        </div>
+                    @endif
+                </div>
 
-                    </div>
+                <!-- Buttons -->
+                <div class="btn-group mt-3">
+                    <button type="button" class="btn btn-cancel" onclick="window.history.back()">Back</button>
                 </div>
 
             </div>
         </div>
-
-
-
     </div>
-    <!-- sample modal content -->
+
+    <!-- Status Change Modal -->
     <div id="status-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="ajaxform">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="ajaxform">
+                    <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-                <meta name="csrf-token" content="{{ csrf_token() }}" />
-
-                <div>
-                    <ul></ul>
-                </div>
-
-                <div class="modal-header">
-                    <h4 class="modal-title">Change Status</h4>
-                    <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true"
-                        style="color:black">×</button>
-                </div>
-                <div class="alert alert-danger print-error-msg" style="display:none">
-                    <ul class="custom_text"></ul>
-                </div>
-                <div class="modal-body">
-
-                    <div class="form-group">
-                        <label for="recipient-name" class="control-label">Select Status: </label>
-                        <select class="form-control" id="status" name="status" required>
-                            <option value="">Select Status</option>
-                            <option value="4">In progress</option>
-                            <option value="3">Closed</option>
-                            <option value="2">Failed</option>
-                        </select>
-                        @if($errors->has('status'))
-                            <div class="alert alert-danger">{{ $errors->first('status') }}</div>
-                        @endif
+                    <div class="modal-header">
+                        <h4 class="modal-title">Change Status</h4>
+                        <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true"
+                            style="color:black">×</button>
                     </div>
-
-                </div>
-                <div class="modal-footer">
-                    <input type="hidden" id="lead_id" name="lead_id">
-                    <button type="button" class="btn btn-default waves-effect close-status-modal"
-                        data-dismiss="modal">Close</button>
-                    <button id="save-data" type="button" class="btn btn-info waves-effect waves-light ">Save
-                        changes</button>
-                </div>
+                    <div class="alert alert-danger print-error-msg" style="display:none">
+                        <ul class="custom_text"></ul>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">Select Status: </label>
+                            <select class="form-control" id="status" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="4">In progress</option>
+                                <option value="3">Closed</option>
+                                <option value="2">Failed</option>
+                            </select>
+                            @if($errors->has('status'))
+                                <div class="alert alert-danger">{{ $errors->first('status') }}</div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" id="lead_id" name="lead_id">
+                        <button type="button" class="btn btn-default waves-effect close-status-modal"
+                            data-dismiss="modal">Close</button>
+                        <button id="save-data" type="button" class="btn btn-info waves-effect waves-light ">Save
+                            changes</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        </form>
     </div>
-</div>
-    <!-- Quick Notes Add -->
-    {{-- <form action="{{route('notes.store')}}" method="post"> --}}
-    {{-- @csrf --}}
-    <form id="form">
-                    <div id="status-modal-quicknote" class="modal fade" tabindex="-1" role="dialog"
-                        aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <meta name="csrf-token" content="{{ csrf_token() }}" />
-                                <div>
-                                    <ul></ul>
-                                </div>
-                                <style type="text/css">
-                                    .responseconversrespo {
-                                        float: left;
-                                        width: 50%;
-                                        margin-bottom: 10px;
-                                    }
-                                </style>
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Add Quick Note</h4>
-                                    <button type="button" id="modelclose" class="close modal-close" data-dismiss="modal"
-                                        aria-hidden="true" style="color:black">×</button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="form-group responseconvers">
-                                        <div class="responseconversrespo">
-                                            <input type="radio" class="conversation_type" id="NoResponse"
-                                                name="conversation_type" value="NoResponse" checked="checked">
-                                              <label for="NoResponse">VM/No Response</label><br>
-                                        </div>
-                                        <div class="responseconversrespo">
-                                              <input type="radio" class="conversation_type" id="Conversation"
-                                                name="conversation_type" value="Conversation">
-                                              <label for="Conversation">Conversation</label><br>
-                                        </div>
-                                    </div>
-                                    <div class="NoResponseData">
-                                        <div class="form-group" id="status" name="status">
-                                            <label class="control-label">Reminder Date</label>
-                                            <input type="date" class="form-control" placeholder="Reminder Date"
-                                                name="reminder_date" value="{{ old('reminder_date') }}" id="min-date"
-                                                data-dtp="dtp_2827e">
-                                            <label class="control-label">Reminder Time</label>
-                                            <input type="time" class="form-control" id="reminder_time"
-                                                name="reminder_time">
-                                            <label class="control-label">Conversation Type</label>
-                                            {{-- <input type="text" class="form-control required"
-                                                placeholder="Reminder Type" id="reminder_for" name="reminder_for"
-                                                value="{{ old('reminder_for') }}"> --}}
-                                            <select id="reminder_for" class="form-control required" name="reminder_for">
-                                                <option value="">Choose Conversation Type</option>
-                                                <option value="Declined">Declined</option>
-                                                <option value="DNC">DNC</option>
-                                                <option value="Follow-up Call">Follow-up Call</option>
-                                                <option value="Follow-up Email/Info Requested">Follow-up Email/Info
-                                                    Requested</option>
-                                                <option value="Meeting Set-up">Meeting Set-up</option>
-                                                <option value="Not Interested">Not Interested</option>
-                                                <option value="Not Right Party">Not Right Party</option>
-                                                <option value="Reference Shared">Reference Shared</option>
-                                            </select>
-                                            <div class="alert alert-danger print-error-msg-1" style="display:none">
-                                                <ul class="custom_text-1"></ul>
-                                            </div>
-                                            @if(Auth::user()->is_admin == 1)
-                                            <label class="control-label">Phone Number</label>
-                                            <input type="tel" class="form-control" placeholder="Phone Number" name="phone_number" value="" id="phone_number" pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number">
-                                            @else
-                                            <input type="tel" class="form-control" placeholder="Phone Number" name="phone_number" value="" id="phone_number" pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number" style="display:none">
-                                            @endif
-                                            <label class="control-label">Note</label>
-                                            <input type="hidden" class="form-control" name="lead_id"
-                                                placeholder="Lead Id" value="{{isset($data['id'])}}">
-                                            <textarea required type="text" class="form-control required" name="feedback"
-                                                id="feedback" placeholder="Enter Note"
-                                                style="min-height: 130px;">{{ old('note') }}</textarea>
-                                            <div class="alert alert-danger print-error-msg" style="display:none">
-                                                <ul class="custom_text" id="showerrormessage"></ul>
-                                            </div>
-                                            @if($errors->has('status'))
-                                                <div class="alert alert-danger">{{ $errors->first('status') }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
 
+    <!-- Quick Notes Add Modal -->
+    <div id="status-modal-quicknote" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+        aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="form">
+                    <meta name="csrf-token" content="{{ csrf_token() }}" />
+
+                    <div class="modal-header">
+                        <h4 class="modal-title">Add Quick Note</h4>
+                        <button type="button" id="modelclose" class="close modal-close" data-dismiss="modal"
+                            aria-hidden="true" style="color:black">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group responseconvers" style="display: flex; gap: 20px;">
+                            <div>
+                                <input type="radio" class="conversation_type" id="NoResponse" name="conversation_type"
+                                    value="NoResponse" checked="checked">
+                                  <label for="NoResponse">VM/No Response</label>
+                            </div>
+                            <div>
+                                  <input type="radio" class="conversation_type" id="Conversation" name="conversation_type"
+                                    value="Conversation">
+                                  <label for="Conversation">Conversation</label>
+                            </div>
+                        </div>
+
+                        <div class="NoResponseData">
+                            <div class="form-group" id="status" name="status">
+                                <label class="control-label">Reminder Date</label>
+                                <input type="date" class="form-control" placeholder="Reminder Date" name="reminder_date"
+                                    value="{{ old('reminder_date') }}" id="min-date">
+
+                                <label class="control-label">Reminder Time</label>
+                                <input type="time" class="form-control" id="reminder_time" name="reminder_time">
+
+                                <label class="control-label">Conversation Type</label>
+                                <select id="reminder_for" class="form-control required" name="reminder_for">
+                                    <option value="">Choose Conversation Type</option>
+                                    <option value="Declined">Declined</option>
+                                    <option value="DNC">DNC</option>
+                                    <option value="Follow-up Call">Follow-up Call</option>
+                                    <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
+                                    <option value="Meeting Set-up">Meeting Set-up</option>
+                                    <option value="Not Interested">Not Interested</option>
+                                    <option value="Not Right Party">Not Right Party</option>
+                                    <option value="Reference Shared">Reference Shared</option>
+                                </select>
+
+                                <div class="alert alert-danger print-error-msg-1" style="display:none">
+                                    <ul class="custom_text-1"></ul>
                                 </div>
 
+                                @if(Auth::user()->is_admin == 1)
+                                    <label class="control-label">Phone Number</label>
+                                    <input type="tel" class="form-control" placeholder="Phone Number" name="phone_number"
+                                        value="" id="phone_number" pattern="[0-9]{10}"
+                                        title="Please enter a valid 10-digit phone number">
+                                @else
+                                    <input type="tel" class="form-control" placeholder="Phone Number" name="phone_number"
+                                        value="" id="phone_number" pattern="[0-9]{10}"
+                                        title="Please enter a valid 10-digit phone number" style="display:none">
+                                @endif
 
-                                <div class="modal-footer">
-                                    <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
-                                    <button type="button" class="btn btn-default waves-effect modal-close"
-                                        data-dismiss="modal">Close</button>
-                                    {{-- <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i>
-                                        Save</button> --}}
-                                    <button id="save-data-quick-note" type="button"
-                                        class="btn btn-info waves-effect waves-light ">Add Note</button>
+                                <label class="control-label">Note</label>
+                                <input type="hidden" class="form-control" name="source_id"
+                                    value="{{ $data->source_id ?? '' }}">
+                                <textarea required type="text" class="form-control required" name="feedback" id="feedback"
+                                    placeholder="Enter Note" style="min-height: 130px;">{{ old('note') }}</textarea>
+
+                                <div class="alert alert-danger print-error-msg" style="display:none">
+                                    <ul class="custom_text" id="showerrormessage"></ul>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
+                        <button type="button" class="btn btn-default waves-effect modal-close"
+                            data-dismiss="modal">Close</button>
+                        <button id="save-data-quick-note" type="button" class="btn btn-info waves-effect waves-light ">Add
+                            Note</button>
+                    </div>
                 </form>
-    {{-- </form> --}}
-    </div>
+            </div>
+        </div>
     </div>
 
     @push('scripts')
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            var table = $('#example23').DataTable();
-            table
-                .order([3, 'asc'])
-                .draw();
-        });
-        $('.modal').on('hidden.bs.modal', function() {
-            $("#reminder_for").val('');
-            //$("#feedback").val('');
-            $('.alert.alert-danger.print-error-msg').hide();
-            $('#status').prop('selectedIndex', 0);
-        });
-        // $(".label-info").click(function(){
-        //   $(".form-control").toggleClass("main");
-        // });
-        $("#save-data-quick-note").click(function(event) {
-            event.preventDefault();
-            let feedback = $("[name=feedback]").val();
-            var selectedVal = "";
-            var selected = $("input[type=radio][name=conversation_type]:checked");
-            if (selected.length > 0) {
-                selectedVal = selected.val();
-            }
-            var selecteddata = ""
-            if (selectedVal == 'Conversation') {
-                selecteddata = $('#reminder_for').val();
-            } else {
-                selecteddata = 1;
-            }
-            if (selecteddata == 0) {
-
-                $('.alert.alert-danger.print-error-msg-1').show();
-                $('ul.custom_text-1').html(
-                    '<li class="error_list"><span class="tab">Conversation Type Cannot Be Empty!</span></li>');
-            } else if (feedback == 0) {
-                $('.alert.alert-danger.print-error-msg-1').hide();
-                $('.alert.alert-danger.print-error-msg').show();
-                $('ul.custom_text').html(
-                    '<li class="error_list"><span class="tab">Note Field Cannot Be Empty!</span></li>');
-            } else {
-                $('.alert.alert-danger.print-error-msg').hide();
-                $('ul.custom_text').html('');
-                //   $('alert.alert-success.print-error-msg').show();
-                //   $('ul.custom_text').html('<li><span class="error_list">Note Added Successfully</span></li>');
-                 let phone_number = $("[name=phone_number]").val();
-                let feedback = $("[name=feedback]").val();
-                let reminder_date = $("[name=reminder_date]").val();
-                let reminder_time = $("[name=reminder_time]").val();
-                let reminder_for = $("[name=reminder_for]").val();
-                let lead_id = $("input[name=lead_id_quick_note]").val();
-                let source_id = $("input[name=source_id]").val();
-                let _token = $('meta[name="csrf-token"]').attr('content');
-                $.ajax({
-                    url: '{{ route('add_note') }}',
-                    type: "POST",
-                    data: {
-                        reminder_date: reminder_date,
-                        reminder_time: reminder_time,
-                        reminder_for: reminder_for,
-                        lead_id: lead_id,
-                        source_id: source_id,
-                        feedback: feedback,
-                        phone_number:phone_number,
-                        _token: _token
-                    },
-                    success: function(response) {
-                        if ($.isEmptyObject(response.error)) {
-                            console.log(response);
-                            toastr.success(response.success, 'Success!')
-                            location.reload(true);
-                        } else {
-                            toastr.error(response.error, 'Error!');
-                        }
-
-                    },
-                });
-            }
-
-            function printErrorMsg(msg) {
-                console.log(msg);
-                $(".print-error-msg").find("ul").html('');
-                $(".print-error-msg").css('display', 'block');
-                $(".print-error-msg").find("ul").append('<li>' + msg + '</li>');
-            }
-        });
-    </script>
-
-    <script>
-        $(document).ready(function() {
-
-            $("#save-data").click(function(event) {
-                event.preventDefault();
-
-                let status = $("select[name=status]").val();
-                let lead_id = $("input[name=lead_id]").val();
-                let _token = $('meta[name="csrf-token"]').attr('content');
-                $.ajax({
-                    url: '{{ route('changeStatus') }}',
-                    type: "POST",
-                    data: {
-                        lead_id: lead_id,
-                        status: status,
-                        _token: _token
-                    },
-                    success: function(response) {
-
-
-                        if ($.isEmptyObject(response.error)) {
-                            console.log(response);
-                            toastr.success(response.success, 'Success!')
-                            if (response) {
-                                $(".print-error-msg").css('display', 'none');
-                                $('.success').text(response.success);
-                                var base_url = $('meta[name="base_url"]').attr('content');
-
-                                if (response.status == 'failed') {
-                                    var Current_url = base_url + "/leads/failed";
-                                    window.location.href = Current_url;
-                                } else if (response.status == 'close') {
-                                    var Current_url = base_url + "/leads/closed";
-                                    window.location.href = Current_url;
-                                } else {
-                                    // var  Current_url = base_url+"/leads/closed";
-                                    //  window.location.href = Current_url;
-                                    location.reload(true); // inprogress
-                                }
-
-                                // location.reload(true);
-                                $("#ajaxform")[0].reset();
-                            }
-
-                        } else {
-                            $('.alert.alert-danger.print-error-msg').show();
-                            $('ul.custom_text').html(response.lhs_link);
-                            toastr.error(response.error, 'Error!');
-                        }
-
-                    },
-                });
-
-
-                function printErrorMsg(msg) {
-                    alert(msg);
-                    console.log(msg);
-                    $(".print-error-msg").find("ul").html('');
-                    $(".print-error-msg").css('display', 'block');
-                    //$.each( msg, function( key, value ) {
-                    $(".print-error-msg").find("ul").append('<li>' + msg + '</li>');
-                    // });
-                }
-
-
-            });
-
-        });
-
-        $(document).ready(function() {
-            $('#feedback').text('VM/No Response');
-            $('input[type=radio][name=conversation_type]').change(function() {
-                console.log(this.value);
-                if (this.value == 'NoResponse') {
-                    $('#feedback').val('VM/No Response');
-                    // $('#min-date').prop("disabled", false); // Element(s) are now enabled.
-                    //$('#reminder_time').prop("disabled", false); // Element(s) are now enabled.
-                    //$('#reminder_for').prop("disabled", false); // Element(s) are now enabled.
-
-                    $('#min-date').val("");
-                    $('#reminder_for').val("");
-                    $('#reminder_time').val("");
-                     $('#phone_number').val('');
-                    $('.alert.alert-danger.print-error-msg-1').hide();
-                    $('.alert.alert-danger.print-error-msg').hide();
-
-                } else if (this.value == 'Conversation') {
-                    $('.alert.alert-danger.print-error-msg-1').hide();
-                    $('.alert.alert-danger.print-error-msg').hide();
-                    $('#feedback').val('');
-                    $('#phone_number').val('');
-                    $('#min-date').val("");
-                    $('#reminder_for').val("");
-                    $('#reminder_time').val("");
-                    // $('#min-date').prop("disabled", false); // Element(s) are now enabled.
-                    //$('#reminder_time').prop("disabled", false); // Element(s) are now enabled.
-                    //$('#reminder_for').prop("disabled", false); // Element(s) are now enabled.
-
-
-
-                }
-            });
-        });
-        $(document).ready(function() {
-            $('#example23d').dataTable({
-                "order": [],
-                "columnDefs": [{
+        <script>
+            $(document).ready(function () {
+                var table = $('.table').DataTable({
+                    "order": [],
+                    "pageLength": 10,
+                    "columnDefs": [{
                         "type": "date",
                         "targets": 3
-                    } //date column formatted like "03/23/2018 10:25:13 AM".
-                ],
+                    }]
+                });
+
+                $('.modal').on('hidden.bs.modal', function () {
+                    $("#reminder_for").val('');
+                    $('.alert.alert-danger.print-error-msg').hide();
+                    $('#status').prop('selectedIndex', 0);
+                });
             });
-        });
-    </script>
+        </script>
 
-<script>
-        function showaddmodal(id) {
-            $('#lead_id_quick_note').val(id);
-            $('#status-modal-quicknote').modal('show');
-        }
+        <script>
+            $(document).ready(function () {
+                $('#feedback').val('VM/No Response');
 
-        $('.modal-close').on('click', function (event) {
-            $('#status-modal-quicknote').modal('hide');
-        });
+                $('input[type=radio][name=conversation_type]').change(function () {
+                    if (this.value == 'NoResponse') {
+                        $('#feedback').val('VM/No Response');
+                        $('#min-date').val("");
+                        $('#reminder_for').val("");
+                        $('#reminder_time').val("");
+                        $('#phone_number').val('');
+                        $('.alert.alert-danger.print-error-msg-1').hide();
+                        $('.alert.alert-danger.print-error-msg').hide();
+                    } else if (this.value == 'Conversation') {
+                        $('.alert.alert-danger.print-error-msg-1').hide();
+                        $('.alert.alert-danger.print-error-msg').hide();
+                        $('#feedback').val('');
+                        $('#phone_number').val('');
+                        $('#min-date').val("");
+                        $('#reminder_for').val("");
+                        $('#reminder_time').val("");
+                    }
+                });
+            });
+        </script>
 
-        $('.largemodal-close').on('click', function (event) {
-            $('#largeModal').modal('hide');
-        });
+        <script>
+            $("#save-data-quick-note").click(function (event) {
+                event.preventDefault();
 
-        function showstatusmodal(id) {
-            $('#lead_id').val(id);
-            $('#status-modal').modal('show');
+                let feedback = $("[name=feedback]").val();
+                var selectedVal = "";
+                var selected = $("input[type=radio][name=conversation_type]:checked");
 
-        }
+                if (selected.length > 0) {
+                    selectedVal = selected.val();
+                }
 
-        $('.close-status-modal').on('click', function (event) {
-            $('#status-modal').modal('hide');
-        });
+                var selecteddata = ""
+                if (selectedVal == 'Conversation') {
+                    selecteddata = $('#reminder_for').val();
+                } else {
+                    selecteddata = 1;
+                }
 
+                if (selecteddata == 0) {
+                    $('.alert.alert-danger.print-error-msg-1').show();
+                    $('ul.custom_text-1').html(
+                        '<li class="error_list"><span class="tab">Conversation Type Cannot Be Empty!</span></li>'
+                    );
+                } else if (feedback == 0) {
+                    $('.alert.alert-danger.print-error-msg-1').hide();
+                    $('.alert.alert-danger.print-error-msg').show();
+                    $('ul.custom_text').html(
+                        '<li class="error_list"><span class="tab">Note Field Cannot Be Empty!</span></li>'
+                    );
+                } else {
+                    $('.alert.alert-danger.print-error-msg').hide();
+                    $('ul.custom_text').html('');
 
-       
+                    let phone_number = $("[name=phone_number]").val();
+                    let feedback = $("[name=feedback]").val();
+                    let reminder_date = $("[name=reminder_date]").val();
+                    let reminder_time = $("[name=reminder_time]").val();
+                    let reminder_for = $("[name=reminder_for]").val();
+                    let lead_id = $("input[name=lead_id_quick_note]").val();
+                    let source_id = $("input[name=source_id]").val();
+                    let _token = $('meta[name="csrf-token"]').attr('content');
 
+                    $.ajax({
+                        url: '{{ route('add_note') }}',
+                        type: "POST",
+                        data: {
+                            reminder_date: reminder_date,
+                            reminder_time: reminder_time,
+                            reminder_for: reminder_for,
+                            lead_id: lead_id,
+                            source_id: source_id,
+                            feedback: feedback,
+                            phone_number: phone_number,
+                            _token: _token
+                        },
+                        success: function (response) {
+                            if ($.isEmptyObject(response.error)) {
+                                toastr.success(response.success, 'Success!')
+                                location.reload(true);
+                            } else {
+                                toastr.error(response.error, 'Error!');
+                            }
+                        },
+                    });
+                }
+            });
+        </script>
 
-    </script>
+        <script>
+            $(document).ready(function () {
+                $("#save-data").click(function (event) {
+                    event.preventDefault();
+
+                    let status = $("select[name=status]").val();
+                    let lead_id = $("input[name=lead_id]").val();
+                    let _token = $('meta[name="csrf-token"]').attr('content');
+
+                    $.ajax({
+                        url: '{{ route('changeStatus') }}',
+                        type: "POST",
+                        data: {
+                            lead_id: lead_id,
+                            status: status,
+                            _token: _token
+                        },
+                        success: function (response) {
+                            if ($.isEmptyObject(response.error)) {
+                                toastr.success(response.success, 'Success!')
+
+                                if (response) {
+                                    $(".print-error-msg").css('display', 'none');
+
+                                    if (response.status == 'failed') {
+                                        var Current_url = "{{ url('/leads/failed') }}";
+                                        window.location.href = Current_url;
+                                    } else if (response.status == 'close') {
+                                        var Current_url = "{{ url('/leads/closed') }}";
+                                        window.location.href = Current_url;
+                                    } else {
+                                        location.reload(true);
+                                    }
+                                    $("#ajaxform")[0].reset();
+                                }
+                            } else {
+                                $('.alert.alert-danger.print-error-msg').show();
+                                $('ul.custom_text').html(response.lhs_link);
+                                toastr.error(response.error, 'Error!');
+                            }
+                        },
+                    });
+                });
+            });
+        </script>
+
+        <script>
+            function showaddmodal(id) {
+                $('#lead_id_quick_note').val(id);
+                $('#status-modal-quicknote').modal('show');
+            }
+
+            $('.modal-close').on('click', function (event) {
+                $('#status-modal-quicknote').modal('hide');
+            });
+
+            function showstatusmodal(id) {
+                $('#lead_id').val(id);
+                $('#status-modal').modal('show');
+            }
+
+            $('.close-status-modal').on('click', function (event) {
+                $('#status-modal').modal('hide');
+            });
+        </script>
 
     @endpush
+
 @endsection

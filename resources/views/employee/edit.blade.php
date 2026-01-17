@@ -18,74 +18,118 @@
         .bootstrap-select>.dropdown-toggle {
             padding: 20px 15px;
         }
+
+        /* 🔴 Error input border */
+        input.error,
+        textarea.error,
+        select.error {
+            border: 1px solid #dc3545 !important;
+        }
+
+        /* 🟢 Valid input border (optional) */
+        /* input.valid,
+        textarea.valid,
+        select.valid {
+            border: 1px solid #28a745 !important;
+        } */
+
+        .text-danger {
+            font-size: 13px;
+            margin-top: 5px;
+        }
     </style>
 
     <div class="main-right addsubmanager">
         <div class="right-side">
             <h2>Update Employee</h2>
             <div class="graph">
-                <form method='post' id="employeeForm">
+                <form method="post" id="employeeForm">
                     @csrf
                     @method('PUT')
 
                     <input type="hidden" id="employee_id" value="{{ $employee->id }}">
                     <input type="hidden" name="manager" id="manager" value="{{ Auth::id() }}">
+
                     <div class="form-row">
                         <div class="form-group">
                             <label>First Name</label>
-                            <input type="text" id="first_name" name='first_name' class="form-control"
-                                placeholder="Enter First Name" value="{{ old('first_name', $employee->first_name) }}">
+                            <input type="text"
+                                   id="first_name"
+                                   name="first_name"
+                                   class="form-control"
+                                   placeholder="Enter First Name"
+                                   value="{{ old('first_name', $employee->first_name) }}">
                         </div>
+
                         <div class="form-group">
                             <label>Last Name</label>
-                            <input type="text" id="last_name" name='last_name' class="form-control"
-                                placeholder="Enter Last Name" value="{{ old('last_name', $employee->last_name) }}">
+                            <input type="text"
+                                   id="last_name"
+                                   name="last_name"
+                                   class="form-control"
+                                   placeholder="Enter Last Name"
+                                   value="{{ old('last_name', $employee->last_name) }}">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Phone Number</label>
-                            <input type="text" id="phone_no" name='phone_no' class="form-control"
-                                placeholder="Enter Phone No" value="{{ old('phone_no', $employee->phone_no) }}">
+                            <input type="text"
+                                   id="phone_no"
+                                   name="phone_no"
+                                   class="form-control"
+                                   placeholder="Enter Phone No"
+                                   value="{{ old('phone_no', $employee->phone_no) }}">
                         </div>
+
                         <div class="form-group">
                             <label>Email</label>
-                            <input type="text" id="email" name='email' class="form-control" placeholder="Enter Email"
-                                value="{{ old('email', $employee->email) }}">
+                            <input type="text"
+                                   id="email"
+                                   name="email"
+                                   class="form-control"
+                                   placeholder="Enter Email"
+                                   value="{{ old('email', $employee->email) }}">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Address</label>
-                            <input type="text" id="address" name='address' class="form-control" placeholder="Enter Address"
-                                value="{{ old('address', $employee->address) }}">
+                            <input type="text"
+                                   id="address"
+                                   name="address"
+                                   class="form-control"
+                                   placeholder="Enter Address"
+                                   value="{{ old('address', $employee->address) }}">
                         </div>
+
                         <div class="form-group">
-
                             <label>Password</label>
-                            <input type="text" id="orignal_password" name='orignal_password' class="form-control"
-                                placeholder="Enter New Password"
-                                value="{{ old('orignal_password', $employee->orignal_password) }}">
+                            <input type="text"
+                                   id="orignal_password"
+                                   name="orignal_password"
+                                   class="form-control"
+                                   placeholder="Enter New Password"
+                                   value="{{ old('orignal_password', $employee->orignal_password) }}">
                         </div>
-
                     </div>
 
-
-
-
                     <div class="btn-group">
-                        <button type="button" class="btn btn-save" onclick="submitform();">Update</button>
-                        <button type="button" class="btn btn-cancel" onclick="window.history.back();">Cancel</button>
+                        <button type="button" class="btn btn-save" onclick="submitform();">
+                            Update
+                        </button>
+                        <button type="button" class="btn btn-cancel" onclick="window.history.back();">
+                            Cancel
+                        </button>
                     </div>
 
                 </form>
             </div>
         </div>
 
-
-        <!-- Modal Popup -->
+        <!-- Success Modal -->
         <div class="popupcenter" id="successModal">
             <div class="popupp">
                 <div class="success-icon">
@@ -94,8 +138,6 @@
                 <p>Employee has been <br> updated successfully.</p>
             </div>
         </div>
-
-
 
         @push('scripts')
             <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
@@ -106,12 +148,11 @@
                 });
 
                 function submitform() {
-                    let is_valid = $('#employeeForm').valid();
-                    if (!is_valid) return;
+                    if (!$('#employeeForm').valid()) return;
 
-                    var form = $('#employeeForm')[0];
-                    var formData = new FormData(form);
-                    var employeeId = $('#employee_id').val();
+                    let form = $('#employeeForm')[0];
+                    let formData = new FormData(form);
+                    let employeeId = $('#employee_id').val();
 
                     $.ajax({
                         url: "/employee/" + employeeId,
@@ -125,34 +166,22 @@
                         },
                         dataType: 'json',
                         success: function (response) {
-                            if (response.status == 200) {
-                                // Show modal popup
+                            if (response.status === 200) {
                                 $('#successModal').css('display', 'flex');
-
-                                // Redirect after 2 seconds
                                 setTimeout(function () {
                                     window.location.href = "{{ route('employee.manageremployeeindex') }}";
                                 }, 2000);
                             } else {
                                 alert(response.message || 'Something went wrong.');
                             }
-                        }
-                        ,
-                        error: function (xhr) {
-                            console.error(xhr);
-                            if (xhr.responseJSON && xhr.responseJSON.errors) {
-                                let errors = xhr.responseJSON.errors;
-                                let messages = Object.values(errors).map(msg => msg.join("\n")).join("\n");
-                                alert(messages);
-                            } else {
-                                alert('An error occurred while submitting the form.');
-                            }
+                        },
+                        error: function () {
+                            alert('An error occurred while submitting the form.');
                         }
                     });
                 }
 
-
-                // jQuery Validation
+                // ✅ jQuery Validation with red borders
                 $('#employeeForm').validate({
                     rules: {
                         first_name: "required",
@@ -174,9 +203,20 @@
                         },
                         address: "Please enter address"
                     },
-                    errorClass: 'text-danger'
+                    errorClass: 'error text-danger',
+                    validClass: 'valid',
+                    highlight: function (element) {
+                        $(element).addClass('error').removeClass('valid');
+                    },
+                    unhighlight: function (element) {
+                        $(element).removeClass('error').addClass('valid');
+                    },
+                    errorPlacement: function (error, element) {
+                        error.insertAfter(element);
+                    }
                 });
             </script>
         @endpush
     </div>
+
 @endsection

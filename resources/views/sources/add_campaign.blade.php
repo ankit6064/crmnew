@@ -1,156 +1,143 @@
 @extends('layouts.admin')
 
- 
 @section('content')
-<style>
-    textarea#description1 {
-    display: block;
-    width: 100%;
-    height: calc(1.5em + 1.30rem + 2px);
-    padding: 0.375rem 0.75rem;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    color: #495057;
-    background-color: #fff;
-    background-clip: padding-box;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-    resize: auto;
-}
-</style>
 
 
-<div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h3 class="text-themecolor">Dashboard</h3>
-                </div>
-                <div class="col-md-7 align-self-center">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ url('sources') }}">Campaigns</a></li>
-                        <li class="breadcrumb-item active">Add Campaign</li>
-                    </ol>
-                </div>
-                <div>
-                    <!--<button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i class="ti-settings text-white"></i></button>--->
-                </div>
-            </div>
+    <div class="main-right addsubmanager">
+        <div class="right-side add-sub">
+            <div class="graph">
+            <h2>Add Leads to {{$source['source_name']}} </h2>
+                <form id="campaignForm" action="{{ route('import_leads') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="campaign">Campaigns</label>
+                            <input type="hidden" id="source_name1" name='source_name' readonly class="form-control" placeholder="Enter Campaign" value="{{$source['id']}}">
 
-
-    <div class="container-fluid">
-
-                <div class="row">
-                    <div class="col-lg-12">
-                    @if (Session::has('success'))
-                       <div class="alert alert-success" role="alert">
-                           {{Session::get('success')}}
-                       </div>
-                    @elseif (Session::has('error'))
-                       <div class="alert alert-danger" role="alert">
-                           {{Session::get('error')}}
-                       </div>
-                    @endif
-                        <div class="card card-outline-info">
-                            <div class="card-header">
-                                <h4 class="m-b-0 text-white">Add Leads to This {{$source['source_name']}} </h4>
-                            </div>
-                            <div class="card-body">
-                                @php $id = $source['id']    @endphp
-                                <form id="ajaxform" action="{{route('import_leads')}}" method="POST" enctype="multipart/form-data">
-                                {{ csrf_field() }}
-                                      <meta name="csrf-token" content="{{ csrf_token() }}" />
-                                    
-                                    <div class="form-body add_custom_table">
-                                        <!--<h3 class="card-title">Add Lead Details</h3>
-                                        <hr>-->
-
-                                        <div class="alert alert-danger print-error-msg" style="display:none">
-                                            <ul></ul>
-                                        </div>
-
-                                        <div class="row p-t-20">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">Campaign</label>
-                                                    <input type="text" id="source" name='source' readonly class="form-control" placeholder="Enter Campaign" value="{{$source['source_name']}}">
-                                                    <input type="hidden" id="source_name1" name='source_name' readonly class="form-control" placeholder="Enter Campaign" value="{{$source['id']}}">
-                                                    @if($errors->has('source_name'))
-                                                        <div class="alert alert-danger">{{ $errors->first('source_name') }}</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <!--/span-->
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">Sub-campaign</label>
-                                                    <input type="text"  readonly class="form-control" placeholder="Enter Campaign" value="{{$source['description']}}">
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">Start Date</label>
-                                                    <input type="date" name="start_date" readonly class="form-control" value="{{ $source['start_date'] }}">
-                                                    @if($errors->has('start_date'))
-                                                        <div class="alert alert-danger">{{ $errors->first('start_date') }}</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <!--/span-->
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">End Date</label>
-                                                    <input type="date" readonly name="end_date" class="form-control" value="{{ $source['end_date'] }}" >
-                                                    @if($errors->has('end_date'))
-                                                        <div class="alert alert-danger">{{ $errors->first('end_date') }}</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">Import Bulk Leads </label>
-                                                    <input style="padding-top: 10px" type="file" name="file" class="form-control">
-                                                        @if($errors->has('file'))
-                                                                <div class="alert alert-danger">{{ $errors->first('file') }}</div>
-                                                        @endif
-                                                        <br><br>
-                                                   
-                                                    @if($errors->has('file'))
-                                                        <div class="alert alert-danger">{{ $errors->first('file') }}</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                <br>
-                                                <!-- <a class="btn btn-warning" href="{{ url('/public/leads.csv') }}">Download Format</a> -->
-                                                </div>
-                                            </div>
-
-                                            
-
-                                        </div>
-                                        <!--/row-->
-                                       
-                                        
-                                
-                                    </div>
-                                    <div class="form-actions">
-                                        <button type="submit" class="btn btn-success save-data"> <i class="fa fa-check"></i> Save</button>
-                                        <!-- <input type="reset" class="btn btn-inverse" value="Cancel" /> -->
-                                        <a href="{{ url('sources') }}"><button type="button" class="btn btn-info">Back</button></a>
-                                    </div>
-                                </form>
-                            </div>
+                            <input type="text" id="source" name='source' readonly placeholder="Enter Campaign" value="{{$source['source_name']}}">
+                        </div>
+                        <div class="form-group">
+                            <label for="sub_campaign">Sub Campaigns</label>
+                            <input type="text" name="sub_campaign"  readonly  placeholder="Enter Campaign" value="{{$source['description']}}">
                         </div>
                     </div>
-                </div>
-                <!-- Row -->
-     
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="campaign">Start Date</label>
+                            <input type="text" name="start_date" id="start_date" placeholder="Start Date" readonly value="{{ $source['start_date'] }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="sub_campaign">End Date</label>
+                            <input type="text" name="end_date" id="end_date" placeholder="End Date" readonly value="{{ $source['end_date'] }}">
+                        </div>
+                    </div>
+
+                    <div class="file-upload-section">
+                        <label for="lead_file" class="file-label">Import Bulk Leads</label>
+                        <div class="file-upload">
+                            <label class="custom-file-upload">
+                                Choose File
+                                <input type="file" name="file" id="lead_file" />
+                            </label>
+                            <span id="file-name">No File Chosen</span>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-save">Save</button>
+                        <button type="button" class="btn btn-cancel"
+                            onclick="window.location.href='{{ route('sources.getMangerSource') }}'">Cancel</button>
+                    </div>
+                </form>
+
+
+            </div>
+        </div>
     </div>
-  
+
+    <div class="popupcenter" id="successModal"
+     style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="popupp">
+        <div class="success-icon">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <p>Campagin has been <br> added successfully.</p>
+    </div>
+</div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#campaignForm').validate({
+                rules: {
+                    source_name: {
+                        required: true,
+                        minlength: 2
+                    },
+                    description: {
+                        required: true,
+                        minlength: 2
+                    },
+                    lead_file: {
+                        required: true,
+                        extension: "csv|xls|xlsx"
+                    }
+                },
+                messages: {
+                    source_name: {
+                        required: "Please enter a campaign name",
+                        minlength: "Campaign name must be at least 2 characters"
+                    },
+                    description: {
+                        required: "Please enter a sub campaign name",
+                        minlength: "Sub campaign name must be at least 2 characters"
+                    },
+                    lead_file: {
+                        required: "Please choose a file",
+                        extension: "Only CSV, XLS, or XLSX files are allowed"
+                    }
+                },
+                errorElement: 'span',
+                errorPlacement: function (error, element) {
+                    error.addClass('text-danger');
+                    if (element.attr("type") === "file") {
+                        error.insertAfter('#file-name');
+                    } else {
+                        error.insertAfter(element);
+                    }
+                }
+            });
+
+            // Update file name display
+            $('#lead_file').on('change', function () {
+                const fileName = $(this).val().split('\\').pop();
+                $('#file-name').text(fileName || 'No File Chosen');
+            });
+        });
+    </script>
+
+<script>
+    @if(session('success'))
+        $(document).ready(function () {
+            // Add small delay to ensure layout/CSS is applied
+            setTimeout(function () {
+                $('#successModal').css('display', 'flex');
+
+                // Auto-close after 3 seconds and redirect
+                setTimeout(function () {
+                    $('#successModal').fadeOut(300, function () {
+                        window.location.href = "{{ route('sources.getMangerSource') }}";
+                    });
+                }, 3000);
+            }, 100); // small delay before showing modal
+        });
+    @endif
+</script>
+
+
+
 @endsection

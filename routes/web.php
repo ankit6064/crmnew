@@ -153,6 +153,8 @@ Route::prefix('leads')->group(function (): void {
     Route::post('transferleademployee', [EmployeeController::class, 'transferleademployee'])->name('employee.transferleademployee');
     Route::post('assignemployees', [EmployeeController::class, 'assignemployees'])->name('employee.assignemployees');
     Route::get('viewemployees', [EmployeeController::class, 'viewemployees'])->name('employee.viewemployees');
+    Route::get('viewcampaigns', [EmployeeController::class, 'viewcampaigns'])->name('employee.viewcampaigns');
+
     Route::post('removeemployee', [EmployeeController::class, 'removeemployee'])->name('employee.removeemployee');
     Route::get('createmanager', [EmployeeController::class, 'createmanager'])->name('employee.createmanager');
 
@@ -192,6 +194,7 @@ Route::prefix('leads')->group(function (): void {
     Route::get('assign', [LeadsController::class,'assign'])->name('assign');
     Route::post('assignLeadsManager', [LeadsController::class,'assignLeadsManager'])->name('assignLeadsManager');
     Route::get('employeeclosedleads', [SourcesController::class,'employeeclosedleads'])->name('employeeclosedleads');
+    Route::get('employeecompletedleads', [SourcesController::class,'employeecompletedleads'])->name('employeecompletedleads');
 
 
 });
@@ -223,6 +226,10 @@ Route::get('/leadslist', [SourcesController::class,'leadslist'])->name('leadslis
 
 Route::get('/sources/{id}/leadview', [LeadsController::class,'leadview'])->name('leadview');
 Route::get('getsourceslead', [LeadsController::class,'getLeadsData'])->name('getsourceslead');
+
+Route::get('/sources/allleadview', [LeadsController::class,'allleadview'])->name('allleadview');
+Route::get('allgetsourceslead', [LeadsController::class,'allgetLeadsData'])->name('allgetsourceslead');
+
 
 Route::get('leads/{id}', [LeadsController::class,'showlead'])->name('showlead');
 Route::get('editlead/{id}', [LeadsController::class,'edit'])->name('editlead');

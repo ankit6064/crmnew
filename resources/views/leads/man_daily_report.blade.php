@@ -141,6 +141,25 @@
         }
     }
     
+    /* Loader styling */
+    #spinner-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
     /* Export button styling */
     .add-submanager {
         margin-bottom: 20px;
@@ -170,7 +189,7 @@
         <h2>Daily Reports</h2>
 
         {{-- Filters --}}
-        <div class="employee-filterss daily-report-filter">
+        <div class="employee-filterss">
             <div class="filter-container">
                 <form action="{{ route('employee.man_daily_report') }}" method="get" id="searchform">
                     @csrf
@@ -294,6 +313,10 @@
     </div>
 </div>
 
+{{-- Loader --}}
+<div id="spinner-overlay" style="display:none;">
+    <div class="spinner-border text-primary" role="status"></div>
+</div>
 
 {{-- Scripts --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -314,12 +337,9 @@ $(document).ready(function() {
     // Trigger change event on page load to set initial state
     $('#filter_by').trigger('change');
 
-    $('#spinner-overlay').show();
-
-
     // Initialize DataTable
     let table = $('#employee-table').DataTable({
-        processing: false,
+        processing: true,
         serverSide: true,
         searching: false,
         ajax: {

@@ -1,170 +1,164 @@
 @extends('layouts.admin')
-<!-- Include jQuery (Required) -->
+
 @section('content')
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css">
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 
-    <!-- Bootstrap JS -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Bootstrap Select JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
-    <style>
-        .bootstrap-select>.dropdown-toggle {
-            padding: 20px 15px;
+<!-- Bootstrap Select JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js"></script>
+
+<style>
+    .bootstrap-select>.dropdown-toggle {
+        padding: 20px 15px;
+    }
+    .text-danger {
+        font-size: 13px;
+        margin-top: 3px;
+        display: block;
+    }
+</style>
+
+<div class="main-right addsubmanager">
+    <div class="right-side">
+        <div class="graph">
+            <h2>Add Employee</h2>
+
+            <form method='post' id="employeeForm">
+                @csrf
+
+                <div class="form-row">
+
+                    <!-- First Name -->
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="first_name" name="first_name" class="form-control"
+                               placeholder="Enter First Name" value="{{ old('first_name') }}">
+                        <span class="text-danger error-text first_name_error"></span>
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" id="last_name" name="last_name" class="form-control"
+                               placeholder="Enter Last Name" value="{{ old('last_name') }}">
+                        <span class="text-danger error-text last_name_error"></span>
+                    </div>
+
+                </div>
+
+                <div class="form-row">
+
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="phone_no" name="phone_no" class="form-control"
+                               placeholder="Enter Phone No" value="{{ old('phone_no') }}">
+                        <span class="text-danger error-text phone_no_error"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="text" id="email" name="email" class="form-control"
+                               placeholder="Enter Email" value="{{ old('email') }}">
+                        <span class="text-danger error-text email_error"></span>
+                    </div>
+
+                </div>
+
+                <div class="form-row">
+
+                    <!-- Address -->
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="address" name="address" class="form-control"
+                               placeholder="Enter Address" value="{{ old('address') }}">
+                        <span class="text-danger error-text address_error"></span>
+                    </div>
+
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-save" onclick="submitform();">Save</button>
+                    <button type="reset" class="btn btn-cancel" onclick="window.history.back();">Cancel</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="popupcenter" id="successModal">
+        <div class="popupp">
+            <div class="success-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <p>Employee has been <br> added successfully.</p>
+        </div>
+    </div>
+
+    @push('scripts')
+
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
+
+    <script>
+        function clearErrors() {
+            $(".error-text").text(""); // clear error text
+            $("input").css("border", ""); // remove red border
         }
 
-        
-    </style>
-    <div class="main-right addsubmanager">
-        <div class="right-side">
-            <div class="graph">
-            <h2>Add Employee</h2>
-                <form method='post' id="employeeForm">
-                    @csrf <div class="form-row">
-                        <div class="form-group">
-                            <label>First Name</label>
-                            <input type="text" id="first_name" name='first_name' class="form-control"
-                                placeholder="Enter First Name" value="{{ old('first_name') }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Last Name</label>
-                            <input type="text" id="last_name" name='last_name' class="form-control form-control-danger"
-                                placeholder="Enter Last Name" value="{{ old('last_name') }}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Phone Number</label>
-                            <input type="text" id="phone_no" name='phone_no' class="form-control"
-                                placeholder="Enter Phone No" value="{{ old('phone_no') }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="text" id="email" name='email' class="form-control" placeholder="Enter Email"
-                                value="{{ old('email') }}">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Address</label>
-                            <input type="text" id="address" name='address' class="form-control" placeholder="Enter Address"
-                                value="{{ old('address') }}">
-                        </div>
+        function submitform() {
 
-                    </div>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-save" onclick="submitform();">Save</button>
-                        <button type="reset" class="btn btn-cancel" onclick="window.history.back();">Cancel</button>
-                    </div>
+            clearErrors();
 
-                </form>
-            </div>
-        </div>
+            let form = $('#employeeForm')[0];
+            let formData = new FormData(form);
 
-           <!-- Modal Popup -->
-           <div class="popupcenter" id="successModal">
-            <div class="popupp">
-                <div class="success-icon">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <p>Employee has been <br> added successfully.</p>
-            </div>
-        </div>
+            $.ajax({
+                url: "{{ route('employee.storemanageremployeedetail') }}",
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                },
+                dataType: 'json',
 
-        @push('scripts')
-            <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
-
-            <script>
-                $(document).ready(function () {
-                    $('.selectpicker').selectpicker();
-                });
-            </script>
-
-            <script>
-                function submitform() {
-                    var firstname = $('#first_name').val();
-                    var lastname = $('#last_name').val();
-                    var phoneno = $('#phone_no').val();
-                    var email = $('#email').val();
-                    var address = $('#address').val();
-                    var is_valid = 1;
-
-                    if (firstname === '') {
-                        $('#first_name').css('border', '1px solid red');
-                        is_valid = 0;
+                success: function(response) {
+                    if (response.status == 200) {
+                        $('#successModal').css('display', 'flex');
+                        setTimeout(function() {
+                            window.location.href = "{{ route('employee.manageremployeeindex') }}";
+                        }, 2000);
                     } else {
-                        $('#first_name').css('border', '');
+                        alert(response.message);
                     }
+                },
 
-                    if (lastname === '') {
-                        $('#last_name').css('border', '1px solid red');
-                        is_valid = 0;
-                    } else {
-                        $('#last_name').css('border', '');
-                    }
-
-                    if (phoneno === '') {
-                        $('#phone_no').css('border', '1px solid red');
-                        is_valid = 0;
-                    } else {
-                        $('#phone_no').css('border', '');
-                    }
-
-                    if (email === '') {
-                        $('#email').css('border', '1px solid red');
-                        is_valid = 0;
-                    } else {
-                        $('#email').css('border', '');
-                    }
-
-                    if (address === '') {
-                        $('#address').css('border', '1px solid red');
-                        is_valid = 0;
-                    } else {
-                        $('#address').css('border', '');
-                    }
-
-                    if (is_valid == 1) {
-                        var form = $('#employeeForm')[0]; // get raw DOM element
-                        var formData = new FormData(form); // create FormData object
-
-                        $.ajax({
-                            url: "{{ route('employee.storemanageremployeedetail') }}",
-                            method: 'POST',
-                            data: formData,
-                            processData: false,
-                            contentType: false,
-                            headers: {
-                                'X-CSRF-TOKEN': $('input[name="_token"]').val()
-                            },
-                            dataType: 'json',
-                            success: function (response) {
-                                if (response.status == 200) {
-                                    $('#successModal').css('display', 'flex');
-                                    setTimeout(function () {
-                                        window.location.href = "{{ route('employee.manageremployeeindex') }}";
-                                    }, 2000);
-                                } else {
-                                    alert(response.message)
-                                    return;
-                                }
-                            },
-                            error: function (xhr) {
-                                console.log(xhr.responseText);
-                                alert('An error occurred while submitting the form');
-                            }
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        $.each(errors, function(key, value) {
+                            $("." + key + "_error").text(value[0]);
+                            $("#" + key).css("border", "1px solid red");
                         });
+                    } else {
+                        alert('An unexpected error occurred.');
                     }
-
                 }
-            </script>
+            });
+        }
+    </script>
 
+    @endpush
 
+</div>
 
-
-        @endpush
 @endsection

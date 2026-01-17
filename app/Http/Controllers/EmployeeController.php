@@ -198,7 +198,7 @@ class EmployeeController extends Controller
 
                 // return redirect()->route('employee.manageremployeeindex')->with('success', 'Employee updated successfully!');
 
-                echo json_encode(['status'=>200,'message'=>'Employee Details Updated']);
+                echo json_encode(['status' => 200, 'message' => 'Employee Details Updated']);
                 exit;
             }
             // Redirect with a success message
@@ -259,17 +259,17 @@ class EmployeeController extends Controller
         }
 
         $active = User::where('is_admin', USER)
-        ->where('user_id', Auth::id())
-        ->where('is_active', 1)
-        ->count();
+            ->where('user_id', Auth::id())
+            ->where('is_active', 1)
+            ->count();
 
         $deactive = User::where('is_admin', USER)
-        ->where('user_id', Auth::id())
-        ->where('is_active', 2)
-        ->count();
+            ->where('user_id', Auth::id())
+            ->where('is_active', 2)
+            ->count();
 
 
-        return view('employee.manageremployeeindex', compact('employees', 'permissions','active','deactive'));
+        return view('employee.manageremployeeindex', compact('employees', 'permissions', 'active', 'deactive'));
     }
 
     public function createmanageremployees()
@@ -303,7 +303,7 @@ class EmployeeController extends Controller
             $logs->type = 7;
             $logs->save();
             // Redirect with success message
-            echo json_encode(['status'=>200,'message'=>'Employee Created']);
+            echo json_encode(['status' => 200, 'message' => 'Employee Created']);
         } catch (\Exception $e) {
             // Catch any other general exception and log it
             \Log::error('Error creating employee: ' . $e->getMessage(), [
@@ -344,28 +344,53 @@ class EmployeeController extends Controller
                     return $status;
                 })
                 ->addColumn('actions', function ($data) {
-                    // Customize the action buttons
-                    $editLink = '<a href="' . route('employee.edit', ['employee_id' => $data->id]) . '">
-                    <span class="material-symbols-outlined text-success editEmployee">edit_square</span>
-                </a>';
 
-                    $deleteLink = '<a href="javascript:void(0);" class="" data-id="' . $data->id . '">
-                <span class="material-symbols-outlined text-danger deleteEmployee">delete</span>
-            </a>';
-
-            $check = RestrictEmployeelogin::where(['employee_id' => $data->id])->first();
-            if (isset($check) && !empty($check)) {
-                $checked = '';
-            } else {
-                $checked = 'checked';
-            }
-            $login_permission = '<input data-sid="' . $data->source_id . '" data-id="' . $data->id . '" class="switchery" type="checkbox" onchange="disablelogin(' . $data->id . ', \'' . addslashes($data->email) . '\');" ' . $checked . '>';
-
-
-            $checkedd = $data->is_active == 1 ? 'checked' : '';
-            $changestatus = '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checkedd . '>';
-                    return $login_permission.''.$editLink . '' . $deleteLink.''.$changestatus;
+                    // Edit
+                    $editLink = '
+                        <a href="' . route('employee.edit', ['employee_id' => $data->id]) . '">
+                            <i class="fa-solid fa-pen-to-square text-success editEmployee"></i>
+                        </a>';
+                
+                    // Delete
+                    $deleteLink = '
+                        <a href="javascript:void(0);" data-id="' . $data->id . '">
+                            <i class="fa-solid fa-trash text-danger deleteEmployee" data-id="' . $data->id . '"></i>
+                        </a>';
+                
+                    /**
+                     * Login permission switch
+                     */
+                    $check = RestrictEmployeelogin::where('employee_id', $data->id)->first();
+                    $loginChecked = $check ? '' : 'checked';
+                
+                    $login_permission = '
+                        <input
+                            type="checkbox"
+                            class="switchery"
+                            data-tooltip="' . ($loginChecked ? 'Disable Login' : 'Enable Login') . '"
+                            data-id="' . $data->id . '"
+                            onchange="disablelogin(' . $data->id . ', \'' . addslashes($data->email) . '\');"
+                            ' . $loginChecked . '
+                        >';
+                
+                    /**
+                     * Active / Inactive switch
+                     */
+                    $statusChecked = $data->is_active == 1 ? 'checked' : '';
+                
+                    $changestatus = '
+                        <input
+                            type="checkbox"
+                            class="switchery"
+                            data-tooltip="' . ($statusChecked ? 'Deactivate Employee' : 'Activate Employee') . '"
+                            data-id="' . $data->id . '"
+                            ' . $statusChecked . '
+                            onchange="change_status(' . $data->id . ');"
+                        >';
+                
+                    return $login_permission . ' ' . $editLink . ' ' . $deleteLink . ' ' . $changestatus;
                 })
+                
                 ->addColumn('sub_manager', function ($data) {
                     // Customize the action buttons
                     $submanager = '<button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="assignsubmanager(' . $data->id . ')">Assign Role</button>';
@@ -417,6 +442,11 @@ class EmployeeController extends Controller
             $logs->description = $manager->first_name . ' ' . $manager->last_name . ' account is deactivated';
             $logs->type = 9;
             $logs->save();
+            $manager->save();
+
+            echo json_encode(['status' => 200, 'message' => 'status changed', 'data' => 'disabled']);
+            exit;
+
         } else {
             $manager->is_active = 1;
             $logs = new Logs();
@@ -424,9 +454,14 @@ class EmployeeController extends Controller
             $logs->description = $manager->first_name . ' ' . $manager->last_name . ' account is activated';
             $logs->type = 9;
             $logs->save();
+            $manager->save();
+
+            echo json_encode(['status' => 200, 'message' => 'status changed', 'data' => 'enabled']);
+            exit;
+
+
         }
-        $manager->save();
-        echo json_encode(['status' => 200, 'message' => 'status changed']);
+        // echo json_encode(['status' => 200, 'message' => 'status changed']);
     }
 
     public function man_daily_report()
@@ -786,10 +821,11 @@ class EmployeeController extends Controller
             })
             ->addColumn('status', function ($data) {
                 $statusIcons = [
-                    1 => '<img src="' . url('/admin/assets/images/pending.png') . '" alt="Pending" style="width:20px">',
-                    2 => '<img src="' . url('/admin/assets/images/failed.png') . '" alt="Failed" style="width:20px">',
-                    3 => '<img src="' . url('/admin/assets/images/completed.png') . '" alt="Closed" style="width:20px">',
-                    4 => '<img src="' . url('/admin/assets/images/in-progress.png') . '" alt="In Progress" style="width:20px">',
+                    1 => '<p class="pending">Pending</p>',
+                    2 => '<p class="failed">Failed</p>',
+                    3 => '<p class="completed">Completed</p>',
+                    4 => '<p class="in-progress">In Progress</p>',
+
                 ];
                 return $statusIcons[$data->status] ?? '';
             })
@@ -914,7 +950,7 @@ class EmployeeController extends Controller
                 $timeZone1 = '';
             } else {
                 $timeZone1 = $request->timezone_1;
-                if(!empty($timeZone1)){
+                if (!empty($timeZone1)) {
                     $meeting_time = $request->meeting_time1;
                     $converted = $this->convertAbbreviationToIST($meeting_time, $timeZone1);
                     // dd($converted);
@@ -993,9 +1029,9 @@ class EmployeeController extends Controller
                 //'timezone_2' =>                  'required',
                 //'ext_if_any' =>                  'required',
                 'ea_name' => 'required',
-                'ea_email' =>                    'required|email',
+                'ea_email' => 'required|email',
                 'prospect_email' => 'required|email',
-                'ea_phone_no' =>                 'required|numeric',
+                'ea_phone_no' => 'required|numeric',
                 'meeting_teleconference' => 'required|in:Face to Face meeting,Teleconference',
                 'contact_decision_maker' => 'required|in:Yes,No',
                 'influencers_decision_making_process' => 'required',
@@ -1041,35 +1077,35 @@ class EmployeeController extends Controller
 
 
 
-/**
- * Convert time from abbreviation (e.g. AEST) to IST.
- */
+    /**
+     * Convert time from abbreviation (e.g. AEST) to IST.
+     */
 
 
-function convertAbbreviationToIST($timeStr, $abbreviation)
-{
-    // 1. Use today’s date with the time
-    $dateToday = date('Y-m-d');
-    $fullDateTime = $dateToday . ' ' . $timeStr;
-    // dd($fullDateTime);
-    $timezones = DateTimeZone::listAbbreviations();
-    $matches = $timezones[strtolower($abbreviation)] ?? [];
-    if (empty($matches)) {
-        throw new Exception("Unknown timezone abbreviation: $abbreviation");
+    function convertAbbreviationToIST($timeStr, $abbreviation)
+    {
+        // 1. Use today’s date with the time
+        $dateToday = date('Y-m-d');
+        $fullDateTime = $dateToday . ' ' . $timeStr;
+        // dd($fullDateTime);
+        $timezones = DateTimeZone::listAbbreviations();
+        $matches = $timezones[strtolower($abbreviation)] ?? [];
+        if (empty($matches)) {
+            throw new Exception("Unknown timezone abbreviation: $abbreviation");
+        }
+        $timezoneName = $matches[0]['timezone_id'] ?? null;
+        // dd($timezoneName);
+        if (!$timezoneName) {
+            throw new Exception("Cannot resolve timezone ID for abbreviation: $abbreviation");
+        }
+        $time = Carbon::createFromFormat('Y-m-d H:i', $fullDateTime, $timezoneName);
+        // dd($time);
+        $time->setTimezone('Asia/Kolkata');
+        return [
+            'date' => $time->format('Y-m-d'),
+            'time' => $time->format('H:i:s')
+        ];
     }
-    $timezoneName = $matches[0]['timezone_id'] ?? null;
-    // dd($timezoneName);
-    if (!$timezoneName) {
-        throw new Exception("Cannot resolve timezone ID for abbreviation: $abbreviation");
-    }
-    $time = Carbon::createFromFormat('Y-m-d H:i', $fullDateTime, $timezoneName);
-    // dd($time);
-    $time->setTimezone('Asia/Kolkata');
-    return [
-        'date' => $time->format('Y-m-d'),
-        'time' => $time->format('H:i:s')
-    ];
-}
 
 
 
@@ -1555,12 +1591,12 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
             ->where('is_active', 1)
             ->orderBy('first_name')
             ->get();
-            // dd($sources);
+        // dd($sources);
 
         // if (!empty($sources[0])) {
-            $html = view('employee.submanagermodal', compact('employees', 'sources', 'request'))->render();
-            echo json_encode(['status' => 400, 'message' => '.', 'html' => $html]);
-            exit;
+        $html = view('employee.submanagermodal', compact('employees', 'sources', 'request'))->render();
+        echo json_encode(['status' => 400, 'message' => '.', 'html' => $html]);
+        exit;
         // } else {
         //     User::where('id', $request->employeeid)->update(['is_admin' => 3]);
         //     $userdetails = User::where('id', $request->employeeid)->first();
@@ -1607,15 +1643,15 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
 
     public function submanagerlisting(Request $request)
     {
-         $inactive = User::where('is_admin', SUBMANAGER)
-                ->where('user_id', Auth::id())
-                ->where('is_active',operator: 2)
-                ->count();
-         $active = User::where('is_admin', SUBMANAGER)
-                ->where('user_id', Auth::id())
-                ->where('is_active',1)
-                ->count();
-        return view('employee.submanagerlisting',compact('inactive','active'));
+        $inactive = User::where('is_admin', SUBMANAGER)
+            ->where('user_id', Auth::id())
+            ->where('is_active', operator: 2)
+            ->count();
+        $active = User::where('is_admin', SUBMANAGER)
+            ->where('user_id', Auth::id())
+            ->where('is_active', 1)
+            ->count();
+        return view('employee.submanagerlisting', compact('inactive', 'active'));
     }
 
     public function submanagerlistingdata(Request $request)
@@ -1630,7 +1666,7 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
             return DataTables::of($managers)
                 ->addColumn('totalemployees', function ($data) {
                     // Count users where user_id matches the current data id
-                    $totalemployees = User::where('user_id', $data->id)->where('is_admin',1)->count();
+                    $totalemployees = User::where('user_id', $data->id)->where('is_admin', 1)->count();
 
                     // Return an anchor tag with the count
                     return '<p  class="view_emp" title="View Employee" onclick="viewemployees(' . $data->id . ')">' . $totalemployees . '</p>';
@@ -1644,8 +1680,15 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
                         ->where('is_active', 1)
                         ->count();
 
-                    // Return an anchor tag with the count
-                    return $totalcampaigns;
+
+                    return '<p  class="view_emp" title="View Campagins" onclick="viewCampaigns(' . $data->id . ')">' . $totalcampaigns . '</p>';
+                })
+                ->addColumn('phone_no', function ($data) {
+                    if (empty($data->phone_no)) {
+                        $data->phone_no = 'N/A';
+
+                    }
+
                 })
 
 
@@ -1657,15 +1700,35 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
                     $checked = $data->is_active == 1 ? 'checked' : '';
                     $editLink .= '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checked . '>';
                     // $editLink .= '<i class="fa-solid fa-trash"></i>';
-
+    
 
                     return $editLink;
                 })
 
-                ->rawColumns(['actions', 'status', 'totalemployees','totalcampaigns'])
+                ->rawColumns(['actions', 'status', 'totalemployees', 'totalcampaigns'])
                 ->toJson();
         }
         return response()->json(['error' => 'Invalid request'], 400);
+    }
+
+    public function viewcampaigns(Request $request)
+    {
+        $userId = $request->managerid; // or pass via request if needed
+
+        $campaigns = Source::where(function ($q) use ($userId) {
+            $q->where('user_id', $userId)
+                ->orWhere('assign_to_manager', $userId);
+        })
+            ->where('is_active', 1)
+            ->get();
+
+        $html = view('employee.managerempcampaigns', compact('campaigns'))->render();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Campaign Listing',
+            'html' => $html
+        ]);
     }
 
     public function viewemployees(Request $request)
@@ -1736,7 +1799,7 @@ function convertAbbreviationToIST($timeStr, $abbreviation)
                     $employeeNames[] = $employee->first_name . ' ' . $employee->last_name;
                 }
             }
-            $logMessage = implode(', ', $employeeNames) . ' assigned to '.$request->first_name.' '.$request->last_name;
+            $logMessage = implode(', ', $employeeNames) . ' assigned to ' . $request->first_name . ' ' . $request->last_name;
 
             $logs = new Logs();
             $logs->user_id = Auth::id();

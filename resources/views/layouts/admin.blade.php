@@ -28,7 +28,7 @@
                             <!-- <main> -->
                 @yield('content')
             <!-- </main> -->
-            <!-- @include('partials.spinner') -->
+            @include('partials.spinner')
             <footer>
                 @include('partials.footer')
             </footer>

@@ -237,107 +237,135 @@ class LeadsController extends Controller
     }
     public function campname(Request $request)
     {
-        // dd('hello');
-        // dd($request->camp_id);
-        $subLaws = "";
-        $table = "";
-        $sources = Source::where(['id' => $request->camp_id])->first();
-        $User_info = User::where(['id' => $sources->assign_to_manager])->first();
-        $src_Descrition = $sources->description;
-        $source_name = $sources->source_name;
-        if (!empty($sources)) {
-            $all_leads = Lead::with('source')->where(['source_id' => $sources->id])->count();
-            $total_leads = Lead::with('source')->where(['source_id' => $sources->id])->whereNotNull('asign_to')->count();
-            $assign_to_leads = Lead::with('source')->where(['source_id' => $sources->id])->whereNull('asign_to')->count();
+        $camp_id = $request->camp_id;
+        $source = Source::where('id', $camp_id)->first();
+    
+        if (!$source) {
+            return response()->json(['error' => 'Campaign not found'], 404);
         }
-        $subLaws = '<div class="append_row col-md-12 ">
-           <table class="table">
-           <tr>
-           <td>Campaign Name</td>
-           <td>' . $source_name . ' (' . $sources->description . ')</td>
-           <td>Campaign Manager</td>
-           <td>' . $User_info->name . '</td>
-           </tr>
-           <tr>
-           <td>Campaign Total Leads</td>
-           <td class="getleadTotalcount">' . $all_leads . '</td>
-           <td>Campaign Start Date</td>
-           <td>' . $sources->start_date . '</td>
-           </tr>
-           <tr>
-           <td>Campaign End Date</td>
-           <td>' . $sources->end_date . '</td>
-           <td>Campaign Assigned Leads</td>
-           <td class="Change_lead_count">' . $total_leads . '</td>
-           </tr>
-           </table>
-       </div>
-       <div class="col-sm-6 col-md-6">
-       <div class="form-group change_lead">
-           <label class="control-label"> Enter Assign Leads Count</label>
-           <input type="text" id="start_assign_id" name="start_assign_id" class="form-control"  value=' . $assign_to_leads . ' readonly="">
-           <div class="total_lead">
-           <input class="switch-input all_leads" id="all_leads" name="edit" type="checkbox" value="all_leads">
-            <label for="all_leads">Edit</label>
-        </div>
-        <span class="error_msg"></span>
-       </div>
-   </div>';
-
-        $get_table = DB::table('leads')
-            ->select('*', DB::raw('COUNT(asign_to) as totalLeads'))
-            ->where('source_id', $request->camp_id)
+    
+        // Manager details
+        $manager = User::find($source->assign_to_manager);
+        $manager_name = $manager ? $manager->name : "N/A";
+    
+        // Lead counts
+        $total_leads = Lead::where('source_id', $camp_id)->count();
+        $assigned_leads = Lead::where('source_id', $camp_id)
+            ->whereNotNull('asign_to')
+            ->count();
+        $unassigned_leads = $total_leads - $assigned_leads;
+    
+        // ===================== HEADER TABLE =====================
+        $headerTable = '
+            <table>
+                <thead class="thead-main">
+                    <tr>
+                        <th>Campaign Name</th>
+                        <th>Total Leads</th>
+                        <th>Campaign Manager</th>
+                        <th>Total Assigned Lead</th>
+                        <th>Campaign Start Date</th>
+                        <th>Campaign End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>'.$source->source_name.' ('.$source->description.')</td>
+                        <td>'.$total_leads.'</td>
+                        <td>'.$manager_name.'</td>
+                        <td>'.$assigned_leads.'</td>
+                        <td>'.$source->start_date.'</td>
+                        <td>'.$source->end_date.'</td>
+                    </tr>
+                </tbody>
+            </table>';
+    
+        // ===================== ASSIGN BLOCK =====================
+        $assignBlock = '
+            <div class="form-group">
+                <label>Enter Assign Leads Count</label>
+                <div class="input-box">
+                    <input type="text" id="assign_count" value="'.$unassigned_leads.'" placeholder="Enter Assign Leads Count">
+                    <i class="fa-solid fa-pen-to-square edit-icon"></i>
+                </div>
+            </div>
+    
+            <div class="form-group">
+                <label>Select Employee</label>
+                <select id="employee_id" class="form-control">
+                    <option value="">Select Employee</option>';
+    
+        $employees = User::where('is_admin', '!=', 1)->get();
+        foreach ($employees as $emp) {
+            $assignBlock .= '<option value="'.$emp->id.'">'.$emp->name.'</option>';
+        }
+    
+        $assignBlock .= '</select>
+            <div class="error_msg" style="color:red;margin-top:5px;"></div>
+            </div>
+    
+            <div class="btn-group">
+                <button type="button" id="assignLeadBtn" class="btn btn-save">Assign Leads</button>
+            </div>';
+    
+        // ===================== ASSIGNED TABLE =====================
+        $assigned_rows = DB::table('leads')
+            ->select('asign_to', DB::raw('COUNT(*) as totalLeads'))
+            ->where('source_id', $camp_id)
             ->whereNotNull('asign_to')
             ->groupBy('asign_to')
             ->get();
-        $table = '<table id="example23" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0" width="100%">
-        <thead>
-        <tr>
-        <th>Campaign Name</th>
-        <th>Total Assigned Lead</th>
-        <th>Employee Name</th>
-        <!--th>Campaign Start Date</th-->
-        <!--th>Campaign End Date</th -->
-        <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>';
-
-        if (!empty($get_table)) {
-            foreach ($get_table as $key => $table_data) {
-                $User_info = User::where(['id' => $table_data->asign_to])->first();
-
-                if (isset($User_info->name) && !empty($User_info->name)) {
-                    $n = $User_info->name;
-                } else {
-                    $n = "";
-                }
-
-                $table .= '<tr><td class="wraping"> ' . $sources->source_name . ' (' . $sources->description . ') </td>
-                <td class="wraping"> ' . $table_data->totalLeads . ' </td>
-                <td class="wraping"> ' . $n . ' </td>
-                <!--td class="wraping"> ' . $sources->start_date . ' </td-->
-                <!--td class="wraping"> ' . $sources->end_date . ' </td-->
-                <td class="wraping"><div class="reassigned"><a class="unassigned" href="javascript:void(0);" data-camp="' . $table_data->source_id . '" data-asign="' . $table_data->asign_to . '"><span class="label label-warning">Withdraw</span></a><a href="javascript:void(0);" onclick="reassign(' . $table_data->source_id . ',' . $table_data->totalLeads . ',' . $table_data->asign_to . ');" data-id="' . $table_data->source_id . '"  data-total="' . $table_data->totalLeads . '" data-asign="' . $table_data->asign_to . '"><span class="label label-warning">Reassign</span></a></div></td>
-                </tr>';
+    
+        $assignedTable = '
+            <table>
+                <thead class="thead-main">
+                    <tr>
+                        <th>Campaign Name</th>
+                        <th>Total Assigned Lead</th>
+                        <th>Employee Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>';
+    
+        if ($assigned_rows->count()) {
+            foreach ($assigned_rows as $row) {
+                $emp = User::find($row->asign_to);
+                $emp_name = $emp ? $emp->name : "Unknown";
+    
+                $assignedTable .= '
+                    <tr>
+                        <td>'.$source->source_name.' ('.$source->description.')</td>
+                        <td>'.$row->totalLeads.'</td>
+                        <td>'.$emp_name.'</td>
+                        <td class="actions">
+                            <div class="action-buttons">
+                                <button class="btn-action Withdraw" 
+                                    data-camp="'.$camp_id.'" 
+                                    data-emp="'.$row->asign_to.'">Withdraw</button>
+    
+                                <button class="btn-action Reassign"
+                                    data-camp="'.$camp_id.'" 
+                                    data-assign="'.$row->asign_to.'" 
+                                    data-count="'.$row->totalLeads.'">Reassign</button>
+                            </div>
+                        </td>
+                    </tr>';
             }
         } else {
-            $table .= '<tr><td class="wraping">  </td>
-            <td class="wraping">  </td>
-            <td class="wraping"> Data Not Found </td>
-            <td class="wraping">  </td>
-            <td class="wraping">  </td><td class="wraping">  </td></tr>';
+            $assignedTable .= '
+                <tr>
+                    <td colspan="4" style="text-align:center;">No Assigned Leads Found</td>
+                </tr>';
         }
-        $table .= '</tbody> </table>';
-
-        $sampleArray = array(
-            'data' => $subLaws,
-            'table' => $table
-        );
-        // echo"<pre>";
-        // print_r($sampleArray);
-        // die();
-        return json_encode($sampleArray);
+    
+        $assignedTable .= '</tbody></table>';
+    
+        return response()->json([
+            'headerTable'  => $headerTable,
+            'assignBlock'  => $assignBlock,
+            'assignedTable'=> $assignedTable
+        ]);
     }
     public function Unassigned(Request $request)
     {
@@ -611,45 +639,108 @@ class LeadsController extends Controller
             }
 
             $sources = Source::orderBy('source_name')->get()->toArray();
-            $campaignsOptionsHtml = '<option value="">Select a source</option>';
-            foreach ($sources as $source) {
-                $campaignsOptionsHtml .= '<option value="' . $source["id"] . '">' . $source["source_name"] . ' ' . $source["description"] . '</option>';
-            }
-            // Transform the data to match the expected structure
-            $formattedData = [];
-            foreach ($leadsData as $lead) {
-                $campaignsHtml = '<span id="icons_' . $lead["id"] . '" class="group_actions"><i class="fa fa-check green-color onchange_element_approve" style="color: #006400;" data-id="' . $lead["id"] . '"  data-emp-id="' . $lead["user_id"] . '" ></i><i class="fa fa-times red-color onchange_element_cross" style="color: red;"  data-id="' . $lead["id"] . '"></i></span>';
-                $campaignsHtml .= '<select class="unapproved_lead" name="source_id" id="' . $lead["id"] . '" style="width:140px" data-id="' . $lead["source_id"] . '">';
-                $campaignsHtml .= $campaignsOptionsHtml;
-                $campaignsHtml .= '</select>';
-                $userDetails = User::find($lead["user_id"]);
-                $employeeName = '';
-                if (isset($userDetails) && !empty($userDetails)) {
-                    $employeeName = $userDetails['name'];
-                }
-                $var = $lead["linkedin_address"];
-                if (strpos($var, 'linkedin') == -1) {
-                    $linkdin = '<td><a href="javascript:void(0)" ><i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i></a></td>';
-                } else {
-                    $linkdin = '<td><a href="' . $var . '" target="_blank">
-                    <i alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>
-                </td>
-                <td>
-                    <button onclick="editmodule(' . $lead["id"] . ', \'' . $var . '\')" style="background-color:#192e62;color:#fff;border-radius:3px">Edit</button>
-                </td>';
+     // Prepare source options HTML
+$campaignsOptionsHtml = '<option value="">Select a source</option>';
 
-                }
-                $formattedData[] = [
-                    'action' => $campaignsHtml,
-                    'employee_name' => trim($employeeName),
-                    'company_name' => $lead["company_name"],
-                    'prospect_full_name' => $lead["prospect_first_name"] . ' ' . $lead["prospect_last_name"],
-                    'designation' => $lead["designation"],
-                    'created_at' => date('d M, Y', strtotime($lead["created_at"])),
-                    'source_name' => $lead['source']["source_name"] . ' ' . $lead['source']["description"],
-                    'LinkedIn' => $linkdin
-                ];
-            }
+// Transform the data to match the expected structure
+$formattedData = [];
+foreach ($leadsData as $lead) {
+
+    // Build options HTML with selected source
+    $optionsHtml = '';
+    foreach ($sources as $source) {
+        $selected = ($source["id"] == $lead["source_id"]) ? ' selected' : '';
+        $optionsHtml .= '<option value="' . $source["id"] . '"' . $selected . '>' 
+                        . $source["source_name"] . ' ' . $source["description"] . '</option>';
+    }
+
+    // Generate the action HTML with approve/cancel icons
+    $campaignsHtml = '
+    <span id="icons_' . $lead["id"] . '" class="group_actions" style="display:flex; gap:10px; align-items:center; cursor:pointer;">
+        <i class="fa-solid fa-xmark onchange_element_cross" 
+           data-id="' . $lead["id"] . '" 
+           data-emp-id="' . $lead["user_id"] . '"
+           style="
+               font-size:18px;
+               margin:0 5px;
+               padding:5px;
+               border-radius:5px;
+               color:#fff;
+               background:red;
+               cursor:pointer;
+           ">
+        </i>
+
+        <i class="fa-solid fa-check onchange_element_approve" 
+           data-id="' . $lead["id"] . '" 
+           data-emp-id="' . $lead["user_id"] . '"
+           style="
+               font-size:18px;
+               margin:0 5px;
+               padding:5px;
+               border-radius:5px;
+               color:#fff;
+               background:#5fbc01;
+               cursor:pointer;
+           ">
+        </i>
+    </span>';
+
+    // Append the select dropdown with the selected source
+    $campaignsHtml .= '<select class="unapproved_lead" name="source_id" id="' . $lead["id"] . '" style="width:140px" data-id="' . $lead["source_id"] . '">';
+    $campaignsHtml .= '<option value="">Select a source</option>';
+    $campaignsHtml .= $optionsHtml;
+    $campaignsHtml .= '</select>';
+
+    // Employee name
+    $userDetails = User::find($lead["user_id"]);
+    $employeeName = '';
+    if (isset($userDetails) && !empty($userDetails)) {
+        $employeeName = $userDetails['name'];
+    }
+
+    // LinkedIn icon with https enforcement
+    $var = $lead["linkedin_address"];
+    if (strpos($var, 'linkedin') === false) {
+        $linkdin = '<td>
+            <a href="javascript:void(0)">
+                <i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i>
+            </a>
+        </td>';
+    } else {
+        // Force https:// prefix
+        $cleanUrl = $var;
+        if (!preg_match('/^https?:\/\//i', $cleanUrl)) {
+            $cleanUrl = 'https://' . ltrim($cleanUrl, '/');
+        }
+
+        $linkdin = '<td>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <a href="' . $cleanUrl . '" target="_blank">
+                    <i class="fa-brands fa-linkedin" title="LinkedIn"></i>
+                </a>
+                <i class="fa-solid fa-pen-to-square" 
+                   onclick="editmodule(' . $lead["id"] . ', \'' . $cleanUrl . '\')" 
+                   style="cursor:pointer;"></i>
+            </div>
+        </td>';
+    }
+
+    // Build formatted row
+    $formattedData[] = [
+        'action' => $campaignsHtml,
+        'employee_name' => trim($employeeName),
+        'company_name' => $lead["company_name"],
+        'prospect_full_name' => $lead["prospect_first_name"] . ' ' . $lead["prospect_last_name"],
+        'designation' => $lead["designation"],
+        'created_at' => date('d M, Y', strtotime($lead["created_at"])),
+        'source_name' => $lead['source']["source_name"] . ' ' . $lead['source']["description"],
+        'LinkedIn' => $linkdin,
+        'Lead_id' => $lead['id']
+        
+    ];
+}
+
 
             // Return the formatted data as JSON
             return response()->json([
@@ -660,7 +751,6 @@ class LeadsController extends Controller
             ]);
         }
     }
-
     public function updatelinkedin(Request $request)
     {
         $check = Lead::where('id', $request->leadid)->first();
@@ -876,25 +966,110 @@ class LeadsController extends Controller
                 })
                 ->addColumn('status', function ($row) {
                     $statuses = [
-                        1 => ['title' => 'Pending', 'icon' => 'pending.png'],
-                        2 => ['title' => 'Failed', 'icon' => 'failed.png'],
-                        3 => ['title' => 'Closed', 'icon' => 'completed.png'],
-                        4 => ['title' => 'In Progress', 'icon' => 'in-progress.png'],
+                        1 => '<p class="pending">Pending</p>',
+                        2 => '<p class="failed">Failed</p>',
+                        3 => '<p class="completed">Completed</p>',
+                        4 => '<p class="in-progress">In Progress</p>',
                     ];
-                    $status = $statuses[$row->status] ?? null;
-                    return $status
-                        ? "<span data-toggle='tooltip' title='{$status['title']}'><img style='width: 20px' src='/admin/assets/images/{$status['icon']}' alt='{$status['title']}'></span>"
-                        : '';
+                
+                    return $statuses[$row->status] ?? '';
                 })
+                
                 ->addColumn('action', function ($row) {
                     return "<a href='/leads/{$row->id}' target='_blank'><i class='fa fa-eye' style='color:black'></i></a>";
                 })
+                ->editColumn('created_at', function ($row) {
+                    return $row->created_at 
+                        ? Carbon::parse($row->created_at)->format('d-m-Y H:i') 
+                        : '';
+                })
+                
                 ->rawColumns(['prospect_name', 'status', 'action'])
                 ->make(true);
         }
 
 
     }
+
+
+    public function allleadview()
+    {
+       
+        return view('leads.allleadview');
+    }
+
+    public function allgetLeadsData(Request $request, $id = null)
+    {
+        if ($request->ajax()) {
+    
+            $data = Lead::join('sources', 'sources.id', 'leads.source_id')
+                ->where('asign_to_manager', Auth::id())
+                ->with('source', 'feedback')
+                ->select([
+                    'leads.id',
+                    'source_id',
+                    'company_name',
+                    'prospect_first_name',
+                    'prospect_last_name',
+                    'linkedin_address',
+                    'timezone',
+                    'designation',
+                    'contact_number_1',
+                    'leads.created_at',
+                    'status',
+                ]);
+    
+            return DataTables::of($data)
+    
+                ->order(function ($query) {
+                    $query->orderBy('leads.created_at', 'DESC');
+                })
+    
+                ->addColumn('campaign_name', function ($row) {
+                    return $row->source ? $row->source->source_name : '';
+                })
+    
+                ->addColumn('prospect_name', function ($row) {
+                    $name = $row->prospect_first_name . ' ' . $row->prospect_last_name;
+                    $linkedin = $row->linkedin_address;
+    
+                    $linkedinLink = $linkedin && (str_starts_with($linkedin, 'http://') || str_starts_with($linkedin, 'https://'))
+                        ? $linkedin
+                        : 'https://' . $linkedin;
+    
+                    return "<a href='/leads/{$row->id}' target='_blank'>{$name}</a> " .
+                        (strpos($linkedin, 'linkedin') !== false
+                            ? "<a href='{$linkedinLink}' target='_blank'><i class='fa-brands fa-linkedin'></i></a>"
+                            : "<i class='fa-brands fa-linkedin' title='LinkedIn Address Not Valid'></i>");
+                })
+    
+                ->addColumn('status', function ($row) {
+                    $statuses = [
+                        1 => '<p class="pending">Pending</p>',
+                        2 => '<p class="failed">Failed</p>',
+                        3 => '<p class="completed">Completed</p>',
+                        4 => '<p class="in-progress">In Progress</p>',
+                    ];
+    
+                    return $statuses[$row->status] ?? '';
+                })
+    
+                ->addColumn('action', function ($row) {
+                    return "<a href='/leads/{$row->id}' target='_blank'><i class='fa fa-eye' style='color:black'></i></a>";
+                })
+    
+                ->editColumn('created_at', function ($row) {
+                    return $row->created_at
+                        ? Carbon::parse($row->created_at)->format('d-m-Y H:i')
+                        : '';
+                })
+    
+                ->rawColumns(['prospect_name', 'status', 'action'])
+    
+                ->make(true);
+        }
+    }
+    
 
 
     public function closed(Request $request)

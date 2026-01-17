@@ -19,7 +19,7 @@
             <div class="col-lg-12">
                 <div class="card card-outline-info">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="m-b-0 text-white">Add Employee</h4>
+                        <h4 class="m-b-0 text-white">Add Employeee</h4>
                         <a href="{{ url()->previous() }}" class="btn btn-light d-flex align-items-center">
                             <span class="material-symbols-outlined mr-2">
                                 arrow_back
