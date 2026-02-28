@@ -1,6 +1,17 @@
 @extends('layouts.admin')
 @section('content')
-
+<style>
+        .graph tbody tr.odd td:last-child {
+    display: table-cell !important;
+    gap: 11px;
+    align-items: center;
+}
+.main-right.view-camp .table .table-container tr td:last-child{
+    display: table-cell !important;
+    gap: 11px;
+    align-items: center; 
+}
+</style>
     @php 
 
 
@@ -105,6 +116,27 @@
         </div>
       </div>
 
+      
+
+      <div class="modal fade" id="numberModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #192e62; color: #fff; padding: 10px 15px;">
+                <h6 class="modal-title">Contact Numbers</h6>
+                <button type="button" class="close" data-dismiss="modal" style="color: #fff; opacity: 1;" onclick="closemodal();">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="numberRow" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;">
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
             </div>
         </div>
     </div>
@@ -140,6 +172,9 @@
                 ],
                 order: [[6, 'desc']], // Default sort by Date column
                 initComplete: function () {
+                table.on('init.dt', function () {
+                $('div.dataTables_filter input').attr('placeholder', 'Search by company,prospect,designation').css({ 'width': '250px' });
+                });
                     $('#spinner-overlay').hide(); // Hide spinner after table is fully initialized
                 },
                 preDrawCallback: function () {
@@ -148,6 +183,8 @@
                 drawCallback: function () {
                     $('#spinner-overlay').hide(); // Ensure spinner is hidden after each redraw
                 }
+
+        
             });
 
             // Listen for DataTable processing events
@@ -165,6 +202,22 @@
             table.ajax.reload(); // Reload DataTable with new data
         }
 
+        function showAllNumbers(numbers) {
+    let rowHtml = '';
+
+        rowHtml += '<p>' + numbers + '</p>';
+    
+
+    $('#numberRow').html(rowHtml);
+    $('#numberModal').modal('show');
+}
+
+
+
+function closemodal(){
+    $('#numberModal').modal('hide');
+
+}
 
     </script>
 @endsection

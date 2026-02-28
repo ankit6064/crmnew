@@ -1,6 +1,13 @@
 @extends('layouts.admin')
 @section('content')
+<style>
+        .graph tbody tr.odd td:last-child {
+    display: table-cell !important;
+    gap: 11px;
+    align-items: center;
+}
 
+</style>
 @php 
     if (isset($_GET["status"])) {
         if ($_GET['status'] == '1') {

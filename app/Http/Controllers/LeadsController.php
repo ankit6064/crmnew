@@ -929,66 +929,107 @@ foreach ($leadsData as $lead) {
 
     public function getLeadsData(Request $request, $id = null)
     {
-
         $id = $request->source_id;
+        
         if ($request->ajax()) {
-            // Fetch leads with relationships and filters
-            $data = Lead::join('sources', 'sources.id', 'leads.source_id')->where(['source_id' => $id])->with('source')->with('feedback')
+            // Base Query
+            $data = Lead::join('sources', 'sources.id', '=', 'leads.source_id')
+                ->where('leads.source_id', $id)
+                ->with(['source', 'feedback'])
                 ->select([
                     'leads.id',
-                    'source_id',
-                    'company_name',
-                    'prospect_first_name',
-                    'prospect_last_name',
-                    'linkedin_address',
-                    'timezone',
-                    'designation',
-                    'contact_number_1',
+                    'leads.source_id',
+                    'leads.company_name',
+                    'leads.prospect_first_name',
+                    'leads.prospect_last_name',
+                    'leads.linkedin_address',
+                    'leads.timezone',
+                    'leads.designation',
+                    'leads.contact_number_1',
                     'leads.created_at',
-                    'status',
+                    'leads.status',
                 ]);
-
+    
             return DataTables::of($data)
+                // --- Custom Search Filter ---
+                ->filter(function ($query) use ($request) {
+                    if ($request->has('search') && !empty($request->search['value'])) {
+                        $searchValue = strtolower($request->search['value']);
+    
+                        $query->where(function ($q) use ($searchValue) {
+                            $q->whereRaw('LOWER(leads.company_name) LIKE ?', ["%{$searchValue}%"])
+                              ->orWhereRaw('LOWER(leads.designation) LIKE ?', ["%{$searchValue}%"])
+                              ->orWhereRaw('LOWER(leads.prospect_first_name) LIKE ?', ["%{$searchValue}%"])
+                              ->orWhereRaw('LOWER(leads.prospect_last_name) LIKE ?', ["%{$searchValue}%"])
+                              // Optional: Search full name combined
+                              ->orWhereRaw("LOWER(CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name)) LIKE ?", ["%{$searchValue}%"]);
+                        });
+                    }
+                })
+                // ----------------------------
                 ->addColumn('campaign_name', function ($row) {
                     return $row->source ? $row->source->source_name : '';
                 })
                 ->addColumn('prospect_name', function ($row) {
                     $name = $row->prospect_first_name . ' ' . $row->prospect_last_name;
                     $linkedin = $row->linkedin_address;
-                    $linkedinLink = $linkedin && (strpos($linkedin, 'http://') === 0 || strpos($linkedin, 'https://') === 0)
+                    $linkedinLink = $linkedin && (str_starts_with($linkedin, 'http://') || str_starts_with($linkedin, 'https://'))
                         ? $linkedin
                         : 'https://' . $linkedin;
-
-                    return "<a href='/leads/{$row->id}' target='_blank'>{$name}</a> " .
-                        (strpos($linkedin, 'linkedin') !== false
-                            ? "<a href='{$linkedinLink}' target='_blank'><i class='fa-brands fa-linkedin'></i></a>"
-                            : "<i class='fa-brands fa-linkedin' title='LinkedIn Address Not Valid'></i>");
+    
+                    $icon = (str_contains($linkedin, 'linkedin'))
+                        ? "<a href='{$linkedinLink}' target='_blank' style='color:#0077b5'><i class='fa-brands fa-linkedin'></i></a>"
+                        : "<i class='fa-brands fa-linkedin' style='color:#ccc' title='LinkedIn Address Not Valid'></i>";
+    
+                    return "<a href='/leads/{$row->id}' target='_blank' style='color:black; font-weight:500;'>{$name}</a> " . $icon;
                 })
+              ->editColumn('contact_number_1', function ($row) {
+    if (empty($row->contact_number_1)) {
+        return 'N/A';
+    }
+
+    // Split by comma, semicolon, or space
+    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+    $numbers = array_filter($numbers); // Remove empty strings
+    $count = count($numbers);
+
+    if ($count <= 1) {
+        return $row->contact_number_1;
+    }
+
+    $firstNumber = $numbers[0];
+    $contact = json_encode($row->contact_number_1);
+    // Pass the rest of the numbers as a JSON array to the JS function
+
+    return "{$firstNumber} 
+            <span class='badge' 
+                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+                  onclick='showAllNumbers({$contact})'>
+                  + show more
+            </span>";
+})
+// Ensure 'contact_number_1' is in rawColumns
+->rawColumns(['prospect_name', 'status', 'action', 'contact_number_1'])
                 ->addColumn('status', function ($row) {
                     $statuses = [
-                        1 => '<p class="pending">Pending</p>',
-                        2 => '<p class="failed">Failed</p>',
-                        3 => '<p class="completed">Completed</p>',
-                        4 => '<p class="in-progress">In Progress</p>',
+                        1 => '<p class="status-label pending">Pending</p>',
+                        2 => '<p class="status-label failed">Failed</p>',
+                        3 => '<p class="status-label completed">Completed</p>',
+                        4 => '<p class="status-label in-progress">In Progress</p>',
                     ];
-                
                     return $statuses[$row->status] ?? '';
                 })
-                
                 ->addColumn('action', function ($row) {
-                    return "<a href='/leads/{$row->id}' target='_blank'><i class='fa fa-eye' style='color:black'></i></a>";
+                    return "<a href='/leads/{$row->id}' target='_blank'><i class='fa fa-eye' style='color:black; cursor:pointer;'></i></a>";
                 })
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at 
-                        ? Carbon::parse($row->created_at)->format('d-m-Y H:i') 
+                        ? \Carbon\Carbon::parse($row->created_at)->format('d-m-Y H:i') 
                         : '';
                 })
-                
-                ->rawColumns(['prospect_name', 'status', 'action'])
+                ->rawColumns(['prospect_name', 'status', 'action','contact_number_1'])
                 ->make(true);
         }
-
-
     }
 
 

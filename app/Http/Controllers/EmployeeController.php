@@ -373,6 +373,17 @@ class EmployeeController extends Controller
                     $status = '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checked . '>';
                     return $status;
                 })
+                ->addColumn('totalcampaigns', function ($data) {
+                    // Count users where user_id matches the current data id
+                    $totalcampaigns = Source::where(function ($q) use ($data) {
+                        $q->where('user_id', $data->id);
+                    })
+                        ->where('is_active', 1)
+                        ->count();
+
+
+                    return '<p  class="view_emp" title="View Campagins" onclick="viewCampaigns(' . $data->id . ')">' . $totalcampaigns . '</p>';
+                })
                 ->addColumn('actions', function ($data) {
 
                     // Edit
@@ -426,7 +437,7 @@ class EmployeeController extends Controller
                     $submanager = '<button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="assignsubmanager(' . $data->id . ')">Assign Role</button>';
                     return $submanager;
                 })
-                ->rawColumns(['actions', 'status', 'disable_login', 'sub_manager'])
+                ->rawColumns(['actions', 'status', 'disable_login', 'sub_manager','totalcampaigns'])
                 ->toJson();
         }
         return response()->json(['error' => 'Invalid request'], 400);

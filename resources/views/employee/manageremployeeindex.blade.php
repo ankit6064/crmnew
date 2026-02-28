@@ -23,7 +23,7 @@
 
     .stat-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
     .stat-card.active-card {
@@ -32,7 +32,10 @@
     }
 
     /* --- Icon Cursor Styles --- */
-    .fa, .fas, .fa-solid, .fa-regular {
+    .fa,
+    .fas,
+    .fa-solid,
+    .fa-regular {
       cursor: pointer !important;
     }
 
@@ -73,7 +76,6 @@
       color: blue;
       font-weight: bold;
     }
-    
   </style>
 
   <div class="main-right">
@@ -132,7 +134,8 @@
             </div>
             <div id="submanagerbody" class="modal-body"></div>
             <div class="modal-footer">
-              <button class="btn btn-primary" style="background-color:#192e62;" onclick="transfer();">Assign Campaign</button>
+              <button class="btn btn-primary" style="background-color:#192e62;" onclick="transfer();">Assign
+                Campaign</button>
               <button class="btn btn-secondary" style="background-color:#192e62;" onclick="skip();">Skip</button>
               <button type="button" class="btn btn-info" data-dismiss="modal" onclick="closemodal()">Close</button>
             </div>
@@ -159,7 +162,8 @@
                         <div class="card mb-3">
                           <div class="card-body">
                             <div class="form-check">
-                              <input class="form-check-input" type="checkbox" name="employees[]" value="{{ $emp->id }}" id="emp{{ $emp->id }}">
+                              <input class="form-check-input" type="checkbox" name="employees[]" value="{{ $emp->id }}"
+                                id="emp{{ $emp->id }}">
                               <label class="form-check-label" for="emp{{ $emp->id }}">
                                 {{ $emp->first_name . ' ' . $emp->last_name }}
                               </label>
@@ -175,7 +179,8 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-primary" style="background-color:#192e62;" onclick="assignemployees();">Assign Employees</button>
+              <button class="btn btn-primary" style="background-color:#192e62;" onclick="assignemployees();">Assign
+                Employees</button>
               <button type="button" class="btn btn-info" onclick="closemodalemp()">Skip for Now</button>
             </div>
           </div>
@@ -199,11 +204,29 @@
                   <th>Email</th>
                   <th>Password</th>
                   <th>Phone No</th>
+                  <th>Campaigns Assigned</th>
                   <th>Sub Manager</th>
                   <th>Actions</th>
                 </tr>
               </thead>
             </table>
+          </div>
+        </div>
+        <div class="modal fade" id="campaignlisting" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
+          aria-hidden="true">
+          <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="totalLeadsLabel">Campaign Listing</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closemodal()">
+                  <span aria-hidden="true" style="color: black;">&times;</span>
+                </button>
+              </div>
+              <div id="campaignlistingbody" class="modal-body"></div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-dismiss="modal" onclick="closemodal()">Close</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -216,17 +239,17 @@
   <script>
     $(document).ready(function () {
       $('#spinner-overlay').show();
-      
+
       var currentStatus = 'total'; // Default filter state
 
       var table = $('#employee-table').DataTable({
         processing: false,
         serverSide: true,
         ajax: {
-            url: '{{ route('employee.manageremployeedata') }}',
-            data: function (d) {
-                d.status_filter = currentStatus;
-            }
+          url: '{{ route('employee.manageremployeedata') }}',
+          data: function (d) {
+            d.status_filter = currentStatus;
+          }
         },
         pageLength: 10,
         columns: [
@@ -235,6 +258,7 @@
           { data: 'email', name: 'email', orderable: false, render: data => data || "N/A" },
           { data: 'orignal_password', name: 'orignal_password', orderable: false, render: data => data || "N/A" },
           { data: 'phone_no', name: 'phone_no', orderable: false, render: data => data || "N/A" },
+          { data: 'totalcampaigns', name: 'totalcampaigns', orderable: false, render: data => data || "N/A" },
           { data: 'sub_manager', name: 'sub_manager', orderable: false, render: data => data || "N/A" },
           { data: 'actions', name: 'actions', orderable: false, searchable: false }
         ],
@@ -257,15 +281,15 @@
       });
 
       // --- Filter Card Click Logic ---
-      $('.filter-card').on('click', function() {
-          $('.filter-card').removeClass('active-card');
-          $(this).addClass('active-card');
-          currentStatus = $(this).data('filter');
-          table.draw();
+      $('.filter-card').on('click', function () {
+        $('.filter-card').removeClass('active-card');
+        $(this).addClass('active-card');
+        currentStatus = $(this).data('filter');
+        table.draw();
       });
       table.on('init.dt', function () {
-                $('div.dataTables_filter input').attr('placeholder', 'Search by name,email').css({ 'width': '250px' });
-            });
+        $('div.dataTables_filter input').attr('placeholder', 'Search by name,email').css({ 'width': '250px' });
+      });
 
       table.on('preXhr.dt', () => $('#spinner-overlay').show());
       table.on('xhr.dt', () => $('#spinner-overlay').hide());
@@ -318,10 +342,10 @@
         url: "{{ route('employee.assignsubmanager') }}",
         method: 'post',
         data: { employeeid: employeeid, _token: $('meta[name="csrf-token"]').attr('content') },
-        dataType:"json",
+        dataType: "json",
         success: function (response) {
-            $('#submanagerbody').html(response.html);
-            $('#assignsubmanager').modal('show');
+          $('#submanagerbody').html(response.html);
+          $('#assignsubmanager').modal('show');
         }
       });
     }
@@ -335,7 +359,7 @@
         data: formdata,
         processData: false,
         contentType: false,
-        dataType:"json",
+        dataType: "json",
         success: function () {
           $('#assignsubmanager').modal('hide');
           $('#assignempmanager').modal('show');
@@ -344,7 +368,7 @@
     }
 
     function skip() {
-        transfer(); // Reusing transfer logic for skip as per original flow
+      transfer(); // Reusing transfer logic for skip as per original flow
     }
 
     function assignemployees() {
@@ -363,7 +387,27 @@
       });
     }
 
-    function closemodal() { $('#assignsubmanager').modal('hide'); }
+    function viewCampaigns(managerid) {
+      $.ajax({
+        url: "{{ route('employee.viewcampaigns') }}",
+        method: 'get',
+        data: { managerid: managerid },
+        dataType: "json",
+        success: function (response) {
+          if (response.status == 200) {
+            let modal = new bootstrap.Modal(document.getElementById('campaignlisting'));
+            modal.show();
+            $('#campaignlistingbody').html(response.html);
+          }
+        }
+      });
+    }
+
+    function closemodal() { 
+      $('#assignsubmanager').modal('hide');
+      $('#campaignlisting').modal('hide');
+
+     }
     function closemodalemp() { $('#assignempmanager').modal('hide'); location.reload(); }
   </script>
 @endpush

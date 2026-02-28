@@ -10,85 +10,84 @@
         margin-bottom: 10px;
     }
 
-    .filter-select, #global_filter {
+    .filter-select,
+    #global_filter {
         padding: 6px;
         border: 1px solid #ccc;
         border-radius: 4px;
     }
+
     .graph tbody tr.odd td:last-child {
-    display: table-cell !important;
-    gap: 11px;
-    align-items: center;
-}
-
-    
-
+        display: table-cell !important;
+        gap: 11px;
+        align-items: center;
+    }
 </style>
 
 @section('content')
 
 
 
-<input type="hidden" id="passed_status" value="{{ @Request()->status }}">
+    <input type="hidden" id="passed_status" value="{{ @Request()->status }}">
 
-<div class="main-right">
-    <div class="right-side submanager">
+    <div class="main-right">
+        <div class="right-side submanager">
 
-        <h2>Callback Leads</h2>
+            <h2>Callback Leads</h2>
 
-        <div class="graph campaignslist">
+            <div class="graph campaignslist">
 
-            <!-- 🔽 Filters -->
-            <div class="filter-row">
+                <!-- 🔽 Filters -->
+                <div class="filter-row">
 
-<select id="employee_id" class="filter-select">
-    <option value="">All Employees</option>
-    @foreach($employee_list as $emp)
-        <option value="{{ $emp->id }}">
-            {{ $emp->first_name }} {{ $emp->last_name }}
-        </option>
-    @endforeach
-</select>
+                    <select id="employee_id" class="filter-select">
+                        <option value="">All Employees</option>
+                        @foreach($employee_list as $emp)
+                            <option value="{{ $emp->id }}">
+                                {{ $emp->first_name }} {{ $emp->last_name }}
+                            </option>
+                        @endforeach
+                    </select>
 
-<select id="callback_status" class="filter-select">
-    <option value="">All</option>
-    <option value="0">Pending</option>
-    <option value="1">Completed</option>
-    <option value="2">Uncompleted</option>
-</select>
+                    <select id="callback_status" class="filter-select">
+                        <option value="">All</option>
+                        <option value="0">Pending</option>
+                        <option value="1">Completed</option>
+                        <option value="2">Uncompleted</option>
+                    </select>
 
-<!-- Reset Button -->
-<button id="resetFilters" class="btn btn-primary" style="background-color: #e71d1d;">Reset</button>
+                    <!-- Reset Button -->
+                    <button id="resetFilters" class="btn btn-primary" style="background-color: #e71d1d;">Reset</button>
 
-</div>
-
-            <!-- 📊 Table -->
-            <div class="table">
-                <div class="table-container">
-                    <table id="employee-table" class="table table-striped table-hover">
-                        <thead class="thead-main">
-                            <tr>
-                                <th>Lead Name</th>
-                                <th>Employee</th>
-                                <th>Campaign</th>
-                                <th>Description</th>
-                                <th>Callback Date</th>
-                                <th>Time</th>
-                                <th>Note</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                    </table>
                 </div>
-            </div>
 
+                <!-- 📊 Table -->
+                <div class="table">
+                    <div class="table-container">
+                        <table id="employee-table" class="table table-striped table-hover">
+                            <thead class="thead-main">
+                                <tr>
+                                    <th>Lead Name</th>
+                                    <th>Employee</th>
+                                    <th>Campaign</th>
+                                    <th>Description</th>
+                                    <th>Callback Date</th>
+                                    <th>Time</th>
+                                    <th>Note</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
 
 
 
-<div id="status-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div id="status-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form id="ajaxform">
@@ -165,72 +164,71 @@
     </div>
     </div>
 
-<!--  -->
+    <!--  -->
 
-<form id="form">
-                        <div id="status-modal-quicknote" class="modal fade" tabindex="-1" role="dialog"
-                            aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <meta name="csrf-token" content="{{ csrf_token() }}" />
-                                    <div>
-                                        <ul></ul>
-                                    </div>
-                                    <style type="text/css">
-                                        .responseconversrespo {
-                                            float: left;
-                                            width: 50%;
-                                            margin-bottom: 10px;
-                                        }
+    <form id="form">
+        <div id="status-modal-quicknote" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+            aria-hidden="true" style="display: none;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <meta name="csrf-token" content="{{ csrf_token() }}" />
+                    <div>
+                        <ul></ul>
+                    </div>
+                    <style type="text/css">
+                        .responseconversrespo {
+                            float: left;
+                            width: 50%;
+                            margin-bottom: 10px;
+                        }
 
-                                        .modal-dialog {
-                                            background: #fff;
-                                            border-radius: 10px;
-                                            background: none !important;
-                                        }
-                                    </style>
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Add Callback Note</h4>
-                                        <button type="button" id="modelclose" class="close modal-close" data-dismiss="modal"
-                                            aria-hidden="true" style="color:black" onclick="closemodal();">×</button>
-                                    </div>
-                                    <div class="modal-body">
+                        .modal-dialog {
+                            background: #fff;
+                            border-radius: 10px;
+                            background: none !important;
+                        }
+                    </style>
+                    <div class="modal-header">
+                        <h4 class="modal-title">Add Callback Note</h4>
+                        <button type="button" id="modelclose" class="close modal-close" data-dismiss="modal"
+                            aria-hidden="true" style="color:black" onclick="closemodal();">×</button>
+                    </div>
+                    <div class="modal-body">
 
-                                        <div class="NoResponseData">
-                                            <div class="form-group" id="status" name="status">
-                                                <input type="hidden" name="leadid" id="leadid">
-                                                <input type="hidden" name="callbackid" id="callbackid">
-                                                <input type="hidden" name="callbackstatus" id="callbackstatus">
-
-
-                                                <textarea required type="text" class="form-control required" name="note"
-                                                    id="note" placeholder="Enter Note"
-                                                    style="min-height: 130px;">{{ old('note') }}</textarea>
-                                                <div class="alert alert-danger print-error-msg" style="display:none">
-                                                    <ul class="custom_text">Please Add Note First</ul>
-                                                </div>
-                                                @if($errors->has('status'))
-                                                    <div class="alert alert-danger">{{ $errors->first('status') }}</div>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                    </div>
+                        <div class="NoResponseData">
+                            <div class="form-group" id="status" name="status">
+                                <input type="hidden" name="leadid" id="leadid">
+                                <input type="hidden" name="callbackid" id="callbackid">
+                                <input type="hidden" name="callbackstatus" id="callbackstatus">
 
 
-                                    <div class="modal-footer">
-                                        <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
-                                        <button type="button" class="btn btn-default waves-effect modal-close"
-                                            data-dismiss="modal" onclick="closemodal();">Close</button>
-                                        {{-- <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i>
-                                            Save</button> --}}
-                                        <button id="save-data-quick-note" type="button"
-                                            class="btn btn-info waves-effect waves-light ">Add Note</button>
-                                    </div>
+                                <textarea required type="text" class="form-control required" name="note" id="note"
+                                    placeholder="Enter Note" style="min-height: 130px;">{{ old('note') }}</textarea>
+                                <div class="alert alert-danger print-error-msg" style="display:none">
+                                    <ul class="custom_text">Please Add Note First</ul>
                                 </div>
-                    </form>
+                                @if($errors->has('status'))
+                                    <div class="alert alert-danger">{{ $errors->first('status') }}</div>
+                                @endif
+                            </div>
+                        </div>
 
-@push('scripts')
+                    </div>
+
+
+                    <div class="modal-footer">
+                        <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
+                        <button type="button" class="btn btn-default waves-effect modal-close" data-dismiss="modal"
+                            onclick="closemodal();">Close</button>
+                        {{-- <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i>
+                            Save</button> --}}
+                        <button id="save-data-quick-note" type="button" class="btn btn-info waves-effect waves-light ">Add
+                            Note</button>
+                    </div>
+                </div>
+    </form>
+
+    @push('scripts')
         <script src="{{url('vendor/moment/moment.js')}}"></script>
 
         <script src="{{url('vendor/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js')}}">
@@ -253,14 +251,14 @@
                         }
                     },
                     columns: [
-                        { data: 'lead_name', name: 'prospect_first_name',sortable:true },
-                        { data: 'employee_name', name: 'users.first_name',sortable:false },
-                        { data: 'source_name', name: 'source_name',sortable:false },
-                        { data: 'description', name: 'description',sortable:false },
-                        { data: 'callback_date', name: 'callback_date',sortable:false },
-                        { data: 'callback_time', name: 'callback_time',sortable:false },
-                        { data: 'note', name: 'note',sortable:false },
-                        { data: 'status', name: 'status',sortable:false }
+                        { data: 'lead_name', name: 'prospect_first_name', sortable: true },
+                        { data: 'employee_name', name: 'users.first_name', sortable: false },
+                        { data: 'source_name', name: 'source_name', sortable: false },
+                        { data: 'description', name: 'description', sortable: false },
+                        { data: 'callback_date', name: 'callback_date', sortable: false },
+                        { data: 'callback_time', name: 'callback_time', sortable: false },
+                        { data: 'note', name: 'note', sortable: false },
+                        { data: 'status', name: 'status', sortable: false }
                     ]
                 });
 
@@ -290,11 +288,11 @@
                     table.ajax.reload(); // Reload DataTable with new filter values
                 });
                 $('#resetFilters').click(function () {
-        $('#employee_id').val('');
-        $('#callback_status').val('');
+                    $('#employee_id').val('');
+                    $('#callback_status').val('');
 
-        table.draw(); // reload data
-    });
+                    table.draw(); // reload data
+                });
             });
 
 
