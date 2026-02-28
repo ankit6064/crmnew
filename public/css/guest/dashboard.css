@@ -1,5 +1,15 @@
 /*-dashboard-*/
 
+.fa, .fas, .fa-solid, .fa-regular {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+/* Optional: change color on hover for better UX */
+.fa:hover, .fa-solid:hover, .fa-regular:hover {
+    opacity: 0.8;
+}
+
 .menu-link.active {
     color: rgb(0, 0, 0);
     background: rgb(255, 255, 255);

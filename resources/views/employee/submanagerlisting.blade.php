@@ -341,11 +341,11 @@
                 url: "{{ route('employee.viewemployees') }}",
                 method: 'get',
                 data: { managerid: managerid },
+                dataType:"json",
                 success: function (response) {
-                    if (response.status == 200) {
-                        let modal = new bootstrap.Modal(document.getElementById('employeelisting'));
-                        modal.show();
+                    if (response.status == 200) {                       
                         $('#employeelistingbody').html(response.html);
+                        $('#employeelisting').modal('show');
                     }
                 }
             });
@@ -356,6 +356,7 @@
                 url: "{{ route('employee.viewcampaigns') }}",
                 method: 'get',
                 data: { managerid: managerid },
+                dataType:"json",
                 success: function (response) {
                     if (response.status == 200) {
                         let modal = new bootstrap.Modal(document.getElementById('campaignlisting'));
