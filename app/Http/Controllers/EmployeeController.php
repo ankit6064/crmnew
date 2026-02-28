@@ -46,7 +46,15 @@ class EmployeeController extends Controller
         if (Auth::user()->is_admin == 2) {
             return redirect()->route('employee.manageremployeeindex');
         }
-        return view('employee.index');
+        $active = User::where('is_admin', 1)
+        ->where('is_active', 1)
+        ->count();
+
+        $deactive = User::where('is_admin', 1)
+        ->where('is_active', 2)
+        ->count();
+
+        return view('employee.index',compact('active','deactive'));
     }
 
     /**
@@ -73,12 +81,7 @@ class EmployeeController extends Controller
 
                     return $mangerType;
                 })
-                ->addColumn('status', function ($data) {
-                    // Determine if the checkbox should be checked
-                    $checked = $data->is_active == 1 ? 'checked' : '';
-                    $status = '<input data-sid = "' . $data->source_id . '" class="switchery" type="checkbox" ' . $checked . '>';
-                    return $status;
-                })
+              
                 ->addColumn('status', function ($data) {
                     // Determine if the checkbox should be checked
                     $checked = $data->is_active == 1 ? 'checked' : '';
@@ -87,6 +90,10 @@ class EmployeeController extends Controller
                 })
                 ->addColumn('actions', function ($data) {
                     // Customize the action buttons
+
+                    $checked = $data->is_active == 1 ? 'checked' : '';
+                    $status = '<input data-sid = "' . $data->source_id . '" class="switchery" type="checkbox" ' . $checked . '>';
+                    
                     $editLink = '<a href="' . route('employee.edit', ['employee_id' => $data->id]) . '">
                     <span class="material-symbols-outlined text-success editEmployee">edit_square</span>
                 </a>';
@@ -96,7 +103,7 @@ class EmployeeController extends Controller
             </a>';
 
 
-                    return $editLink . '' . $deleteLink;
+                    return $status.' '.$editLink . '' . $deleteLink;
                 })
                 ->rawColumns(['actions', 'status'])
                 ->toJson();

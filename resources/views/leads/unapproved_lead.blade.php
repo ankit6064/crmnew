@@ -40,7 +40,7 @@
 
             <div class="table">
                 <div class="table-container">
-                    <table id="employee-table">
+                <table id="employee-table" class="display nowrap" style="width:100% !important">
                         <thead class="thead-main">
                             <tr>
                                 <th>Linkdin</th>
@@ -53,12 +53,10 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="new-table-body"></tbody>
                     </table>
                 </div>
 
                 {{-- CUSTOM PAGINATION --}}
-                <div class="pagination" id="pagination"></div>
             </div>
         </div>
     </div>
@@ -76,8 +74,11 @@ const table = $('#employee-table').DataTable({
     serverSide: true,
     ajax: '{{ route("unapproved_manager_leads_list_pagination") }}',
     ordering: true,
-    autoWidth: false,     // 🔴 IMPORTANT
-    deferRender: true,    // performance
+        autoWidth: false,
+        deferRender: true,
+
+        // scrollX: true,
+        scrollCollapse: true,  // performance
     columns: [
         { data: "LinkedIn", orderable: false },
         { data: "employee_name", orderable: false },

@@ -1055,8 +1055,10 @@ foreach ($leadsData as $lead) {
                 })
     
                 ->addColumn('action', function ($row) {
-                    return "<a href='/leads/{$row->id}' target='_blank'><i class='fa fa-eye' style='color:black'></i></a>";
+                    $url = url('leads/' . $row->id);
+                    return "<a href='{$url}' target='_blank'><i class='fa fa-eye' style='color:black'></i></a>";
                 })
+                
     
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at
@@ -1583,7 +1585,7 @@ foreach ($leadsData as $lead) {
 
     public function notes_view(Request $request)
     {
-        $notes_data = Lead::where('id', $request->lead_id)
+        $notes_data = Lead::where('id', $request->id)
             ->with('source')
             ->with([
                 'notes' => function ($query) {
@@ -1621,11 +1623,10 @@ foreach ($leadsData as $lead) {
             }
         } else {
             $table .= '<tr>
-                <td class="wraping">  </td>
-                <td class="wraping">  </td>
-                <td class="wraping"> Data Not Found </td>
-                <td class="wraping">  </td>
-            </tr>';
+            <td colspan="4" style="text-align:center; font-weight:bold;">
+                No Data Found
+            </td>
+        </tr>';
         }
         return response()->json(['notes_data' => $notes_data, 'table' => $table]);
         // return view('notes.view')->with(['data'=>$data]);

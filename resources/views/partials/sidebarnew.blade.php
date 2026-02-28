@@ -12,43 +12,9 @@
     font-weight: bold;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-/* Only change font for <a> tags inside sidebar */
-.sidebar a  {
-    font-family: "Poppins", sans-serif !important;
-}
-
-.menu-title span p {
-    font-family: "Poppins", sans-serif !important;
-
-}
-
-.menu-item .submenu {
-    display: none;
-}
-
-.menu-item.open .submenu {
-    display: block;
-}
-
-.menu-title.active {
-    background-color: #f0f0f0;
-    font-weight: bold;
-}
-
-.sidebar .menu-title span p {
-    display: inline-block;
-    margin-bottom: 0;
-}
-
-.sidebar p {
-    display: inline-block;
-    margin-bottom: 0;
-}
-
-
 </style>
+@if(auth()->user()->is_admin == MANAGER)
+
 <div class="sidebar">
 
     <!-- Dashboard -->
@@ -63,7 +29,7 @@
     @endphp
     <div class="menu-item dropdown {{ $isSubmanagerActive ? 'open' : '' }}">
         <div class="menu-title {{ $isSubmanagerActive ? 'active' : '' }}">
-            <span><i class="fa-solid fa-user-gear"></i> <p>Manage Submanager</p></span>
+            <span><i class="fa-solid fa-user-gear"></i> Manage Submanager</span>
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">
@@ -80,24 +46,23 @@
     @endphp
     <div class="menu-item dropdown {{ $isEmployeeActive ? 'open' : '' }}">
         <div class="menu-title {{ $isEmployeeActive ? 'active' : '' }}">
-            <span><i class="fa-solid fa-user-tie"></i> <p>Manage Employee</p></span>
+            <span><i class="fa-solid fa-user-tie"></i> Manage Employee</span>
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">
-        <a href="{{ route('employee.createmanageremployees') }}" class="{{ request()->routeIs('employee.createmanageremployees') ? 'active' : '' }}">
-                <i class="fas fa-plus"></i> Add Employee
-            </a>
             <a href="{{ route('employee.index') }}" class="{{ request()->routeIs('employee.manageremployeeindex') ? 'active' : '' }}">
                 <i class="fas fa-eye"></i> View Employee
             </a>
-         
+            <a href="{{ route('employee.createmanageremployees') }}" class="{{ request()->routeIs('employee.createmanageremployees') ? 'active' : '' }}">
+                <i class="fas fa-plus"></i> Add Employee
+            </a>
         </div>
     </div>
 
     <!-- Manage Campaigns -->
     <div class="menu-item dropdown">
         <div class="menu-title">
-            <span><i class="fa-solid fa-bullhorn"></i> <p>Manage Campaigns</p></span>
+            <span><i class="fa-solid fa-bullhorn"></i> Manage Campaigns</span>
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">
@@ -106,39 +71,170 @@
         </div>
     </div>
 
-      <!-- Manage Leads -->
-      <div class="menu-item dropdown">
+    <!-- Manage Leads -->
+    <div class="menu-item dropdown">
         <div class="menu-title">
-            <span><i class="fa-solid fa-address-card"></i> <p>Manage Leads</p></span>
+            <span><i class="fa-solid fa-address-card"></i> Manage Leads</span>
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">
-        <a href="{{ route('leads.create') }}"><i class="fa-solid fa-user-plus"></i>Add Lead</a>
-        <a href="{{ route('leads.assign_lead_emp') }}"><i class="fa-solid fa-share-from-square"></i>Assign Lead</a>
-
+        <a href="{{ route('leads.create') }}"><i class="fas fa-plus"></i>Add Lead</a>
+        <a href="{{ route('leads.assign_lead_emp') }}"><i class="fas fa-plus"></i>Assign Lead</a>
+        
         <a href="{{ route('leads.unapprovedLeads') }}"><i class="fas fa-eye"></i>Unapproved Leads</a>
-            <a href="{{ route('employeeclosedleads') }}"><i class="fa-solid fa-folder-closed"></i>Emp. Closed Leads</a>
-            <a href="{{ route('employeecompletedleads') }}"><i class="fa-solid fa-circle-check"></i>Emp. Completed Leads</a>
+
+            <a href="{{ route('employeeclosedleads') }}"><i class="fas fa-eye"></i>Emp. Closed Leads</a>
+            <a href="{{ route('employeecompletedleads') }}"><i class="fas fa-eye"></i>Emp. Completed Leads</a>
         </div>
     </div>
 
-
     <!-- Lead Chart -->
-    <a href="{{ route('manageleadchart')}}"><i class="fa-solid fa-chart-line"></i> <p>Lead Chart</p></a>
+    <a href="{{ route('manageleadchart')}}"><i class="fa-solid fa-chart-line"></i> Lead Chart</a>
 
     <!-- Daily Report -->
-    <a href="{{ url('man_daily_report') }}"><i class="fa-solid fa-file-lines"></i> <p>Daily Report</p></a>
+    <a href="{{ url('man_daily_report') }}"><i class="fa-solid fa-file-lines"></i> Daily Report</a>
 
     <!-- Logs -->
     <div class="menu-item dropdown">
         <div class="menu-title">
-            <span><i class="fa-solid fa-list"></i> <p>Logs</p></span>
+            <span><i class="fa-solid fa-list"></i> Logs</span>
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">
-            <a href="{{ route('employeelogs') }}"><i class="fa-solid fa-users"></i>Employee logs</a>
-            <a href="{{ route('managerlogs') }}"><i class="fa-solid fa-user"></i> Myself logs</a>
+            <a href="{{ route('employeelogs') }}"><i class="fas fa-eye"></i>Employee logs</a>
+            <a href="{{ route('managerlogs') }}"><i class="fas fa-eye"></i> Myself logs</a>
         </div>
     </div>
 
 </div>
+
+@elseif(auth()->user()->is_admin == USER)
+
+<div class="sidebar">
+
+    <!-- Dashboard -->
+    <a href="{{ url('employeedashboard') }}" 
+       class="{{ request()->is('employeedashboard') ? 'active' : '' }} menu-link">
+        <i class="fa-solid fa-gauge"></i> Dashboard
+    </a>
+
+ 
+
+    <a href="{{ route('sources.getMangerSource') }}"><i class="fas fa-eye"></i>Campaigns</a>
+
+
+ 
+    <!-- Manage Leads -->
+    <div class="menu-item dropdown">
+        <div class="menu-title">
+            <span><i class="fa-solid fa-address-card"></i> Manage Leads</span>
+            <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </div>
+        <div class="submenu">
+        <a href="{{ route('leads.create') }}"><i class="fas fa-plus"></i>Add Lead</a>        
+        <a href="{{ route('leads.unapprovedLeads') }}"><i class="fas fa-eye"></i>Unapproved Leads</a>
+        </div>
+    </div>
+
+
+    <!-- Daily Report -->
+    <a href="{{ url('man_daily_report') }}"><i class="fa-solid fa-file-lines"></i> Daily Report</a>
+
+
+
+</div>
+
+
+
+@else
+
+<div class="sidebar">
+
+    <!-- Dashboard -->
+    <a href="{{ route('dashboard') }}"
+       class="{{ request()->routeIs('dashboard') ? 'active' : '' }} menu-link">
+        <i class="fa-solid fa-gauge"></i> Home
+    </a>
+
+    <!-- Analysis -->
+    <a href="{{ url('analysis') }}"
+       class="{{ request()->is('analysis') ? 'active' : '' }} menu-link">
+        <i class="fa fa-line-chart"></i> Analysis
+    </a>
+
+    <!-- Manager -->
+    <div class="menu-item dropdown">
+        <div class="menu-title">
+            <span><i class="fa fa-users"></i> Manager</span>
+            <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </div>
+        <div class="submenu">
+            <a href="{{ route('manager.index') }}">
+                <i class="fas fa-eye"></i> View Manager
+            </a>
+            <a href="{{ route('manager.create') }}">
+                <i class="fas fa-plus"></i> Add Manager
+            </a>
+        </div>
+    </div>
+
+    <!-- Employee -->
+    <div class="menu-item dropdown">
+        <div class="menu-title">
+            <span><i class="fa fa-users"></i> Employee</span>
+            <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </div>
+        <div class="submenu">
+            <a href="{{ route('employee.index') }}">
+                <i class="fas fa-eye"></i> View Employee
+            </a>
+            <a href="{{ route('employee.create') }}">
+                <i class="fas fa-plus"></i> Add Employee
+            </a>
+        </div>
+    </div>
+
+    <!-- Campaign -->
+    <div class="menu-item dropdown">
+        <div class="menu-title">
+            <span><i class="fa fa-address-book"></i> Campaign</span>
+            <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </div>
+        <div class="submenu">
+            <a href="{{ route('sources.index') }}">
+                <i class="fas fa-eye"></i> View Campaign
+            </a>
+            <a href="{{ route('sources.create') }}">
+                <i class="fas fa-plus"></i> Add Campaign
+            </a>
+        </div>
+    </div>
+
+    <!-- Leads -->
+    <div class="menu-item dropdown">
+        <div class="menu-title">
+            <span><i class="fa fa-check-square-o"></i> Leads</span>
+            <span class="arrow"><i class="fas fa-chevron-right"></i></span>
+        </div>
+        <div class="submenu">
+            <a href="{{ url('leads/create') }}">
+                <i class="fas fa-plus"></i> Add Leads
+            </a>
+            <a href="{{ url('leads/assign') }}">
+                <i class="fas fa-user-check"></i> Assign Leads
+            </a>
+        </div>
+    </div>
+
+    <!-- Daily Report -->
+    <a href="{{ url('man_daily_report') }}"
+       class="{{ request()->is('man_daily_report') ? 'active' : '' }} menu-link">
+        <i class="fa-solid fa-file-lines"></i> Daily Report
+    </a>
+
+</div>
+
+
+@endif
+
+

@@ -10,6 +10,7 @@ use App\Models\Lead;
 use App\Models\Source;
 use App\Models\Note;
 use App\Models\User;
+use App\Models\CallbackLeads;
 use yajra\DataTables\DataTables;
 use Carbon\Carbon;
 use Auth;
@@ -138,8 +139,8 @@ class HomeController extends Controller
 
     public function managerdashboard(Request $request)
     {
-        $submangercount = User::where('is_admin', 3)->where('user_id',Auth::id())->count();
-        $employeecount = User::where('is_admin', 1)->where('user_id',Auth::id())->count();
+        $submangercount = User::where('is_admin', 3)->where('user_id', Auth::id())->count();
+        $employeecount = User::where('is_admin', 1)->where('user_id', Auth::id())->count();
         $campaigncount = Source::where('assign_to_manager', Auth::id())->count();
         $totalleads = Lead::where('asign_to_manager', Auth::id())->count();
         $totallhscount = Lead::join('lhs_report', 'leads.id', 'lhs_report.lead_id')->where('leads.asign_to_manager', Auth::id())->count();
@@ -147,23 +148,44 @@ class HomeController extends Controller
 
         $employee = User::select('id', 'first_name', 'last_name')->where('user_id', Auth::id())->orderby('first_name')->get();
         $sources = Source::select('id', 'source_name', 'description')->where('assign_to_manager', Auth::id())->orderby('source_name')->get();
-        return view('managerdashboard', compact('submangercount', 'employeecount', 'campaigncount', 'totalleads', 'totallhscount', 'totalmomcount','employee','sources'));
+
+
+        $currentDate = now()->format('Y-m-d'); // 2025-05-14
+        $currentTime = now()->format('H:i'); // e.g., 14:27 (use 'H:i' for 24-hour format to avoid AM/PM issues)
+
+        $employeeids = User::where('user_id', auth()->user()->id)->pluck('id');
+
+        $callbackleads = CallbackLeads::query()
+            ->join('leads', 'leads.id', '=', 'callback_leads.lead_id')
+            ->join('sources', 'sources.id', '=', 'leads.source_id')
+            ->join('users', 'users.id', '=', 'callback_leads.employee_id')
+            ->select(
+                'callback_leads.*',
+                DB::raw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) as lead_name"),
+                'sources.source_name',
+                'sources.description',
+                DB::raw("CONCAT(users.first_name, ' ', users.last_name) as employee_name")
+            )
+            ->whereIn('callback_leads.employee_id', $employeeids)
+            ->whereDate('callback_leads.callback_date', $currentDate)->count();
+
+        return view('managerdashboard', compact('submangercount', 'employeecount', 'campaigncount', 'totalleads', 'totallhscount', 'totalmomcount', 'employee', 'sources','callbackleads'));
     }
 
     public function getmanagergraph(Request $request)
-    {      
+    {
         if (!empty($request->date)) {
             [$start, $end] = array_map('trim', explode(' - ', $request->date));
             $start = Carbon::parse($start)->setTime(6, 41);  // set start date at 06:41
-            $end   = Carbon::parse($end)->addDay()->setTime(6, 40); // set next day at 06:40
+            $end = Carbon::parse($end)->addDay()->setTime(6, 40); // set next day at 06:40
         } else {
             $start = Carbon::today()->setTime(6, 41);  // today 06:41
-            $end   = Carbon::tomorrow()->setTime(6, 40); // tomorrow 06:40
+            $end = Carbon::tomorrow()->setTime(6, 40); // tomorrow 06:40
         }
 
         $campaignId = $request->input('campaign_id');
         $employeeId = $request->input('employee_id');
-        
+
         // Leads
         $leads = Lead::where('asign_to_manager', Auth::id())
             ->where('status', '!=', 3)
@@ -171,7 +193,7 @@ class HomeController extends Controller
             ->when($employeeId, fn($q) => $q->where('user_id', $employeeId))
             ->whereBetween('created_at', [$start, $end])
             ->count();
-        
+
         // Notes
         $notes = Lead::join('notes', 'notes.lead_id', 'leads.id')
             ->where('leads.asign_to_manager', Auth::id())
@@ -179,7 +201,7 @@ class HomeController extends Controller
             ->when($employeeId, fn($q) => $q->where('leads.user_id', $employeeId))
             ->whereBetween('notes.created_at', [$start, $end])
             ->count();
-        
+
         // Closed Leads
         $closed = Lead::where('asign_to_manager', Auth::id())
             ->where('status', 3)
@@ -187,7 +209,7 @@ class HomeController extends Controller
             ->when($employeeId, fn($q) => $q->where('user_id', $employeeId))
             ->whereBetween('closed_on', [$start, $end])
             ->count();
-        
+
         // Completed Leads
         $completed = Lead::join('mom_report', 'leads.id', 'mom_report.lead_id')
             ->where('leads.asign_to_manager', Auth::id())
@@ -195,12 +217,12 @@ class HomeController extends Controller
             ->when($employeeId, fn($q) => $q->where('leads.user_id', $employeeId))
             ->whereBetween('mom_report.created_at', [$start, $end])
             ->count();
-        
 
-            return response()->json([
-                'labels' => ['Leads', 'Notes', 'Closed', 'Completed'],
-                'values' => [$leads, $notes, $closed, $completed]
-            ]);
+
+        return response()->json([
+            'labels' => ['Leads', 'Notes', 'Closed', 'Completed'],
+            'values' => [$leads, $notes, $closed, $completed]
+        ]);
 
     }
 

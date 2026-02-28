@@ -413,6 +413,45 @@
 
         }
 
+        function deleteLead(id){
+            Swal.fire({
+            title: 'Are you sure?',
+            text: 'You won\'t be able to revert this!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Perform the AJAX request to delete the manager
+              $.ajax({
+                url: `delete/${id}`, // Adjust this URL to match your route
+                type: 'GET', // Use GET request for deletion
+                success: function (response) {
+                  // Handle successful response (e.g., show a success message)
+                  Swal.fire(
+                    'Deleted!',
+                    'The lead has been deleted.',
+                    'success'
+                  );
+
+                  // Redraw the DataTable to reflect the changes
+                  $('#employee-table').DataTable()
+                    .draw(); // Redraw the DataTable
+                },
+                error: function (xhr, status, error) {
+                  // Handle error (e.g., show an error message)
+                  Swal.fire(
+                    'Error!',
+                    'There was an issue deleting the lead.',
+                    'error'
+                  );
+                }
+              });
+            }
+          });        }
+
     </script>
 
 @endpush

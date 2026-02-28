@@ -672,7 +672,7 @@ div#employeelisting button.btn.btn-info {
     margin-right: 0;
 }
 .graph tbody tr.odd td:last-child {
-    display: flex;
+    /* display: flex; */
     gap: 11px;
     align-items: center;
 }
@@ -992,7 +992,7 @@ div#assignempmanager .modal-dialog.modal-dialog-scrollable.modal-lg .modal-foote
 }
 .graph.campaignslist tbody tr.odd td:last-child {
     gap: 0px !important;
-	float:right !important;
+	/* float:right !important; */
 }
 .graph.campaignslist tbody tr td:last-child {1
     float: right;
@@ -1829,7 +1829,7 @@ form.mom-form textarea.form-control {
 box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
 }
 div#employee-table_wrapper table#employee-table {
-    display: block !important;
+    /* display: block !important; */
     overflow-x: auto;
     white-space: nowrap;
 }

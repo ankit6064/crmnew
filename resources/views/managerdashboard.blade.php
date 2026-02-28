@@ -120,7 +120,7 @@ class="stat-card-link" style="text-decoration:none; color:inherit;">
             <div class="row second-card">
 
 <div class="col-md-3">
-    <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
+    <a href="{{ route('managercallbackleads') }}" class="stat-card-link" style="text-decoration:none; color:inherit;">
         <div class="stat-card">
             <div class="card-header">
                 <h4>Total Callbacks</h4>
@@ -129,7 +129,7 @@ class="stat-card-link" style="text-decoration:none; color:inherit;">
                 </div>
             </div>
             <div class="card-body">
-                <h2>20</h2>
+                <h2>{{$callbackleads}}</h2>
                 <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
             </div>
         </div>

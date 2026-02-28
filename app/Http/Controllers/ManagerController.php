@@ -22,7 +22,15 @@ class ManagerController extends Controller
      */
     public function index()
     {
-        return view('manager.index');
+        $active = User::where('is_admin', MANAGER)
+        ->where('is_active', 1)
+        ->count();
+
+        $deactive = User::where('is_admin', MANAGER)
+        ->where('is_active', 2)
+        ->count();
+
+        return view('manager.index',compact('active','deactive'));
     }
 
     /**
@@ -49,15 +57,14 @@ class ManagerController extends Controller
 
                     return $mangerType;
                 })
-                ->addColumn('status', function ($data) {
-                    // Determine if the checkbox should be checked
-                    $checked = $data->is_active == 1 ? 'checked' : '';
-                    $status = '<input data-sid = "' . $data->source_id . '" class="switchery" type="checkbox" ' . $checked . '>';
-                    return $status;
-                })
+             
 
                 ->addColumn('actions', function ($data) {
                     // Customize the action buttons
+
+                    $checked = $data->is_active == 1 ? 'checked' : '';
+                    $status = '<input data-sid = "' . $data->source_id . '" class="switchery" type="checkbox" ' . $checked . '>';
+
                     $viewLink = '<a href="' . route('manager.employees', ['manager_id' => $data->id]) . '">
                  <span class="material-symbols-outlined text-secondary viewEmployee">groups</span>
               </a>';
@@ -72,7 +79,7 @@ class ManagerController extends Controller
             </a>';
 
 
-                    return $viewLink . ' ' . $editLink . '' . $deleteLink;
+                    return $status.' '.$viewLink . ' ' . $editLink . '' . $deleteLink;
                 })
                 ->rawColumns(['actions', 'status'])
                 ->toJson();

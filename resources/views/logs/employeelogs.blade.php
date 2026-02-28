@@ -103,6 +103,12 @@ $(document).ready(function () {
 				d.sourceid = $('#source_id').val();
 				d.date = $('#daterange').val();
 				d.type = $('#type').val();
+			},
+			beforeSend: function () {
+                $('#spinner-overlay').show();
+			},
+			complete: function () {
+                $('#spinner-overlay').hide();
 			}
 		},
 		columns: [
@@ -113,16 +119,37 @@ $(document).ready(function () {
 			{ data: 'type', name: 'type', orderable: false },
 			{ data: 'created_at', name: 'created_at', orderable: true },
 		],
-		order: [[5, 'desc']]
+		order: [[5, 'desc']],
+
+		// Extra safety hooks
+		preDrawCallback: function () {
+			$('#spinner-overlay').show();
+		},
+		drawCallback: function () {
+			$('#spinner-overlay').hide();
+		}
 	});
 
+	// Filter button
 	$('#filterLogs').on('click', function () {
+		$('#spinner-overlay').show();
 		table.ajax.reload();
 	});
 
+	// Reset button
 	$('#reset').on('click', function () {
 		$('#employee_id, #source_id, #type, #daterange').val('');
+		$('#spinner-overlay').show();
 		table.ajax.reload();
+	});
+
+	// DataTable processing event (extra fallback)
+	$('#employee-table').on('processing.dt', function (e, settings, processing) {
+		if (processing) {
+			$('#spinner-overlay').show();
+		} else {
+			$('#spinner-overlay').hide();
+		}
 	});
 });
 </script>

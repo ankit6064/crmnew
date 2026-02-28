@@ -134,6 +134,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Search button logic
     document.getElementById('searchBtn').addEventListener('click', function () {
+        $('#spinner-overlay').show();
+
         const emp = document.getElementById('categoryFilter').value;
         const dates = document.getElementById('dateFilter').value.split(', ');
 
@@ -165,6 +167,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         count: item.leadscount || 0
                     }))
                 }));
+                $('#spinner-overlay').hide();
+
                 updateCampaignCounts(campaigns);
             },
             error: function () {

@@ -108,8 +108,10 @@ class SourcesController extends Controller
         })->get()->toArray();
         // dd($data);
         $externalManagers = DB::table('users')->where('is_admin', 2)->where('deleted_at', NULL)->where('manager_type', 2)->get()->toArray();
-        return view('sources.list_new')->with(['datas' => $data, 'managers' => $managers, 'externalManagers' => $externalManagers]);
-    }
+        $active = Source::where('is_active',1)->count();
+        $inactive = Source::where('is_active',2)->count();
+        return view('sources.list_new')->with(['datas' => $data, 'managers' => $managers, 'externalManagers' => $externalManagers,'active'=>$active,'inactive'=>$inactive]);
+        }
 
 
     public function create()
@@ -1073,9 +1075,9 @@ class SourcesController extends Controller
                 
                             if (!empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) {
                                 $notesButton .= '
-                                    <a href="'.url('leads/delete/'.$row->id).'"
+                                    <a href="#"
                                        class="notes_id"
-                                       onclick="return confirm(\'Are you sure you want to delete this lead ?\')">
+                                       onclick="deleteLead('.$row->id.')">
                                         <i class="fa fa-trash label-new" style="color:red;font-size:15px"
                                            data-tippy-content="Delete Lead"></i>
                                     </a>';
@@ -1084,10 +1086,10 @@ class SourcesController extends Controller
                 
                     } else {
                         $notesButton .= '
-                            <a href="'.url('leads/delete/'.$row->id).'"
+                            <a href="#"
                                class="notes_id"
-                               onclick="return confirm(\'Are you sure you want to delete this lead ?\')">
-                                <i class="fa fa-trash label-new" style="color:red;font-size:15px"
+                               onclick="deleteLead('.$row->id.')">
+                               <i class="fa fa-trash label-new" style="color:red;font-size:15px"
                                    data-tippy-content="Delete Lead"></i>
                             </a>';
                     }
@@ -1472,23 +1474,23 @@ class SourcesController extends Controller
                 
                             if (!empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) {
                                 $notesButton .= '
-                                    <a href="'.url('leads/delete/'.$row->id).'"
-                                       class="notes_id"
-                                       onclick="return confirm(\'Are you sure you want to delete this lead ?\')">
-                                        <i class="fa fa-trash label-new" style="color:red;font-size:15px"
-                                           data-tippy-content="Delete Lead"></i>
-                                    </a>';
+                                <a href="#"
+                                class="notes_id"
+                                onclick="deleteLead('.$row->id.')">
+                                <i class="fa fa-trash label-new" style="color:red;font-size:15px"
+                                    data-tippy-content="Delete Lead"></i>
+                             </a>';
                             }
                         }
                 
                     } else {
                         $notesButton .= '
-                            <a href="'.url('leads/delete/'.$row->id).'"
-                               class="notes_id"
-                               onclick="return confirm(\'Are you sure you want to delete this lead ?\')">
-                                <i class="fa fa-trash label-new" style="color:red;font-size:15px"
-                                   data-tippy-content="Delete Lead"></i>
-                            </a>';
+                        <a href="#"
+                        class="notes_id"
+                        onclick="deleteLead('.$row->id.')">
+                        <i class="fa fa-trash label-new" style="color:red;font-size:15px"
+                            data-tippy-content="Delete Lead"></i>
+                     </a>';
                     }
                 
                     return $notesButton;

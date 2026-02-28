@@ -1,113 +1,199 @@
 @extends('layouts.admin')
+
 @section('content')
-    <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">Dashboard</h3>
-        </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ url('manager') }}">Managers</a></li>
-                <li class="breadcrumb-item active">Update Manager</li>
-            </ol>
-        </div>
-    </div>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card card-outline-info">
-                    <div class="card card-outline-info">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="m-b-0 text-white">Update Managers</h4>
-                            <!-- Back Button on the Right -->
-                            <a href="{{ url()->previous() }}" class="btn btn-light d-flex align-items-center">
-                                <span class="material-symbols-outlined mr-2">
-                                    arrow_back
-                                </span>
-                                Back
-                            </a>
-                        </div>
-                        <div class="card-body">
-                            <form method='post' action="{{ route('manager.update', [$manager->id]) }}">
-                                @csrf
-                                @method('PUT')
-                                <div class="form-body add_custom_table">
-                                    <div class="row p-t-20">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="first_name" class="control-label">First Name</label>
-                                                <input type="text" id="first_name" name="first_name"
-                                                    class="form-control @error('first_name') is-invalid @enderror"
-                                                    placeholder="Enter First Name" value="{{ old('first_name', $manager->first_name) }}">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label">Last Name</label>
-                                                <input type="text" id="last_name" name='last_name'
-                                                    class="form-control form-control-danger" placeholder="Enter Last Name"
-                                                    value="{{ old('last_name', $manager->last_name) }}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label">Phone No</label>
-                                                <input type="text" id="phone_no" name='phone_no' class="form-control"
-                                                    placeholder="Enter Phone No" value="{{ old('phone_no', $manager->phone_no) }}">
-                                            </div>
-                                        </div>
-                                        <!--/span-->
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label">Email</label>
-                                                <input type="text" id="email" name='email' class="form-control"
-                                                    placeholder="Enter Email" value="{{ old('email', $manager->email) }}">
-                                            </div>
-                                        </div>
-                                        <!--/span-->
-                                    </div>
-                                    <!--/row-->
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label">Address</label>
-                                                <input type="text" id="address" name='address' class="form-control"
-                                                    placeholder="Enter Address" value="{{ old('address', $manager->address) }}">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label">Password</label>
-                                                <input type="text" id="orignal_password" name='orignal_password' class="form-control" placeholder="Enter New Password" value="{{old('orignal_password', $manager->orignal_password)}}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label">Manager Type</label>
-                                                <select name="manager_type" class="form-control custom-select"
-                                                    data-placeholder="Select Manager Type" tabindex="1" required>
-                                                    <option value="">Select Manager Type</option>
-                                                    <option value="1" {{ ($manager->manager_type == USER) ? "selected" : "" }}>Internal</option>
-                                                    <option value="2" {{ ($manager->manager_type == MANAGER) ? "selected" : "" }}>External</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i>
-                                        Save</button>
-                                    <input type="reset" class="btn btn-inverse" value="Cancel" />
-                                </div>
-                            </form>
-                        </div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<style>
+    .form-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        height: 50px;
+        border-radius: 8px;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .btn-save {
+        background: #63c100;
+        color: #fff;
+        padding: 12px 40px;
+        border-radius: 10px;
+        border: none;
+    }
+
+    .btn-cancel {
+        background: #ff0000;
+        color: #fff;
+        padding: 12px 40px;
+        border-radius: 10px;
+        border: none;
+    }
+
+    .popupcenter {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+
+    .text-danger {
+        font-size: 13px;
+        margin-top: 4px;
+        display: block;
+    }
+</style>
+
+<div class="main-right addsubmanager">
+    <div class="right-side">
+        <h2>Update Manager</h2>
+
+        <div class="graph">
+            <form id="managerUpdateForm">
+                @csrf
+                @method('PUT')
+
+                <!-- Row 1 -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="first_name" name="first_name"
+                               value="{{ $manager->first_name }}"
+                               placeholder="Enter First Name">
+                        <span class="text-danger error-first_name"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" id="last_name" name="last_name"
+                               value="{{ $manager->last_name }}"
+                               placeholder="Enter Last Name">
+                        <span class="text-danger error-last_name"></span>
                     </div>
                 </div>
-            </div>
+
+                <!-- Row 2 -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="phone_no" name="phone_no"
+                               value="{{ $manager->phone_no }}"
+                               placeholder="Enter Phone Number">
+                        <span class="text-danger error-phone_no"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" name="email"
+                               value="{{ $manager->email }}"
+                               placeholder="Enter Email">
+                        <span class="text-danger error-email"></span>
+                    </div>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="address" name="address"
+                               value="{{ $manager->address }}"
+                               placeholder="Enter Address">
+                        <span class="text-danger error-address"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Manager Type</label>
+                        <select id="manager_type" name="manager_type">
+                            <option value="">Select Manager Type</option>
+                            <option value="1" {{ $manager->manager_type == 1 ? 'selected' : '' }}>Internal</option>
+                            <option value="2" {{ $manager->manager_type == 2 ? 'selected' : '' }}>External</option>
+                        </select>
+                        <span class="text-danger error-manager_type"></span>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="btn-group">
+                    <button type="button" class="btn-save" onclick="updateManager();">
+                        Update
+                    </button>
+
+                    <button type="button" class="btn-cancel" onclick="window.history.back();">
+                        Cancel
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
+
+<!-- Success Modal -->
+<div class="popupcenter" id="successModal">
+    <div class="popupp">
+        <div class="success-icon">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <p>Manager has been <br> updated successfully.</p>
+    </div>
+</div>
+
+<script>
+function updateManager() {
+
+    $('.text-danger').text('');
+    $('input, select').css('border', '');
+
+    let formData = new FormData($('#managerUpdateForm')[0]);
+
+    $.ajax({
+        url: "{{ route('manager.update', $manager->id) }}",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': $('input[name="_token"]').val()
+        },
+        success: function () {
+            $('#successModal').css('display', 'flex');
+
+            setTimeout(() => {
+                window.location.href = "{{ route('manager.index') }}";
+            }, 2000);
+        },
+        error: function (xhr) {
+            if (xhr.status === 422) {
+                let errors = xhr.responseJSON.errors;
+
+                $.each(errors, function (key, value) {
+                    $('.error-' + key).text(value[0]);
+                    $('#' + key).css('border', '1px solid red');
+                });
+            } else {
+                alert('Something went wrong. Please try again.');
+            }
+        }
+    });
+}
+</script>
+
 @endsection
