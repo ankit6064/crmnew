@@ -273,7 +273,13 @@ class SourcesController extends Controller
         ini_set('memory_limit', '512M');
     
         if ($request->ajax()) {
-    
+            if($request->status_filter == 'total'){
+                $status = [1,2];
+            }elseif($request->status_filter == 'active'){
+                $status = [1];
+            }else{
+                $status = [2];
+            }
             if (Auth::user()->is_admin == null) {
     
                 $query = Source::select(
@@ -287,6 +293,7 @@ class SourcesController extends Controller
                     DB::raw("'N/A' as company_distribution"),
                     DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads")
                 )
+                ->whereIn('is_active',$status)
                 ->leftJoinSub(
                     Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
                         ->groupBy('source_id'),
@@ -302,7 +309,6 @@ class SourcesController extends Controller
                         $query->where('user_id', auth()->user()->id)
                             ->orWhere('assign_to_manager', auth()->user()->id);
                     })
-                    ->where('is_active', 1)
                     ->select(
                         "id",
                         "source_name",
@@ -315,6 +321,7 @@ class SourcesController extends Controller
                         DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads"),
                         DB::raw("(SELECT SUM(amount) FROM money WHERE money.source_id = sources.id) as amount")
                     )
+                    ->whereIn('is_active',$status)
                     ->leftJoinSub(
                         Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
                             ->groupBy('source_id'),
@@ -330,9 +337,12 @@ class SourcesController extends Controller
                 ->filter(function ($query) use ($request) {
                     if (!empty($request->search['value'])) {
                         $keyword = strtolower($request->search['value']);
-    
+                
                         $query->where(function ($q) use ($keyword) {
-                            $q->whereRaw('LOWER(sources.source_name) LIKE ?', ["%{$keyword}%"]);
+                            // Search in Source Name
+                            $q->whereRaw('LOWER(sources.source_name) LIKE ?', ["%{$keyword}%"])
+                            // OR Search in Description
+                              ->orWhereRaw('LOWER(sources.description) LIKE ?', ["%{$keyword}%"]);
                         });
                     }
                 })
@@ -524,24 +534,27 @@ class SourcesController extends Controller
         $campaign = Source::findOrFail($request->source_id);
         if ($campaign->is_active == 1) {
             $campaign->is_active = 2;
+            $message = $campaign->source_name.'-'.$campaign->description.' is deactivated';
 
             $logs = New Logs();
             $logs->user_id = Auth::id();
-            $logs->description = $campaign->source_name.'-'.$campaign->description.' is deactivated';
+            $logs->description = $message;
             $logs->type = 13;
             $logs->source_id = $request->source_id;
             $logs->save();
         } else {
+            $message = $campaign->source_name.'-'.$campaign->description.' is activated';
+
             $campaign->is_active = 1;
             $logs = New Logs();
             $logs->user_id = Auth::id();
-            $logs->description = $campaign->source_name.'-'.$campaign->description.' is activated';
+            $logs->description = $message;
             $logs->type = 13;
             $logs->source_id = $request->source_id;
             $logs->save();
         }
         $campaign->save();
-        echo json_encode(['status' => 200, 'message' => 'Status Updated']);
+        echo json_encode(['status' => 200, 'message' => 'Campaign '.$message.'.']);
         exit;
     }
 
@@ -1711,10 +1724,25 @@ class SourcesController extends Controller
         $externalManagers = DB::table('users')->where('is_admin', 2)->where('deleted_at', NULL)->where('manager_type', 2)->get()->toArray();
         $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
 
-        $active = Source::where('is_active',1)->count();
-        $inactive = Source::where('is_active',2)->count();
+        $active = Source::where(function ($query) {
+            $query->where('user_id', auth()->user()->id)
+                ->orWhere('assign_to_manager', auth()->user()->id);
+        })
+        ->where('is_active', 1)->count();
+        $inactive = Source::where(function ($query) {
+            $query->where('user_id', auth()->user()->id)
+                ->orWhere('assign_to_manager', auth()->user()->id);
+        })
+        ->where('is_active', 2)
+        ->count();
+        $totalCampaigns = Source::where(function ($query) {
+            $query->where('user_id', auth()->user()->id)
+                ->orWhere('assign_to_manager', auth()->user()->id);
+        })
+        ->count();
 
-        return view('sources.list_new')->with(['managers' => $managers, 'externalManagers' => $externalManagers,'permissions'=>$permissions,'active'=>$active,'inactive'=>$inactive]);
+
+        return view('sources.list_new')->with(['managers' => $managers, 'externalManagers' => $externalManagers,'permissions'=>$permissions,'active'=>$active,'inactive'=>$inactive,'totalCampaigns'=>$totalCampaigns]);
     }
 
     public function leadscount(Request $request)

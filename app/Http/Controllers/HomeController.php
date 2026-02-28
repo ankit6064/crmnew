@@ -140,8 +140,12 @@ class HomeController extends Controller
     public function managerdashboard(Request $request)
     {
         $submangercount = User::where('is_admin', 3)->where('user_id', Auth::id())->count();
-        $employeecount = User::where('is_admin', 1)->where('user_id', Auth::id())->count();
-        $campaigncount = Source::where('assign_to_manager', Auth::id())->count();
+        $employeecount = User::whereIn('is_admin', [1,3])->where('user_id', Auth::id())->count();
+        $campaigncount = Source::where(function ($query) {
+            $query->where('user_id', auth()->user()->id)
+                ->orWhere('assign_to_manager', auth()->user()->id);
+        })
+        ->count();
         $totalleads = Lead::where('asign_to_manager', Auth::id())->count();
         $totallhscount = Lead::join('lhs_report', 'leads.id', 'lhs_report.lead_id')->where('leads.asign_to_manager', Auth::id())->count();
         $totalmomcount = Lead::join('mom_report', 'leads.id', 'mom_report.lead_id')->where('leads.asign_to_manager', Auth::id())->count();

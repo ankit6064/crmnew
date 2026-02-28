@@ -1,289 +1,85 @@
 @extends('layouts.admin')
 {{-- @push('head-style') --}}
 <style>
-    .table td,
-    .table th {
-        padding: 5px 0 !important;
-        font-size: 12.5px;
-    }
+        .message-box {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            background-color: red;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
 
-    .table-striped tbody tr:nth-of-type(odd) {
-        background: #f2f4f859 !important;
-    }
+        /* --- New Card Button Styles --- */
+        .stat-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
 
-    #exampleModal .modal-dialog,
-    #externalManagerModal .modal-dialog {
-        max-width: 340px;
-    }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
 
-    #exampleModal .modal-dialog select,
-    #externalManagerModal .modal-dialog select {
-        border: 1px solid #ccc;
-        width: 100%;
-        padding: 8px;
-        border-radius: 5px;
-        font-size: 12.5px;
-        margin-bottom: 5px;
-    }
+        .stat-card.active-card {
+            border-color: #192e62 !important;
+            background-color: #f8f9ff !important;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(25, 46, 98, 0.2);
+        }
 
-    #exampleModal .modal-header,
-    #externalManagerModal .modal-header {
-        background: #081840;
-        border-color: #081840;
-        border-radius: 0.3rem 0.3rem 0 0;
-    }
+        /* ------------------------------ */
 
-    #exampleModal .modal-header .modal-title,
-    #externalManagerModal .modal-header .modal-title {
-        color: #fff;
-    }
+        table.employee-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-family: Arial, sans-serif;
+        }
 
-    #exampleModal .modal-content,
-    #externalManagerModal .modal-content {
-        border: none;
-    }
+        .employee-table th,
+        .employee-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
 
-    .tooltip1 {
-        position: relative;
-        display: inline-block;
-        border-bottom: 1px dotted #192e62;
-    }
+        .employee-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
 
-    .tooltip1 .tooltiptext1 {
-        visibility: hidden;
-        width: 200px;
-        background-color: #192e62;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        /*padding: 4px 0;*/
-        position: absolute;
-        z-index: 1;
-        top: -5px;
-        left: 110%;
-        height: 60px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 13px 18px;
-        flex-wrap: wrap;
-        height: fit-content;
-    }
+        .employee-table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
 
-    .tooltip1 .tooltiptext1::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        right: 100%;
-        margin-top: -16px;
-        border-width: 5px;
-        border-style: solid;
-        border-color: transparent #192e62 transparent transparent;
-    }
+        .employee-table tr:hover {
+            background-color: #f1f1f1;
+        }
 
-    .tooltip1:hover .tooltiptext1 {
-        visibility: visible;
-    }
+        .employee-table input[type="checkbox"] {
+            transform: scale(1.2);
+            cursor: pointer;
+        }
 
-    fieldset.group {
-        margin: 0;
-        padding: 0;
-        margin-bottom: 1.25em;
-        padding: .125em;
-    }
+        .view_emp {
+            cursor: pointer;
+            color: blue;
+        }
 
-    .group {
-        border: 1px solid #000;
-        padding: 10px !important;
-    }
+        .menu-title.active {
+            background-color: transparent;
+            font-weight: bold;
+        }
 
-    fieldset.group legend {
-        margin: 0;
-        padding: 0;
-        font-weight: bold;
-        /*margin-left: 20px; */
-        font-size: 100%;
-        color: black;
-        margin-top: 10px;
-        text-align: center;
-    }
-
-    ul.checkbox {
-        margin: 0;
-        padding: 0;
-        margin-left: 20px;
-        margin-top: 10px;
-        list-style: none;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-evenly;
-
-    }
-
-    ul.checkbox li input {
-        margin-right: .25em;
-    }
-
-    /*#manager_external {
-                    margin-bottom: 30px;
-                }*/
-
-    ul.checkbox li {
-        border: 1px transparent solid;
-        display: inline-block;
-        width: 12em;
-    }
-
-    ul.checkbox li label {
-        margin-left: ;
-    }
-
-    ul.checkbox li:hover,
-    ul.checkbox li.focus {
-        width: 12em;
-    }
-
-    #externalManagerModal .modal-dialog {
-        max-width: 585px;
-    }
-
-    ul.pagination {
-        float: right;
-    }
-
-    .table th,
-    .table thead th {
-        border: 1px solid #08184026 !important;
-        padding: 11px 20px !important;
-        align-items: center;
-        text-align: left;
-        vertical-align: middle !important;
-    }
-
-    .table td,
-    .table th {
-        vertical-align: middle !important;
-        border: 1px solid #c9d1e3 !important;
-    }
-
-    .assign_manager_icon i {
-        color: #000;
-        font-size: 17px;
-    }
-
-    .assign_manager_icon {
-        background: transparent !important;
-    }
-
-    .assign_manager_icon img {
-        width: 19px;
-    }
-
-    a.tooltiplink {
-        position: relative;
-    }
-
-    a.tooltiplink:hover::after {
-        content: attr(data-title);
-        background-color: #d3e215;
-        color: #000;
-        padding: 8px;
-        font-size: 10px;
-        line-height: 14px;
-        display: block;
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
-        z-index: 1;
-
-    }
-
-    .unselect_manager_error {
-        font-size: 14px;
-        color: red;
-    }
-
-    /*input[type="checkbox"]:disabled+label:before {
-        top: -4px;
-        left: -5px;
-        border-top: 2px solid transparent;
-        border-left: 2px solid transparent;
-        border-right: 2px solid #26a69a;
-        border-bottom: 2px solid #26a69a;
-        transform: rotate(40deg);
-        backface-visibility: hidden;
-        transform-origin: 100% 100%;
-    }
-
-    */
-    [type="checkbox"]:checked:disabled+label::before {
-        border-right: 2px solid #26a69a !important;
-        border-bottom: 2px solid #26a69a !important;
-    }
-
-    .fields001 {
-        font-size: 16px !important;
-        text-align: center;
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-
-    .Custom_fields {
-        justify-content: left !important;
-        margin-left: 60px !important;
-    }
-
-    ul.checkbox.custom_lead_fields.Custom_fields li {
-        width: 14.7em !important;
-    }
-
-    .group {
-        overflow-x: auto;
-        height: auto;
-        min-height: 130px;
-    }
-
-    #externalManagerModal .modal-body {
-        padding: 1rem 1rem 0rem 1rem !important;
-    }
-
-    .tooltiptext1 p {
-        margin: 3px;
-        padding: 0px;
-        white-space: break-spaces;
-    }
-
-    .source-item {
-        cursor: pointer;
-    }
-
-    [type="checkbox"]:checked,
-    [type="checkbox"]:not(:checked) {
-        opacity: unset !important;
-        position: static !important;
-    }
-
-    /* Dim background modal when child modal opens */
-.modal.dimmed {
-    opacity: 0.35;
-    pointer-events: none;
-}
-
-/* Ensure active modal stays normal */
-/* .modal.show {
-    opacity: 1 !important;
-    pointer-events: auto;
-} */
-
-
-.modal.removedimmed {
-    opacity: 1;
-    pointer-events: none;
-}
-
-</style>
+        .graph tbody tr.odd td:last-child {
+            display: flex;
+        }
+    </style>
 {{-- @endpush --}}
 
 @section('content')
@@ -297,7 +93,20 @@
             <h2>Campaign Listing</h2>
             <div class="row">
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card filter-card active-card" data-filter="total">
+                        <div class="card-header">
+                            <h4>Total</h4>
+                            <div class="card-icon">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{$totalCampaigns}}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card filter-card" data-filter="active">
                         <div class="card-header">
                             <h4>Active</h4>
                             <div class="card-icon acti">
@@ -306,12 +115,11 @@
                         </div>
                         <div class="card-body">
                             <h2>{{$active}}</h2>
-                            <!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card filter-card" data-filter="inactive">
                         <div class="card-header">
                             <h4>Inactive</h4>
                             <div class="card-icon inactive">
@@ -320,11 +128,11 @@
                         </div>
                         <div class="card-body">
                             <h2>{{$inactive}}</h2>
-                            <!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="graph campaignslist">
                 <div class="row">
 
@@ -350,10 +158,10 @@
                                     <th width="50" style="text-align:center">Leads</th>
                                     <th width="50" style="text-align:center">Distribution</th>
                                     <th width="50" style="text-align:center">Manager</th>
-                                    <th width="50" style="text-align:center">Status</th>
 
                                     <th style="text-align:center">Created On</th>
                                     <th style="text-align:center">Modified On</th>
+                                    <th width="50" style="text-align:center">Status</th>
 
                                     <!--<th>Total Amount</th>-->
                                     <th style="text-align:center">Actions</th>
@@ -489,14 +297,8 @@
 
 
     <!-- Modal to show users list that are currently assigned -->
-    <div class="modal fade"
-     id="leadsAssignedUsers"
-     tabindex="-1"
-     role="dialog"
-     aria-labelledby="leadsAssignedUsersLabel"
-     aria-hidden="true"
-     data-backdrop="static"
-     data-keyboard="false">
+    <div class="modal fade" id="leadsAssignedUsers" tabindex="-1" role="dialog" aria-labelledby="leadsAssignedUsersLabel"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
 
         <div class="modal-dialog modal-dialog-scrollable modal-sm" role="document">
             <div class="modal-content">
@@ -535,9 +337,9 @@
                     <select id="manager">
                         <option value="0">Choose Manager</option>
                         <?php 
-                                                                         if (isset($managers) && !empty($managers[0])) {
+                                                                             if (isset($managers) && !empty($managers[0])) {
         foreach ($managers as $manager) { 
-                                                                            ?>
+                                                                                ?>
                         <option value="<?php        echo $manager->id; ?>">
                             <?php        echo $manager->name; ?>
                         </option>
@@ -567,7 +369,8 @@
     <script>
         $(document).ready(function () {
             // Initializing the DataTable (for example)
-            $('#employee-table').DataTable({
+            var currentStatus = 'total';
+            var table = $('#employee-table').DataTable({
                 processing: false,
                 serverSide: true,
                 searching: true,
@@ -576,6 +379,9 @@
                 ajax: {
                     url: '{{ route('campaigns_list_ajax_pagination') }}',
                     type: 'GET',
+                    data: function (d) {
+                        d.status_filter = currentStatus;
+                    }
                 },
                 columns: [
                     { data: 'source_name_new', name: 'source_name' },
@@ -584,10 +390,11 @@
                     { data: 'total_leads_new', name: 'total_leads' },
                     { data: 'company_distribution', name: 'company_distribution', orderable: false },
                     { data: 'manager_name', name: 'manager_name', orderable: false },
-                    { data: 'status', name: 'status', orderable: false },
 
                     { data: 'created_at_new', name: 'created_at', orderable: true },
                     { data: 'updated_at_new', name: 'updated_at', orderable: true },
+                    { data: 'status', name: 'status', orderable: false },
+
                     { data: 'action', name: 'action', orderable: false },
                 ],
 
@@ -597,8 +404,22 @@
 
                     // Add placeholder to the default DataTable search bar
                     $('.dataTables_filter input[type="search"]')
-                        .attr('placeholder', 'Search Campaign Name')
+                        .attr('placeholder', 'Search Name,SubCampaign')
                         .css('width', '250px'); // optional styling
+
+                          // --- Card Click Handler ---
+            $('.filter-card').on('click', function () {
+                // 1. UI Update
+                $('.filter-card').removeClass('active-card');
+                $(this).addClass('active-card');
+
+                // 2. Update status and reload Table
+                currentStatus = $(this).data('filter');
+                table.draw();
+            });
+
+            // Trigger "Total" card by default on load (though it's visually marked in HTML)
+            // $('.filter-card[data-filter="total"]').trigger('click');
                 },
 
                 drawCallback: function () {
@@ -607,31 +428,31 @@
                     // Initialize Switchery + Tippy on each checkbox
                     $('.switchery').each(function () {
 
-// 1️⃣ Initialize Switchery ONLY once on checkbox
-if (!this.switchery) {
-    this.switchery = new Switchery(this, {
-        color: '#192e62',
-        secondaryColor: '#f9f9f9',
-        jackColor: '#d3da44',
-        size: 'small'
-    });
-}
+                        // 1️⃣ Initialize Switchery ONLY once on checkbox
+                        if (!this.switchery) {
+                            this.switchery = new Switchery(this, {
+                                color: '#192e62',
+                                secondaryColor: '#f9f9f9',
+                                jackColor: '#d3da44',
+                                size: 'small'
+                            });
+                        }
 
-// 2️⃣ Switchery UI element is NEXT sibling
-var switcheryUI = this.nextSibling;
+                        // 2️⃣ Switchery UI element is NEXT sibling
+                        var switcheryUI = this.nextSibling;
 
-// 3️⃣ Destroy existing tooltip if present
-if (switcheryUI._tippy) {
-    switcheryUI._tippy.destroy();
-}
+                        // 3️⃣ Destroy existing tooltip if present
+                        if (switcheryUI._tippy) {
+                            switcheryUI._tippy.destroy();
+                        }
 
-// 4️⃣ Attach tooltip to Switchery UI
-tippy(switcheryUI, {
-    content: 'Manage Status',
-    theme: 'light-border',
-    placement: 'top'
-});
-});
+                        // 4️⃣ Attach tooltip to Switchery UI
+                        tippy(switcheryUI, {
+                            content: 'Manage Status',
+                            theme: 'light-border',
+                            placement: 'top'
+                        });
+                    });
 
 
                     // 🔥 INIT TIPPY (NEW)
@@ -652,14 +473,7 @@ tippy(switcheryUI, {
                 clickmodal(id);
             });
 
-            // Hide spinner once modal content is loaded
-            $('#sources').on('processing.dt', function (e, settings, processing) {
-                if (processing) {
-                    $('#spinner-overlay').show();
-                } else {
-                    $('#spinner-overlay').hide();
-                }
-            });
+  
 
             $('#employee-table').on('preXhr.dt', function () {
                 $('#spinner-overlay').show();
@@ -848,41 +662,41 @@ tippy(switcheryUI, {
         }
 
         function updatestatus(id) {
-    $.ajax({
-        type: 'POST',
-        url: "{{ route('statusUpdate') }}",
-        data: {
-            _token: "{{ csrf_token() }}",
-            source_id: id,
-        },
-        dataType: 'json',
-        success: function (response) {
-            if (response.status === 200) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Status Updated',
-                    text: response.message || 'Status updated successfully',
-                    confirmButtonText:"Ok",
-                    // timer: 2000,
-                    showConfirmButton: true
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Failed',
-                    text: response.message || 'Unable to update status'
-                });
-            }
-        },
-        error: function () {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Something went wrong. Please try again.'
+            $.ajax({
+                type: 'POST',
+                url: "{{ route('statusUpdate') }}",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    source_id: id,
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Status Updated',
+                            text: response.message || 'Status updated successfully',
+                            confirmButtonText: "Ok",
+                            // timer: 2000,
+                            showConfirmButton: true
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            text: response.message || 'Unable to update status'
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Something went wrong. Please try again.'
+                    });
+                }
             });
         }
-    });
-}
 
 
         function assignmanager(id) {
@@ -1018,17 +832,17 @@ tippy(switcheryUI, {
 
     </script>
 
-<script>
-    // When child modal opens → dim parent modal
-    $('#leadsAssignedUsers').on('shown.bs.modal', function () {
-        $('#employeeleads').addClass('dimmed');
-    });
+    <script>
+        // When child modal opens → dim parent modal
+        $('#leadsAssignedUsers').on('shown.bs.modal', function () {
+            $('#employeeleads').addClass('dimmed');
+        });
 
-    // When child modal closes → restore parent modal
-    $('#leadsAssignedUsers').on('hidden.bs.modal', function () {
-        $('#employeeleads').removeClass('dimmed');
-    });
-</script>
+        // When child modal closes → restore parent modal
+        $('#leadsAssignedUsers').on('hidden.bs.modal', function () {
+            $('#employeeleads').removeClass('dimmed');
+        });
+    </script>
 
 
 @endsection

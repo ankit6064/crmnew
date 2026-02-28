@@ -250,12 +250,12 @@ class EmployeeController extends Controller
 
     public function manageremployeeindex()
     {
-        $employees = User::where('is_admin', USER)
+        $employees = User::where(function ($query) {
+                $query->where('is_admin', USER)
+                    ->orWhere('is_admin', SUBMANAGER);
+            })
             ->where('user_id', Auth::id())
-            // ->where('id', '!=', $userId)
-            ->select('id', 'first_name', 'last_name')
-            ->where('is_active', 1)
-            ->orderBy('first_name')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         $subamangerpermissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
@@ -265,18 +265,31 @@ class EmployeeController extends Controller
             $permissions = [];
         }
 
-        $active = User::where('is_admin', USER)
+        $total = User::where(function ($query) {
+            $query->where('is_admin', USER)
+                ->orWhere('is_admin', SUBMANAGER);
+        })
+        ->where('user_id', Auth::id())
+        ->count();
+
+        $active = User::where(function ($query) {
+                $query->where('is_admin', USER)
+                    ->orWhere('is_admin', SUBMANAGER);
+            })
             ->where('user_id', Auth::id())
-            ->where('is_active', 1)
+            ->where('is_active',1)
             ->count();
 
-        $deactive = User::where('is_admin', USER)
-            ->where('user_id', Auth::id())
-            ->where('is_active', 2)
-            ->count();
+        $deactive = User::where(function ($query) {
+            $query->where('is_admin', USER)
+                ->orWhere('is_admin', SUBMANAGER);
+        })
+        ->where('user_id', Auth::id())
+        ->where('is_active',2)
+        ->count();
 
 
-        return view('employee.manageremployeeindex', compact('employees', 'permissions', 'active', 'deactive'));
+        return view('employee.manageremployeeindex', compact('employees', 'permissions', 'active', 'deactive','total'));
     }
 
     public function createmanageremployees()
@@ -326,11 +339,21 @@ class EmployeeController extends Controller
     public function manageremployeedata(Request $request)
     {
         if ($request->ajax()) {
-            $managers = User::where('is_admin', USER)
-                ->where('user_id', Auth::id())
-                ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
-                ->orderBy('created_at', 'desc')
-                ->get();
+            if($request->status_filter == 'total'){
+                $status = [1,2];
+            }elseif($request->status_filter == 'active'){
+                $status = [1];
+            }else{
+                $status = [2];
+            }
+            $managers = User::where(function ($query) {
+                $query->where('is_admin', USER)
+                    ->orWhere('is_admin', SUBMANAGER);
+            })
+            ->where('user_id', Auth::id())
+            ->whereIn('is_active',$status)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
             return DataTables::of($managers)
                 ->addColumn('disable_login', function ($data) {

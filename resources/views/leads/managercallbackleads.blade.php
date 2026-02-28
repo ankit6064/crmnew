@@ -15,6 +15,11 @@
         border: 1px solid #ccc;
         border-radius: 4px;
     }
+    .graph tbody tr.odd td:last-child {
+    display: table-cell !important;
+    gap: 11px;
+    align-items: center;
+}
 
     
 

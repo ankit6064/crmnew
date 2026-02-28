@@ -1,6 +1,6 @@
 <form action="" method="post" id="submanagerform">
     <input type="hidden" name="old_employee_id" value="{{ $request->employeeid }}">
-    <p class="message-box">This employee have {{ count($sources) }} assigned campaigns please assign these campaings to any other employee to proceed.</p>
+    <p class="message-box">This employee have {{ count($sources) }} assigned campaigns please assign these campaings to any other employee to proceed next.</p>
     <table class="table table-bordered">
     <thead>
         <tr>
