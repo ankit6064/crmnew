@@ -47,14 +47,14 @@ class EmployeeController extends Controller
             return redirect()->route('employee.manageremployeeindex');
         }
         $active = User::where('is_admin', 1)
-        ->where('is_active', 1)
-        ->count();
+            ->where('is_active', 1)
+            ->count();
 
         $deactive = User::where('is_admin', 1)
-        ->where('is_active', 2)
-        ->count();
+            ->where('is_active', 2)
+            ->count();
 
-        return view('employee.index',compact('active','deactive'));
+        return view('employee.index', compact('active', 'deactive'));
     }
 
     /**
@@ -81,7 +81,7 @@ class EmployeeController extends Controller
 
                     return $mangerType;
                 })
-              
+
                 ->addColumn('status', function ($data) {
                     // Determine if the checkbox should be checked
                     $checked = $data->is_active == 1 ? 'checked' : '';
@@ -90,10 +90,10 @@ class EmployeeController extends Controller
                 })
                 ->addColumn('actions', function ($data) {
                     // Customize the action buttons
-
+    
                     $checked = $data->is_active == 1 ? 'checked' : '';
                     $status = '<input data-sid = "' . $data->source_id . '" class="switchery" type="checkbox" ' . $checked . '>';
-                    
+
                     $editLink = '<a href="' . route('employee.edit', ['employee_id' => $data->id]) . '">
                     <span class="material-symbols-outlined text-success editEmployee">edit_square</span>
                 </a>';
@@ -103,7 +103,7 @@ class EmployeeController extends Controller
             </a>';
 
 
-                    return $status.' '.$editLink . '' . $deleteLink;
+                    return $status . ' ' . $editLink . '' . $deleteLink;
                 })
                 ->rawColumns(['actions', 'status'])
                 ->toJson();
@@ -357,19 +357,19 @@ class EmployeeController extends Controller
                         <a href="' . route('employee.edit', ['employee_id' => $data->id]) . '">
                             <i class="fa-solid fa-pen-to-square text-success editEmployee"></i>
                         </a>';
-                
+
                     // Delete
                     $deleteLink = '
                         <a href="javascript:void(0);" data-id="' . $data->id . '">
                             <i class="fa-solid fa-trash text-danger deleteEmployee" data-id="' . $data->id . '"></i>
                         </a>';
-                
+
                     /**
                      * Login permission switch
                      */
                     $check = RestrictEmployeelogin::where('employee_id', $data->id)->first();
                     $loginChecked = $check ? '' : 'checked';
-                
+
                     $login_permission = '
                         <input
                             type="checkbox"
@@ -379,12 +379,12 @@ class EmployeeController extends Controller
                             onchange="disablelogin(' . $data->id . ', \'' . addslashes($data->email) . '\');"
                             ' . $loginChecked . '
                         >';
-                
+
                     /**
                      * Active / Inactive switch
                      */
                     $statusChecked = $data->is_active == 1 ? 'checked' : '';
-                
+
                     $changestatus = '
                         <input
                             type="checkbox"
@@ -394,10 +394,10 @@ class EmployeeController extends Controller
                             ' . $statusChecked . '
                             onchange="change_status(' . $data->id . ');"
                         >';
-                
+
                     return $login_permission . ' ' . $editLink . ' ' . $deleteLink . ' ' . $changestatus;
                 })
-                
+
                 ->addColumn('sub_manager', function ($data) {
                     // Customize the action buttons
                     $submanager = '<button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="assignsubmanager(' . $data->id . ')">Assign Role</button>';
@@ -1650,6 +1650,9 @@ class EmployeeController extends Controller
 
     public function submanagerlisting(Request $request)
     {
+        $totalsubmanagers = User::where('is_admin', SUBMANAGER)
+            ->where('user_id', Auth::id())
+            ->count();
         $inactive = User::where('is_admin', SUBMANAGER)
             ->where('user_id', Auth::id())
             ->where('is_active', operator: 2)
@@ -1658,14 +1661,22 @@ class EmployeeController extends Controller
             ->where('user_id', Auth::id())
             ->where('is_active', 1)
             ->count();
-        return view('employee.submanagerlisting', compact('inactive', 'active'));
+        return view('employee.submanagerlisting', compact('inactive', 'active','totalsubmanagers'));
     }
 
     public function submanagerlistingdata(Request $request)
     {
         if ($request->ajax()) {
+            if($request->status_filter == 'total'){
+                $status = [1,2];
+            }elseif($request->status_filter == 'active'){
+                $status = [1];
+            }else{
+                $status = [2];
+            }
             $managers = User::where('is_admin', SUBMANAGER)
                 ->where('user_id', Auth::id())
+                ->whereIn('is_active',$status)
                 ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
                 ->orderBy('created_at', 'desc')
                 ->get();

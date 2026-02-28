@@ -10,10 +10,30 @@
             font-weight: 500;
             color: #fff;
             background-color: red;
-            /* Default: blue info message */
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
             transition: all 0.3s ease;
         }
+
+        /* --- New Card Button Styles --- */
+        .stat-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card.active-card {
+            border-color: #192e62;
+            background-color: #f8f9ff;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(25, 46, 98, 0.2);
+        }
+
+        /* ------------------------------ */
 
         table.employee-table {
             width: 100%;
@@ -56,16 +76,31 @@
             background-color: transparent;
             font-weight: bold;
         }
+
+        .graph tbody tr.odd td:last-child {
+            display: flex;
+        }
     </style>
-
-
 
     <div class="main-right">
         <div class="right-side">
             <h2>Submanager Listing</h2>
             <div class="row">
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card filter-card active-card" data-filter="total">
+                        <div class="card-header">
+                            <h4>Total</h4>
+                            <div class="card-icon">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{$totalsubmanagers}}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card filter-card" data-filter="active">
                         <div class="card-header">
                             <h4>Active</h4>
                             <div class="card-icon acti">
@@ -74,12 +109,11 @@
                         </div>
                         <div class="card-body">
                             <h2>{{$active}}</h2>
-                            <!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card filter-card" data-filter="inactive">
                         <div class="card-header">
                             <h4>Inactive</h4>
                             <div class="card-icon inactive">
@@ -88,16 +122,12 @@
                         </div>
                         <div class="card-body">
                             <h2>{{$inactive}}</h2>
-                            <!-- <div class="arrow-icon"><img src="images/card-arrow.png"></div> -->
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="graph custom-submanager">
-                <!-- <div class="row">
-                                    <div class="add-submanager"><a href="{{ route('employee.createmanager') }}">Add Submanager</a></div>
-                                </div> -->
                 <div class="modal fade" id="employeelisting" tabindex="-1" role="dialog" aria-labelledby="totalLeadsLabel"
                     aria-hidden="true">
                     <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
@@ -109,18 +139,12 @@
                                     <span aria-hidden="true" style="color: black;">&times;</span>
                                 </button>
                             </div>
-                            <!-- <form action="" method="post" id="submanagerform"> -->
-
-                            <div id="employeelistingbody" class="modal-body">
-
-
-                            </div>
+                            <div id="employeelistingbody" class="modal-body"></div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-info" data-dismiss="modal"
                                     onclick="closemodal()">Close</button>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -135,20 +159,15 @@
                                     <span aria-hidden="true" style="color: black;">&times;</span>
                                 </button>
                             </div>
-                            <!-- <form action="" method="post" id="submanagerform"> -->
-
-                            <div id="campaignlistingbody" class="modal-body">
-
-
-                            </div>
+                            <div id="campaignlistingbody" class="modal-body"></div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-info" data-dismiss="modal"
                                     onclick="closemodal()">Close</button>
                             </div>
                         </div>
-
                     </div>
                 </div>
+
                 <div class="table">
                     <div class="table-container">
                         <table class="table table-striped table-hover" id="employee-table">
@@ -171,7 +190,6 @@
         </div>
     </div>
 
-    <!-- Modal Popup -->
     <div class="popupcenter" id="successModal">
         <div class="popupp">
             <div class="success-icon">
@@ -190,327 +208,171 @@
                 icon: 'error',
                 title: 'Oops...',
                 text: '{{ session('swalError') }}',
-                toast: true, // Enable toast notification
-                position: 'top-end', // Position the toast in the top right corner
-                showConfirmButton: false, // Don't show a confirmation button
-                timer: 3000, // Show the toast for 3 seconds
-                timerProgressBar: true, // Show a progress bar as the toast disappears
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
             });
         </script>
     @endif
+
     <script>
         $(document).ready(function () {
-            $('#spinner-overlay').show(); // Show full-page spinner
+            $('#spinner-overlay').show();
+
+            // Variable to hold current filter status
+            var currentStatus = 'total';
+
             var table = $('#employee-table').DataTable({
                 processing: false,
                 serverSide: true,
-                ajax: '{{ route('employee.submanagerlistingdata') }}',
+                // Updated AJAX to send the filter status to the backend
+                ajax: {
+                    url: '{{ route('employee.submanagerlistingdata') }}',
+                    data: function (d) {
+                        d.status_filter = currentStatus;
+                    }
+                },
                 pageLength: 10,
                 columns: [
-    {
-        data: 'first_name',
-        name: 'first_name',
-        render: function (data) {
-            return data && data !== "" ? data : "N/A";
-        }
-    },
-    {
-        data: 'last_name',
-        name: 'last_name',
-        render: function (data) {
-            return data && data !== "" ? data : "N/A";
-        }
-    },
-    {
-        data: 'email',
-        name: 'email',
-        orderable: false,
-        render: function (data) {
-            return data && data !== "" ? data : "N/A";
-        }
-    },
-    {
-        data: 'orignal_password',
-        name: 'orignal_password',
-        orderable: false,
-        render: function (data) {
-            return data && data !== "" ? data : "N/A";
-        }
-    },
-    {
-        data: 'phone_no',
-        name: 'phone_no',
-        orderable: false,
-        render: function (data) {
-            return data && data !== "" ? data : "N/A";
-        }
-    },
-    {
-        data: 'totalemployees',
-        name: 'totalemployees',
-        orderable: false,
-        searchable: false,
-        render: function (data) {
-            return data && data !== "" ? data : "0"; // or "N/A"
-        }
-    },
-    {
-        data: 'totalcampaigns',
-        name: 'totalcampaigns',
-        orderable: false,
-        searchable: false,
-        render: function (data) {
-            return data && data !== "" ? data : "0"; // or "N/A"
-        }
-    },
-    {
-        data: 'actions',
-        name: 'actions',
-        orderable: false,
-        searchable: false
-    }
-],
-
+                    { data: 'first_name', name: 'first_name', render: data => data || "N/A" },
+                    { data: 'last_name', name: 'last_name', render: data => data || "N/A" },
+                    { data: 'email', name: 'email', orderable: false, render: data => data || "N/A" },
+                    { data: 'orignal_password', name: 'orignal_password', orderable: false, render: data => data || "N/A" },
+                    { data: 'phone_no', name: 'phone_no', orderable: false, render: data => data || "N/A" },
+                    { data: 'totalemployees', name: 'totalemployees', orderable: false, searchable: false, render: data => data || "0" },
+                    { data: 'totalcampaigns', name: 'totalcampaigns', orderable: false, searchable: false, render: data => data || "0" },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                ],
                 drawCallback: function () {
-                    // Initialize Switchery for each checkbox
                     $('.switchery').each(function () {
                         if (!$(this).data('switchery')) {
-
-                            // Initialize Switchery
                             var switchery = new Switchery(this, {
                                 color: '#192e62',
                                 secondaryColor: '#f9f9f9',
                                 jackColor: '#d3da44',
                                 size: 'small'
                             });
-
-                            // Add Tippy tooltip on the switch element (Switchery creates the next sibling)
                             let switchElement = $(this).next('.switchery')[0];
-
-                            tippy(switchElement, {
-                                content: 'Change Status',
-                                placement: 'top',
-                                arrow: true,
-                                animation: 'scale'
-                            });
+                            tippy(switchElement, { content: 'Change Status', placement: 'top' });
                         }
                     });
 
-
-                    tippy('.viewEmployee', {
-                        content: 'View Employees',
-                        placement: 'top',
-                        arrow: true,
-                        animation: 'scale'
-                    });
-                    tippy('.editEmployee', {
-                        content: 'Edit Manager',
-                        placement: 'top',
-                        arrow: true,
-                        animation: 'scale'
-                    });
-                    tippy('.deleteEmployee', {
-                        content: 'Delete Employee',
-                        placement: 'top',
-                        arrow: true,
-                        animation: 'scale'
-                    });
+                    tippy('.viewEmployee', { content: 'View Employees', placement: 'top' });
+                    tippy('.editEmployee', { content: 'Edit Manager', placement: 'top' });
+                    tippy('.deleteEmployee', { content: 'Delete Employee', placement: 'top' });
                 }
             });
+
+            // --- Card Click Handler ---
+            $('.filter-card').on('click', function () {
+                // 1. UI Update
+                $('.filter-card').removeClass('active-card');
+                $(this).addClass('active-card');
+
+                // 2. Update status and reload Table
+                currentStatus = $(this).data('filter');
+                table.draw();
+            });
+
+            // Trigger "Total" card by default on load (though it's visually marked in HTML)
+            // $('.filter-card[data-filter="total"]').trigger('click');
 
             table.on('init.dt', function () {
-                $('div.dataTables_filter input')
-                    .attr('placeholder', 'Search by name,email')
-                    .css({ 'width': '250px', 'display': 'inline-block' });
+                $('div.dataTables_filter input').attr('placeholder', 'Search by name,email').css({ 'width': '250px' });
             });
 
-            // Show spinner overlay on processing start
-            table.on('preXhr.dt', function (e, settings, data) {
-                $('#spinner-overlay').show(); // Show full-page spinner
+            table.on('preXhr.dt', () => $('#spinner-overlay').show());
+            table.on('xhr.dt', () => $('#spinner-overlay').hide());
+
+            // Delete Handler
+            $(document).on('click', '.deleteEmployee', function (event) {
+                event.preventDefault();
+                const employeeId = $(this).parent().data('id');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You won\'t be able to revert this!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/employee/${employeeId}`,
+                            type: 'POST',
+                            success: function () {
+                                Swal.fire('Deleted!', 'The employee has been deleted.', 'success');
+                                table.draw();
+                            },
+                            error: function () {
+                                Swal.fire('Error!', 'There was an issue deleting the employee.', 'error');
+                            }
+                        });
+                    }
+                });
             });
-
-            // Hide spinner overlay when data is loaded
-            table.on('xhr.dt', function (e, settings, json, xhr) {
-                $('#spinner-overlay').hide(); // Hide full-page spinner
-            });
-
-            // Attach event listener to delete links
-            document.addEventListener('click', function (event) {
-                // Check if the clicked element has the class deleteEmployee
-                if (event.target.matches('.deleteEmployee')) {
-                    event.preventDefault();
-
-                    // Get the employee ID from the data-id attribute of the clicked element
-                    const employeeId = event.target.parentElement.getAttribute('data-id');
-                    // Optionally, use SweetAlert to confirm the deletion
-                    Swal.fire({
-                        title: 'Are you sure?',
-                        text: 'You won\'t be able to revert this!',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Yes, delete it!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Perform the AJAX request to delete the manager
-                            $.ajax({
-                                url: `/employee/${employeeId}`, // Adjust this URL to match your route
-                                type: 'POST', // Use GET request for deletion
-                                success: function (response) {
-                                    // Handle successful response (e.g., show a success message)
-                                    Swal.fire(
-                                        'Deleted!',
-                                        'The employee has been deleted.',
-                                        'success'
-                                    );
-
-                                    // Redraw the DataTable to reflect the changes
-                                    $('#employee-table').DataTable()
-                                        .draw(); // Redraw the DataTable
-                                },
-                                error: function (xhr, status, error) {
-                                    // Handle error (e.g., show an error message)
-                                    Swal.fire(
-                                        'Error!',
-                                        'There was an issue deleting the employee.',
-                                        'error'
-                                    );
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-            tippy('.addEmployee', {
-                content: 'Add Sub Manager',
-                placement: 'top',
-                arrow: true,
-                animation: 'scale'
-            });
-
-
-
         });
 
-
-
-
-
-    </script>
-
-    <script>
+        // Status Toggle
         $(document).on('change', '#togglebtn', function () {
             let id = $(this).data('id');
             $.ajax({
-                url: "{{ route('employee.statusUpdate') }}", // Corrected route syntax
+                url: "{{ route('employee.statusUpdate') }}",
                 method: 'post',
-                data: {
-                    id: id,
-                    _token: $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
-                },
-                dataType: "json",
-
+                data: { id: id, _token: $('meta[name="csrf-token"]').attr('content') },
                 success: function (response) {
-                    if (response.status == 200 && response.data == 'disabled') {
-
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Status disabled successfully!',
-                            icon: 'success',
-                            confirmButtonColor: '#192e62',
-                        });
-
-                    } else {
-
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Status enabled successfully!',
-                            icon: 'success',
-                            confirmButtonColor: '#192e62',
-                        });
-
-                    }
-                },
-                error: function (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Status ' + (response.data == 'disabled' ? 'disabled' : 'enabled') + ' successfully!',
+                        icon: 'success',
+                        confirmButtonColor: '#192e62',
+                    });
+                    // Refresh table to reflect new counts if needed
+                    $('#employee-table').DataTable().draw(false);
                 }
             });
         });
 
         function viewemployees(managerid) {
             $.ajax({
-                url: "{{ route('employee.viewemployees') }}", // Corrected route syntax
+                url: "{{ route('employee.viewemployees') }}",
                 method: 'get',
-                data: {
-                    managerid: managerid,
-                    _token: $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
-                },
-                dataType: "json",
-
+                data: { managerid: managerid },
                 success: function (response) {
                     if (response.status == 200) {
-                        // $('#employeelisting').modal('show');
                         let modal = new bootstrap.Modal(document.getElementById('employeelisting'));
                         modal.show();
                         $('#employeelistingbody').html(response.html);
-                    } else {
-                        alert('Something went wrong.');
                     }
-                },
-                error: function (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
                 }
             });
         }
 
-   
         function viewCampaigns(managerid) {
             $.ajax({
-                url: "{{ route('employee.viewcampaigns') }}", // Corrected route syntax
+                url: "{{ route('employee.viewcampaigns') }}",
                 method: 'get',
-                data: {
-                    managerid: managerid,
-                    _token: $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
-                },
-                dataType: "json",
-
+                data: { managerid: managerid },
                 success: function (response) {
                     if (response.status == 200) {
-                        // $('#employeelisting').modal('show');
                         let modal = new bootstrap.Modal(document.getElementById('campaignlisting'));
                         modal.show();
                         $('#campaignlistingbody').html(response.html);
-                    } else {
-                        alert('Something went wrong.');
                     }
-                },
-                error: function (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
                 }
             });
         }
 
         function closemodal() {
-            $('#employeelisting').modal('hide');
-            $('#campaignlisting').modal('hide'); 
+            $('.modal').modal('hide');
         }
 
-
-
-
-    </script>
-
-    <script>
-        document.addEventListener("click", function (e) {
-            if (e.target.classList.contains("editEmployee")) {
-                const url = e.target.getAttribute("data-url");
-                window.location.href = url; // redirect
-            }
+        $(document).on("click", ".editEmployee", function () {
+            const url = $(this).data("url");
+            if (url) window.location.href = url;
         });
     </script>
-
 @endpush
