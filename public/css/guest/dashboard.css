@@ -682,7 +682,7 @@ div#employeelisting button.btn.btn-info {
     margin-right: 0;
 }
 .graph tbody tr.odd td:last-child {
-    /* display: flex; */
+    display: flex;
     gap: 11px;
     align-items: center;
 }
