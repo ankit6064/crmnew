@@ -174,98 +174,90 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-$(document).ready(function () {
+    $(document).ready(function () {
 
-    /* ------------------------------
-       VALIDATION FUNCTIONS
-    ------------------------------- */
-
-    function validateRequired(value) {
-        return value.trim() !== "";
+// 1. Define the validation rules and messages in one place
+const validationRules = {
+    "source_id": "Please select a campaign.",
+    "company_name": "Please enter company name.",
+    "company_industry": "Please enter company industry.",
+    "prospect_first_name": "Please enter prospect first name.",
+    "prospect_last_name": "Please enter prospect last name.",
+    "designation": "Please enter designation.",
+    "designation_level": "Please enter designation level.",
+    "contact_number_1": "Please enter contact number 1.",
+    "contact_number_2": "Please enter contact number 2.",
+    "linkedin_address": "Please enter linkedin address.",
+    "bussiness_function": "Please enter business function.",
+    "location": "Please enter location.",
+    "timezone": "Please enter timezone.",
+    "prospect_email": {
+        "required": "Please enter prospect email.",
+        "format": "Enter a valid email address."
     }
+};
 
-    function validateEmail(value) {
-        if (value.trim() === "") return false;
-        return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
-    }
+// 2. The Master Validation Function
+function validateField(element) {
+    let id = $(element).attr('id');
+    let value = $(element).val().trim();
+    let errorBox = $("#" + id + "_error");
+    let isValid = true;
+    let message = validationRules[id];
 
-    function runValidation(input, errorBox, validateFn, errorMsg) {
-        let value = input.val();
-
-        if (validateFn(value)) {
-            input.removeClass("is-invalid").addClass("is-valid");
-            errorBox.text("");
-            return true;
-        } else {
-            input.removeClass("is-valid").addClass("is-invalid");
-            errorBox.text(errorMsg);
-            return false;
+    // Special handling for Email
+    if (id === "prospect_email") {
+        if (value === "") {
+            message = validationRules[id].required;
+            isValid = false;
+        } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+            message = validationRules[id].format;
+            isValid = false;
         }
+    } 
+    // Standard Required Check
+    else if (value === "" || value === null) {
+        isValid = false;
     }
 
-    function attachValidation(input, errorBox, validateFn, errorMsg) {
-        input.on("input", function () {
-            runValidation(input, errorBox, validateFn, errorMsg);
-        });
+    // Apply visual changes
+    if (isValid) {
+        $(element).removeClass("is-invalid").addClass("is-valid");
+        errorBox.text("");
+    } else {
+        $(element).removeClass("is-valid").addClass("is-invalid");
+        errorBox.text(message);
     }
 
-    function attachSelectValidation(select, errorBox, errorMsg) {
-        select.on("change", function () {
-            runValidation(select, errorBox, validateRequired, errorMsg);
-        });
-    }
+    return isValid;
+}
 
-    /* ------------------------------
-       ATTACH VALIDATIONS
-    ------------------------------- */
+// 3. Attach listeners for real-time feedback
+$("input, select").on("input change", function() {
+    validateField(this);
+});
 
-    attachSelectValidation($("#source_id"), $("#source_id_error"), "This field is required.");
-    attachValidation($("#company_name"), $("#company_name_error"), validateRequired, "This field is required.");
-    attachValidation($("#company_industry"), $("#company_industry_error"), validateRequired, "This field is required.");
-    attachValidation($("#prospect_first_name"), $("#prospect_first_name_error"), validateRequired, "This field is required.");
-    attachValidation($("#prospect_last_name"), $("#prospect_last_name_error"), validateRequired, "This field is required.");
-    attachValidation($("#designation"), $("#designation_error"), validateRequired, "This field is required.");
-    attachValidation($("#designation_level"), $("#designation_level_error"), validateRequired, "This field is required.");
-    attachValidation($("#contact_number_1"), $("#contact_number_1_error"), validateRequired, "This field is required.");
-    attachValidation($("#contact_number_2"), $("#contact_number_2_error"), validateRequired, "This field is required.");
-    attachValidation($("#linkedin_address"), $("#linkedin_address_error"), validateRequired, "This field is required.");
-    attachValidation($("#bussiness_function"), $("#bussiness_function_error"), validateRequired, "This field is required.");
-    attachValidation($("#location"), $("#location_error"), validateRequired, "This field is required.");
-    attachValidation($("#timezone"), $("#timezone_error"), validateRequired, "This field is required.");
+// 4. Handle Submit Button
+$("#saveButton").on("click", function (e) {
+    e.preventDefault();
+    let isFormValid = true;
 
-    // Email
-    attachValidation($("#prospect_email"), $("#prospect_email_error"), validateEmail, "Enter a valid email.");
-
-    /* ------------------------------
-       VALIDATE ON SUBMIT
-    ------------------------------- */
-
-    $("#saveButton").on("click", function (e) {
-        e.preventDefault();
-
-        let allValid = true;
-
-        $("input, select").each(function () {
-            let input = $(this);
-            let id = input.attr("id");
-            let errorBox = $("#" + id + "_error");
-
-            if (id === "prospect_email") {
-                if (!runValidation(input, errorBox, validateEmail, "Enter a valid email.")) {
-                    allValid = false;
-                }
-            } else {
-                if (!runValidation(input, errorBox, validateRequired, "This field is required.")) {
-                    allValid = false;
-                }
-            }
-        });
-
-        if (allValid) {
-            $("#leadForm").submit();
+    // Loop through all defined rules and validate
+    Object.keys(validationRules).forEach(function(id) {
+        if (!validateField($("#" + id))) {
+            isFormValid = false;
         }
     });
 
+    if (isFormValid) {
+        $("#leadForm").submit();
+    } else {
+        // Scroll to the first error smoothly
+        $('html, body').animate({
+            scrollTop: $(".is-invalid").first().offset().top - 100
+        }, 200);
+    }
+});
 });
 </script>
 

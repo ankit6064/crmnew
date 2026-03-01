@@ -203,7 +203,7 @@
                   <th>Email</th>
                   <th>Password</th>
                   <th>Phone No</th>
-                  <th>Campaigns Assigned</th>
+                  <th>Assigned Campaigns</th>
                   <th>Sub Manager</th>
                   <th>Actions</th>
                 </tr>

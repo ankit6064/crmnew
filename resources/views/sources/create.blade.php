@@ -87,15 +87,15 @@
 
             messages: {
                 source_name: {
-                    required: "Please enter a campaign name",
+                    required: "Please enter a campaign name.",
                     minlength: "Campaign name must be at least 2 characters"
                 },
                 description: {
-                    required: "Please enter a sub campaign name",
+                    required: "Please enter a sub campaign name.",
                     minlength: "Sub campaign name must be at least 2 characters"
                 },
                 lead_file: {
-                    required: "Please choose a file",
+                    required: "Please choose a file.",
                     extension: "Only CSV, XLS, or XLSX files are allowed"
                 }
             },

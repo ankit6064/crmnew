@@ -1,6 +1,22 @@
 @extends('layouts.admin')
 @section('content')
 
+{{-- Include SweetAlert2 --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    /* Styling for the error message below input */
+    .error-text {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: none;
+    }
+    .is-invalid-input {
+        border: 1px solid #dc3545 !important;
+    }
+</style>
+
 {{-- LinkedIn Update Modal --}}
 <form id="Reassignedform">
     <div id="RevertModel" class="modal fade" tabindex="-1" role="dialog">
@@ -12,13 +28,15 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Linkedin</label>
+                        <label>Linkedin URL</label>
                         <input type="hidden" id="leadid">
-                        <input type="text" id="linkedinurl" class="form-control">
+                        <input type="text" id="linkedinurl" class="form-control" placeholder="https://www.linkedin.com/in/username">
+                        {{-- Error message container --}}
+                        <div id="linkedin_error" class="error-text"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-default" data-dismiss="modal" onclick="closemodallinkedin()">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" onclick="closemodallinkedin()">Close</button>
                     <button id="save-data-reassigned" type="button" class="btn btn-info" onclick="updatelinkedin()">Update</button>
                 </div>
             </div>
@@ -26,24 +44,17 @@
     </div>
 </form>
 
-
 <div class="main-right">
     <div class="right-side submanager completed-leads closed-leads unaproved-leads">
         <h2>Unapproved Leads</h2>
 
         <div class="graph campaignslist">
-            <!-- <div class="row">
-                <div class="add-submanager">
-                    <input type="search" id="search" name="search" placeholder="search...">
-                </div>
-            </div> -->
-
             <div class="table">
                 <div class="table-container">
-                <table id="employee-table" class="display nowrap" style="width:100% !important">
+                    <table id="employee-table" class="display nowrap" style="width:100% !important">
                         <thead class="thead-main">
                             <tr>
-                                <th>Linkdin</th>
+                                <th>Linkedin</th>
                                 <th>Employee Name</th>
                                 <th>Company Name</th>
                                 <th>Prospect Name</th>
@@ -55,68 +66,68 @@
                         </thead>
                     </table>
                 </div>
-
-                {{-- CUSTOM PAGINATION --}}
             </div>
         </div>
     </div>
 </div>
 
-
 {{-- Scripts --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
-$(document).ready(function () {
+    $(document).ready(function () {
     $('#spinner-overlay').show();
 
-const table = $('#employee-table').DataTable({
-    processing: false,
-    serverSide: true,
-    ajax: '{{ route("unapproved_manager_leads_list_pagination") }}',
-    ordering: true,
+    const table = $('#employee-table').DataTable({
+        processing: false, // We use our custom spinner-overlay instead
+        serverSide: true,
+        ajax: '{{ route("unapproved_manager_leads_list_pagination") }}',
+        ordering: true,
         autoWidth: false,
         deferRender: true,
+        scrollCollapse: true,
+        columns: [
+            { data: "LinkedIn", orderable: false },
+            { data: "employee_name", orderable: false },
+            { data: "company_name", orderable: false },
+            { data: "prospect_full_name", orderable: false },
+            { data: "designation", orderable: false },
+            { data: "created_at", orderable: true },
+            { data: "source_name", orderable: false },
+            { data: "action", orderable: false }
+        ],
+        initComplete: function () {
+            this.api().columns.adjust();
+        }
+    });
 
-        // scrollX: true,
-        scrollCollapse: true,  // performance
-    columns: [
-        { data: "LinkedIn", orderable: false },
-        { data: "employee_name", orderable: false },
-        { data: "company_name", orderable: false },
-        { data: "prospect_full_name", orderable: false },
-        { data: "designation", orderable: false },
-        { data: "created_at", orderable: true },
-        { data: "source_name", orderable: false },
-        { data: "action", orderable: false }
-    ],
+    // --- LOADER LOGIC FOR SEARCH & PAGINATION ---
 
-    initComplete: function () {
-        // Force correct width AFTER arrows are added
-        this.api().columns.adjust();
+    // Show loader whenever an AJAX request starts (Search, Page Change, Sort)
+    table.on('preXhr.dt', function () {
+        $('#spinner-overlay').show();
+    });
 
-        // Small delay ensures DOM is fully painted
-        setTimeout(() => {
-            $('#spinner-overlay').hide();
-        }, 100);
-    }
-});
+    // Hide loader whenever the table finishes drawing
+    table.on('draw.dt', function () {
+        $('#spinner-overlay').hide();
+    });
 
-/* Show spinner on every ajax reload */
-table.on('preXhr.dt', function () {
-    $('#spinner-overlay').show();
-});
+    // Custom search input placeholder
+    table.on('init.dt', function () {
+        $('div.dataTables_filter input')
+          .attr('placeholder', 'Search by campaign, employee, prospect, company')
+          .css({ 'width': '250px', 'display': 'inline-block' });
+    });
 
-/* Hide spinner after redraw (ordering, paging, search) */
-table.on('draw.dt', function () {
-    $('#spinner-overlay').hide();
-});
-
-    // Custom search input → DataTable search
+    // Custom search trigger
     $('#search').keyup(function () {
+        // The 'preXhr' event above will handle showing the spinner 
+        // as soon as table.search().draw() is called.
         table.search(this.value).draw();
     });
 
-    // Approve / Cancel Actions
+    // Action Handlers (Approve/Cross)
     $(document).on('click', '.onchange_element_approve', function () {
         updateStatus($(this).data('id'), 'approved', $(this).data('emp-id'));
     });
@@ -125,45 +136,6 @@ table.on('draw.dt', function () {
         updateStatus($(this).data('id'), 'cancel', $(this).data('emp-id'));
     });
 });
-
-// Update approve/cancel
-function updateStatus(leadId, status, empId = '') {
-    if (!confirm(`Do you want to ${status} this lead?`)) return;
-
-    $.post('{{ route("updateApprovalStatus") }}', {
-        leadId, status, user_id: empId, _token: '{{ csrf_token() }}'
-    }, function () {
-        $('#unapprovedLeadsTable').DataTable().ajax.reload();
-    });
-}
-
-// LinkedIn update modal functions
-function editmodule(id, url) {
-    $('#leadid').val(id);
-    $('#linkedinurl').val(url);
-    $('#RevertModel').modal('show');
-}
-
-function closemodallinkedin() {
-    $('#RevertModel').modal('hide');
-}
-
-function updatelinkedin() {
-    const leadid = $('#leadid').val();
-    const linkedinurl = $('#linkedinurl').val();
-
-    if (!linkedinurl.trim()) {
-        $('#linkedinurl').css('border', '1px solid red');
-        return;
-    }
-
-    $.post('{{ route("updatelinkedin") }}', {
-        leadid, linkedinurl, _token: '{{ csrf_token() }}'
-    }, function (response) {
-        alert('Linkedin address updated');
-        location.reload();
-    });
-}
 </script>
 
 @endsection

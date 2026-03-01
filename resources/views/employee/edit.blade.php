@@ -194,14 +194,14 @@
                         address: "required"
                     },
                     messages: {
-                        first_name: "Please enter first name",
-                        last_name: "Please enter last name",
-                        phone_no: "Please enter phone number",
+                        first_name: "Please enter first name.",
+                        last_name: "Please enter last name.",
+                        phone_no: "Please enter phone number.",
                         email: {
-                            required: "Please enter email",
-                            email: "Enter a valid email"
+                            required: "Please enter email.",
+                            email: "Enter a valid email."
                         },
-                        address: "Please enter address"
+                        address: "Please enter address."
                     },
                     errorClass: 'error text-danger',
                     validClass: 'valid',

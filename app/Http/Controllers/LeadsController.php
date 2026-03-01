@@ -582,172 +582,132 @@ class LeadsController extends Controller
     public function unapprovedManagerLeadsajaxPagination(Request $request)
     {
         if ($request->ajax()) {
-            ## Read value
+            ## Read values
             $draw = $request->get('draw');
             $start = $request->get("start");
-            $rowperpage = $request->get("length"); // Rows display per page
-
+            $rowperpage = $request->get("length");
+    
             $columnIndex_arr = $request->get('order');
             $columnName_arr = $request->get('columns');
-            $order_arr = $request->get('order');
             $search_arr = $request->get('search');
-
-            $columnIndex = $columnIndex_arr[0]['column']; // Column index
-            $columnName = $columnName_arr[$columnIndex]['data']; // Column name
-            $columnSortOrder = $order_arr[0]['dir']; // asc or desc
-            $columnSortColumn = $order_arr[0]['column']; // asc or desc
-            $searchValue = $search_arr['value']; // Search value
-
-
-            $orderByColumn = '';
-            if ($columnSortColumn == '2') {
-                $orderByColumn = 'company_name';
-            } else if ($columnSortColumn == "3") {
-                $orderByColumn = 'prospect_first_name';
-            } else if ($columnSortColumn == "4") {
-                $orderByColumn = 'designation';
-            } else if ($columnSortColumn == "5") {
-                $orderByColumn = 'created_at';
-            }
-
+    
+            $columnIndex = $columnIndex_arr[0]['column']; 
+            $columnSortOrder = $columnIndex_arr[0]['dir']; 
+            $searchValue = $search_arr['value']; 
+    
+            // Map column index to DB columns for ordering
+            $columnsMap = [
+                '2' => 'company_name',
+                '3' => 'prospect_first_name',
+                '4' => 'designation',
+                '5' => 'created_at'
+            ];
+            $orderByColumn = $columnsMap[$columnIndex] ?? 'created_at';
+    
+            // 1. Initialize Base Query
+            $baseQuery = Lead::with('source');
+    
+            // 2. Apply Role-based filters
             if (Auth::user()->is_admin == 1) {
-                $totalRecords = Lead::where('user_id', auth()->user()->id)->where('approval_status', '2')->count();
-
-                $baseQuery = Lead::with('source')->where('user_id', auth()->user()->id)->where('approval_status', '2');
+                $baseQuery->where('user_id', auth()->user()->id);
             } else {
-                $totalRecords = Lead::where('asign_to_manager', auth()->user()->id)->where('approval_status', '2')->count();
-
-                $baseQuery = Lead::with('source')->where('asign_to_manager', auth()->user()->id)->where('approval_status', '2');
+                $baseQuery->where('asign_to_manager', auth()->user()->id);
             }
-
-            if (isset($orderByColumn) && !empty($orderByColumn)) {
-                $leadsData = $baseQuery->orderBy($orderByColumn, $columnSortOrder);
-            } else {
-                $leadsData = $baseQuery->orderBy('created_at', 'desc');
-            }
-
-            $leadsData = $baseQuery->skip($start)->take($rowperpage)->get()->toArray();
-
-            if ($columnSortColumn == "6") {
-                usort($leadsData, function ($a, $b) use ($columnSortOrder) {
-                    if ($columnSortOrder === 'asc') {
-                        return strcmp($a['source']['source_name'], $b['source']['source_name']);
-                    } else {
-                        return strcmp($b['source']['source_name'], $a['source']['source_name']);
-                    }
+            $baseQuery->where('approval_status', '2');
+    
+            // 3. Apply the Search Filter (for campaign, employee name, prospect, and company)
+            if (!empty($searchValue)) {
+                $baseQuery->where(function($query) use ($searchValue) {
+                    $query->where('company_name', 'LIKE', "%{$searchValue}%")
+                          ->orWhere('prospect_first_name', 'LIKE', "%{$searchValue}%")
+                          ->orWhere('prospect_last_name', 'LIKE', "%{$searchValue}%")
+                          ->orWhere('designation', 'LIKE', "%{$searchValue}%")
+                          // Search in Source Relationship
+                          ->orWhereHas('source', function($q) use ($searchValue) {
+                              $q->where('source_name', 'LIKE', "%{$searchValue}%");
+                          })
+                          // Search by Employee Name (using subquery since relationship isn't used for fetching)
+                          ->orWhereIn('user_id', function($sub) use ($searchValue) {
+                              $sub->select('id')->from('users')->where('name', 'LIKE', "%{$searchValue}%");
+                          });
                 });
             }
-
+    
+            // Calculate counts for DataTables
+            $totalRecords = (Auth::user()->is_admin == 1) 
+                ? Lead::where('user_id', auth()->user()->id)->where('approval_status', '2')->count()
+                : Lead::where('asign_to_manager', auth()->user()->id)->where('approval_status', '2')->count();
+            
+            $recordsFiltered = $baseQuery->count();
+    
+            // 4. Handle Sorting & Pagination
+            if ($columnIndex == "6") {
+                $leadsDataRaw = $baseQuery->get();
+                $sorted = $leadsDataRaw->sortBy(function($lead) {
+                    return $lead->source->source_name ?? '';
+                }, SORT_REGULAR, ($columnSortOrder === 'desc'));
+                $leadsData = $sorted->slice($start, $rowperpage)->toArray();
+            } else {
+                $leadsData = $baseQuery->orderBy($orderByColumn, $columnSortOrder)
+                                       ->skip($start)
+                                       ->take($rowperpage)
+                                       ->get()
+                                       ->toArray();
+            }
+    
             $sources = Source::orderBy('source_name')->get()->toArray();
-     // Prepare source options HTML
-$campaignsOptionsHtml = '<option value="">Select a source</option>';
-
-// Transform the data to match the expected structure
-$formattedData = [];
-foreach ($leadsData as $lead) {
-
-    // Build options HTML with selected source
-    $optionsHtml = '';
-    foreach ($sources as $source) {
-        $selected = ($source["id"] == $lead["source_id"]) ? ' selected' : '';
-        $optionsHtml .= '<option value="' . $source["id"] . '"' . $selected . '>' 
-                        . $source["source_name"] . ' ' . $source["description"] . '</option>';
-    }
-
-    // Generate the action HTML with approve/cancel icons
-    $campaignsHtml = '
-    <span id="icons_' . $lead["id"] . '" class="group_actions" style="display:flex; gap:10px; align-items:center; cursor:pointer;">
-        <i class="fa-solid fa-xmark onchange_element_cross" 
-           data-id="' . $lead["id"] . '" 
-           data-emp-id="' . $lead["user_id"] . '"
-           style="
-               font-size:18px;
-               margin:0 5px;
-               padding:5px;
-               border-radius:5px;
-               color:#fff;
-               background:red;
-               cursor:pointer;
-           ">
-        </i>
-
-        <i class="fa-solid fa-check onchange_element_approve" 
-           data-id="' . $lead["id"] . '" 
-           data-emp-id="' . $lead["user_id"] . '"
-           style="
-               font-size:18px;
-               margin:0 5px;
-               padding:5px;
-               border-radius:5px;
-               color:#fff;
-               background:#5fbc01;
-               cursor:pointer;
-           ">
-        </i>
-    </span>';
-
-    // Append the select dropdown with the selected source
-    $campaignsHtml .= '<select class="unapproved_lead" name="source_id" id="' . $lead["id"] . '" style="width:140px" data-id="' . $lead["source_id"] . '">';
-    $campaignsHtml .= '<option value="">Select a source</option>';
-    $campaignsHtml .= $optionsHtml;
-    $campaignsHtml .= '</select>';
-
-    // Employee name
-    $userDetails = User::find($lead["user_id"]);
-    $employeeName = '';
-    if (isset($userDetails) && !empty($userDetails)) {
-        $employeeName = $userDetails['name'];
-    }
-
-    // LinkedIn icon with https enforcement
-    $var = $lead["linkedin_address"];
-    if (strpos($var, 'linkedin') === false) {
-        $linkdin = '<td>
-            <a href="javascript:void(0)">
-                <i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i>
-            </a>
-        </td>';
-    } else {
-        // Force https:// prefix
-        $cleanUrl = $var;
-        if (!preg_match('/^https?:\/\//i', $cleanUrl)) {
-            $cleanUrl = 'https://' . ltrim($cleanUrl, '/');
-        }
-
-        $linkdin = '<td>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <a href="' . $cleanUrl . '" target="_blank">
-                    <i class="fa-brands fa-linkedin" title="LinkedIn"></i>
-                </a>
-                <i class="fa-solid fa-pen-to-square" 
-                   onclick="editmodule(' . $lead["id"] . ', \'' . $cleanUrl . '\')" 
-                   style="cursor:pointer;"></i>
-            </div>
-        </td>';
-    }
-
-    // Build formatted row
-    $formattedData[] = [
-        'action' => $campaignsHtml,
-        'employee_name' => trim($employeeName),
-        'company_name' => $lead["company_name"],
-        'prospect_full_name' => $lead["prospect_first_name"] . ' ' . $lead["prospect_last_name"],
-        'designation' => $lead["designation"],
-        'created_at' => date('d M, Y', strtotime($lead["created_at"])),
-        'source_name' => $lead['source']["source_name"] . ' ' . $lead['source']["description"],
-        'LinkedIn' => $linkdin,
-        'Lead_id' => $lead['id']
-        
-    ];
-}
-
-
-            // Return the formatted data as JSON
+            $formattedData = [];
+    
+            foreach ($leadsData as $lead) {
+                // Build Source Options
+                $optionsHtml = '';
+                foreach ($sources as $source) {
+                    $selected = ($source["id"] == $lead["source_id"]) ? ' selected' : '';
+                    $optionsHtml .= '<option value="' . $source["id"] . '"' . $selected . '>' 
+                                    . $source["source_name"] . ' ' . $source["description"] . '</option>';
+                }
+    
+                // Action HTML
+                $campaignsHtml = '
+                <span id="icons_' . $lead["id"] . '" class="group_actions" style="display:flex; gap:10px; align-items:center; cursor:pointer;">
+                    <i class="fa-solid fa-xmark onchange_element_cross" data-id="' . $lead["id"] . '" data-emp-id="' . $lead["user_id"] . '" style="font-size:18px; margin:0 5px; padding:5px; border-radius:5px; color:#fff; background:red; cursor:pointer;"></i>
+                    <i class="fa-solid fa-check onchange_element_approve" data-id="' . $lead["id"] . '" data-emp-id="' . $lead["user_id"] . '" style="font-size:18px; margin:0 5px; padding:5px; border-radius:5px; color:#fff; background:#5fbc01; cursor:pointer;"></i>
+                </span>';
+                $campaignsHtml .= '<select class="unapproved_lead" name="source_id" id="' . $lead["id"] . '" style="width:140px" data-id="' . $lead["source_id"] . '">';
+                $campaignsHtml .= '<option value="">Select a source</option>' . $optionsHtml . '</select>';
+    
+                // Employee Name (Using User::find exactly as before)
+                $userDetails = User::find($lead["user_id"]);
+                $employeeName = (isset($userDetails) && !empty($userDetails)) ? $userDetails['name'] : 'N/A';
+    
+                // LinkedIn Logic
+                $var = $lead["linkedin_address"];
+                if (strpos($var, 'linkedin') === false) {
+                    $linkdin = '<td><a href="javascript:void(0)"><i style="color: #000" class="fa-brands fa-linkedin" title="LinkedIn Address Not Valid"></i></a></td>';
+                } else {
+                    $cleanUrl = $var;
+                    if (!preg_match('/^https?:\/\//i', $cleanUrl)) { $cleanUrl = 'https://' . ltrim($cleanUrl, '/'); }
+                    $linkdin = '<td><div style="display:flex; align-items:center; gap:8px;"><a href="' . $cleanUrl . '" target="_blank"><i class="fa-brands fa-linkedin"></i></a><i class="fa-solid fa-pen-to-square" onclick="editmodule(' . $lead["id"] . ', \'' . $cleanUrl . '\')" style="cursor:pointer;"></i></div></td>';
+                }
+    
+                $formattedData[] = [
+                    'action' => $campaignsHtml,
+                    'employee_name' => trim($employeeName),
+                    'company_name' => $lead["company_name"],
+                    'prospect_full_name' => $lead["prospect_first_name"] . ' ' . $lead["prospect_last_name"],
+                    'designation' => $lead["designation"],
+                    'created_at' => date('d M, Y', strtotime($lead["created_at"])),
+                    'source_name' => $lead['source']["source_name"] . ' ' . $lead['source']["description"],
+                    'LinkedIn' => $linkdin,
+                    'Lead_id' => $lead['id']
+                ];
+            }
+    
             return response()->json([
                 'data' => $formattedData,
                 'draw' => intval($draw),
-                'recordsTotal' => $totalRecords, // Required by DataTables
-                'recordsFiltered' => $totalRecords,
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $recordsFiltered,
             ]);
         }
     }
