@@ -100,8 +100,8 @@
           <div id="submanagerbody" class="modal-body">
           </div>
           <div class="modal-footer">
-            <button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="transfer();">Assign Campaign</button>
-            <button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="skip();">Skip</button>
+            <button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="transfer();">Assign Campaign & Assign Role</button>
+            <button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="skip();">Skip & Assign Role</button>
             <button type="button" class="btn btn-info" data-dismiss="modal" onclick="closemodal()">Close</button>
           </div>
         </div>
