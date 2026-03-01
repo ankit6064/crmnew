@@ -1069,7 +1069,7 @@ div#assignempmanager .modal-dialog.modal-dialog-scrollable.modal-lg .modal-foote
     border-radius: 6px;
     overflow: hidden;
     background-color: #fff;
-    /* margin-bottom: 40px; */
+    margin-bottom: 20px;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
 }
 .custom-file-upload:hover {
