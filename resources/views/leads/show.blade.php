@@ -266,6 +266,7 @@
                                         <th>Note</th>
                                         <th>Reminder Date</th>
                                         <th>Conversation Type</th>
+                                        <th>Phone Number</th>
                                         <th>Updated On</th>
                                     </tr>
                                 </thead>
@@ -284,7 +285,8 @@
                                         }
                                                                         ?>
                                                                 </td>
-                                                                <td>{{ $note['reminder_for'] }}</td>
+                                                                <td>{{ !empty($note['reminder_for']) ? $note['reminder_for'] :'N/A' }}</td>
+                                                                <td>{{ !empty($note['phone_number']) ? $note['phone_number'] :'N/A' }}</td>
                                                                 <td style="white-space:nowrap !important">
                                                                     <?php 
                                                                         $date = \Carbon\Carbon::parse($note['updated_at']);

@@ -236,137 +236,187 @@ class LeadsController extends Controller
         return view('leads.assign_lead')->with(['employees' => $employees, 'sources' => $sources, 'selectedSource' => $id]);
     }
     public function campname(Request $request)
-    {
-        $camp_id = $request->camp_id;
-        $source = Source::where('id', $camp_id)->first();
-    
-        if (!$source) {
-            return response()->json(['error' => 'Campaign not found'], 404);
-        }
-    
-        // Manager details
-        $manager = User::find($source->assign_to_manager);
-        $manager_name = $manager ? $manager->name : "N/A";
-    
-        // Lead counts
-        $total_leads = Lead::where('source_id', $camp_id)->count();
-        $assigned_leads = Lead::where('source_id', $camp_id)
-            ->whereNotNull('asign_to')
-            ->count();
-        $unassigned_leads = $total_leads - $assigned_leads;
-    
-        // ===================== HEADER TABLE =====================
-        $headerTable = '
-            <table>
-                <thead class="thead-main">
-                    <tr>
-                        <th>Campaign Name</th>
-                        <th>Total Leads</th>
-                        <th>Campaign Manager</th>
-                        <th>Total Assigned Lead</th>
-                        <th>Campaign Start Date</th>
-                        <th>Campaign End Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>'.$source->source_name.' ('.$source->description.')</td>
-                        <td>'.$total_leads.'</td>
-                        <td>'.$manager_name.'</td>
-                        <td>'.$assigned_leads.'</td>
-                        <td>'.$source->start_date.'</td>
-                        <td>'.$source->end_date.'</td>
-                    </tr>
-                </tbody>
-            </table>';
-    
-        // ===================== ASSIGN BLOCK =====================
-        $assignBlock = '
-            <div class="form-group">
-                <label>Enter Assign Leads Count</label>
-                <div class="input-box">
-                    <input type="text" id="assign_count" value="'.$unassigned_leads.'" placeholder="Enter Assign Leads Count">
-                    <i class="fa-solid fa-pen-to-square edit-icon"></i>
-                </div>
+{
+    $camp_id = $request->camp_id;
+
+    $source = Source::find($camp_id);
+    if (!$source) {
+        return response()->json(['error' => 'Campaign not found'], 404);
+    }
+
+    // ===================== MANAGER =====================
+    $manager = User::find($source->assign_to_manager);
+    $manager_name = $manager->name ?? 'N/A';
+
+    // ===================== TOTAL STATUS COUNTS =====================
+    $leadStatusCounts = Lead::where('source_id', $camp_id)
+        ->selectRaw('
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS pending,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS failed,
+            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS closed,
+            SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS inprogress,
+            SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) AS completed
+        ')
+        ->first();
+
+    $total_leads = $leadStatusCounts->total ?? 0;
+    $pending     = $leadStatusCounts->pending ?? 0;
+    $failed      = $leadStatusCounts->failed ?? 0;
+    $closed      = $leadStatusCounts->closed ?? 0;
+    $inprogress  = $leadStatusCounts->inprogress ?? 0;
+    $completed   = $leadStatusCounts->completed ?? 0;
+
+    // ===================== ASSIGNMENT COUNTS =====================
+    $assigned_leads = Lead::where('source_id', $camp_id)
+        ->whereNotNull('asign_to')
+        ->count();
+
+    $unassigned_leads = $total_leads - $assigned_leads;
+
+    // ===================== HEADER TABLE =====================
+    $headerTable = '
+        <table>
+            <thead class="thead-main">
+                <tr>
+                    <th>Campaign Name</th>
+                    <th>Total</th>
+                    <th>Pending</th>
+                    <th>In Progress</th>
+                    <th>Closed</th>
+                    <th>Completed</th>
+                    <th>Failed</th>
+                    <th>Assigned</th>
+                    <th>Unassigned</th>
+                 
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>'.$source->source_name.' ('.$source->description.')</td>
+                    <td>'.$total_leads.'</td>
+                    <td>'.$pending.'</td>
+                    <td>'.$inprogress.'</td>
+                    <td>'.$closed.'</td>
+                    <td>'.$completed.'</td>
+                    <td>'.$failed.'</td>
+                    <td>'.$assigned_leads.'</td>
+                    <td>'.$unassigned_leads.'</td>
+                
+                </tr>
+            </tbody>
+        </table>';
+
+    // ===================== ASSIGN BLOCK =====================
+    $assignBlock = '
+        <div class="form-group">
+            <label>Enter Assign Leads Count</label>
+            <div class="input-box">
+                <input type="text" id="assign_count" value="'.$unassigned_leads.'" readonly>
+                <i class="fa-solid fa-pen-to-square edit-icon"></i>
             </div>
-    
-            <div class="form-group">
-                <label>Select Employee</label>
-                <select id="employee_id" class="form-control">
-                    <option value="">Select Employee</option>';
-    
-        $employees = User::where('is_admin', '!=', 1)->get();
-        foreach ($employees as $emp) {
-            $assignBlock .= '<option value="'.$emp->id.'">'.$emp->name.'</option>';
-        }
-    
-        $assignBlock .= '</select>
-            <div class="error_msg" style="color:red;margin-top:5px;"></div>
-            </div>
-    
-            <div class="btn-group">
-                <button type="button" id="assignLeadBtn" class="btn btn-save">Assign Leads</button>
-            </div>';
-    
-        // ===================== ASSIGNED TABLE =====================
-        $assigned_rows = DB::table('leads')
-            ->select('asign_to', DB::raw('COUNT(*) as totalLeads'))
-            ->where('source_id', $camp_id)
-            ->whereNotNull('asign_to')
-            ->groupBy('asign_to')
-            ->get();
-    
-        $assignedTable = '
-            <table>
-                <thead class="thead-main">
-                    <tr>
-                        <th>Campaign Name</th>
-                        <th>Total Assigned Lead</th>
-                        <th>Employee Name</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>';
-    
-        if ($assigned_rows->count()) {
-            foreach ($assigned_rows as $row) {
-                $emp = User::find($row->asign_to);
-                $emp_name = $emp ? $emp->name : "Unknown";
-    
-                $assignedTable .= '
-                    <tr>
-                        <td>'.$source->source_name.' ('.$source->description.')</td>
-                        <td>'.$row->totalLeads.'</td>
-                        <td>'.$emp_name.'</td>
-                        <td class="actions">
-                            <div class="action-buttons">
-                                <button class="btn-action Withdraw" 
-                                    data-camp="'.$camp_id.'" 
-                                    data-emp="'.$row->asign_to.'">Withdraw</button>
-    
-                                <button class="btn-action Reassign"
-                                    data-camp="'.$camp_id.'" 
-                                    data-assign="'.$row->asign_to.'" 
-                                    data-count="'.$row->totalLeads.'">Reassign</button>
-                            </div>
-                        </td>
-                    </tr>';
-            }
-        } else {
+        </div>
+
+        <div class="form-group">
+            <label>Select Employee</label>
+            <select id="employee_id" class="form-control">
+                <option value="">Select Employee</option>';
+
+    $employees = User::where('is_admin', '!=', 1)->get();
+    foreach ($employees as $emp) {
+        $assignBlock .= '<option value="'.$emp->id.'">'.$emp->name.'</option>';
+    }
+
+    $assignBlock .= '</select>
+        <div class="error_msg" style="color:red;margin-top:5px;"></div>
+        </div>
+
+        <div class="btn-group">
+            <button type="button" id="assignLeadBtn" class="btn btn-save">Assign Leads</button>
+        </div>';
+
+    // ===================== EMPLOYEE WISE DATA =====================
+    $assigned_rows = DB::table('leads')
+        ->select(
+            'asign_to',
+            DB::raw('COUNT(*) as total'),
+            DB::raw('SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS pending'),
+            DB::raw('SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS failed'),
+            DB::raw('SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS closed'),
+            DB::raw('SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS inprogress'),
+            DB::raw('SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) AS completed')
+        )
+        ->where('source_id', $camp_id)
+        ->whereNotNull('asign_to')
+        ->groupBy('asign_to')
+        ->get();
+
+    // ===================== ASSIGNED TABLE =====================
+    $assignedTable = '
+        <table>
+            <thead class="thead-main">
+                <tr>
+                    <th>Campaign</th>
+                    <th>Total</th>
+                    <th>Pending</th>
+                    <th>In Progress</th>
+                    <th>Closed</th>
+                    <th>Completed</th>
+                    <th>Failed</th>
+                    <th>Employee</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+    if ($assigned_rows->count()) {
+
+        // optimize users
+        $userIds = $assigned_rows->pluck('asign_to')->toArray();
+        $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+
+        foreach ($assigned_rows as $row) {
+
+            $emp_name = $users[$row->asign_to] ?? 'Unknown';
+
             $assignedTable .= '
                 <tr>
-                    <td colspan="4" style="text-align:center;">No Assigned Leads Found</td>
+                    <td>'.$source->source_name.' ('.$source->description.')</td>
+                    <td>'.$row->total.'</td>
+                    <td>'.$row->pending.'</td>
+                    <td>'.$row->inprogress.'</td>
+                    <td>'.$row->closed.'</td>
+                    <td>'.$row->completed.'</td>
+                    <td>'.$row->failed.'</td>
+                    <td>'.$emp_name.'</td>
+                    <td>
+                        <button class="btn-action Withdraw" 
+                            data-camp="'.$camp_id.'" 
+                            data-emp="'.$row->asign_to.'">Withdraw</button>
+
+                        <button class="btn-action Reassign"
+                            data-camp="'.$camp_id.'" 
+                            data-assign="'.$row->asign_to.'" 
+                            data-count="'.$row->total.'">Reassign</button>
+                    </td>
                 </tr>';
         }
-    
-        $assignedTable .= '</tbody></table>';
-    
-        return response()->json([
-            'headerTable'  => $headerTable,
-            'assignBlock'  => $assignBlock,
-            'assignedTable'=> $assignedTable
-        ]);
+
+    } else {
+        $assignedTable .= '
+            <tr>
+                <td colspan="9" style="text-align:center;">No Assigned Leads Found</td>
+            </tr>';
     }
+
+    $assignedTable .= '</tbody></table>';
+
+    return response()->json([
+        'headerTable'   => $headerTable,
+        'assignBlock'   => $assignBlock,
+        'assignedTable' => $assignedTable
+    ]);
+}
     public function Unassigned(Request $request)
     {
         // Fetch the parameters
@@ -606,13 +656,13 @@ class LeadsController extends Controller
     
             // 1. Initialize Base Query
             $baseQuery = Lead::with('source');
-    
             // 2. Apply Role-based filters
             if (Auth::user()->is_admin == 1) {
                 $baseQuery->where('user_id', auth()->user()->id);
             } else {
                 $baseQuery->where('asign_to_manager', auth()->user()->id);
             }
+        
             $baseQuery->where('approval_status', '2');
     
             // 3. Apply the Search Filter (for campaign, employee name, prospect, and company)
@@ -1603,6 +1653,7 @@ class LeadsController extends Controller
         
         <th>Comment Added Date </th>
         <th>Converstation Type</th>
+        <th>Phone Number</th>
         <th>Reminder Date</th>  
     </tr>
         </thead>
@@ -1616,11 +1667,28 @@ class LeadsController extends Controller
                 }
                 $date = \Carbon\Carbon::parse($table_data->created_at);
                 $table .= '<tr>
-                <td class="wraping notes_comment" ><p style="white-space: initial; max-height: 100px; overflow-y : auto;";> ' . $table_data->feedback . '</p> </td>
-                <td class="wraping"> ' . $date->format('Y-m-d H:i') . ' </td>
-                <td class="wraping"> ' . $table_data->reminder_for . ' </td>
-                <td class="wraping"> ' . $dateData . ' </td>
-                </tr>';
+                <td class="wraping notes_comment">
+                    <p style="white-space: initial; max-height: 100px; overflow-y: auto;">
+                        ' . htmlspecialchars($table_data->feedback ?? 'N/A') . '
+                    </p>
+                </td>
+                
+                <td class="wraping">
+                    ' . ($date ? $date->format('Y-m-d H:i') : 'N/A') . '
+                </td>
+                
+                <td class="wraping">
+                    ' . (!empty($table_data->reminder_for) ? $table_data->reminder_for : 'N/A') . '
+                </td>
+                
+                <td class="wraping">
+                    ' . (!empty($table_data->phone_number) ? $table_data->phone_number : 'N/A') . '
+                </td>
+                
+                <td class="wraping">
+                    ' . ($dateData ?? 'N/A') . '
+                </td>
+            </tr>';
             }
         } else {
             $table .= '<tr>
