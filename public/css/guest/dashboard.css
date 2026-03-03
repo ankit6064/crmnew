@@ -1634,7 +1634,7 @@ div#employee-table_processing {
 }
 .employee-filterss.daily-report-filter .filter-select, .filter-date {
     width: 100%;
-    min-width: 490px !important;
+    max-width: 490px !important;
     -webkit-appearance: none !important;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
     -moz-appearance: none;
@@ -2010,6 +2010,14 @@ div#RevertModel select.form-control.ReassignedCustomer {
 }
 /*-leadlisting-*/
 
+.graph.campaignslist tbody tr.even td:last-child {
+    float: none;
+}
+.graph.campaignslist.logstable.myself-logs.daily-report tbody td:last-child p {
+    width: 100%;
+    max-width: 120px;
+    text-align: center;
+}
 /*-mediaquery-*/
 @media screen and (max-width: 1366px) and (min-width: 1200px) {
   .main-right .card-header h4 {
