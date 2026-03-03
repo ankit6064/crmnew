@@ -500,7 +500,7 @@
             $('#totalLeadsModalBody').html(loaderHtml);
 
             // Load dynamic content
-            $('#totalLeadsModalBody').load('source-lead/' + id, function () {
+            $('#totalLeadsModalBody').load('/crm2/source-lead/' + id, function () {
                 $('#sourceId').val(id);
             });
         }
