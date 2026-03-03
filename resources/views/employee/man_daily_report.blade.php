@@ -301,7 +301,8 @@
 
 <script>
 $(document).ready(function() {
-    // Show/hide conversation type based on filter selection
+
+    // ===================== CONVERSATION FILTER =====================
     $('#filter_by').on('change', function() {
         if ($(this).val() == "2") {
             $('#conversation_div').show();
@@ -310,20 +311,19 @@ $(document).ready(function() {
             $('#reminder_for_conversation').val('');
         }
     });
-    
-    // Trigger change event on page load to set initial state
+
+    // Trigger on load
     $('#filter_by').trigger('change');
 
-    $('#spinner-overlay').show();
-
-
-    // Initialize DataTable
+    // ===================== DATATABLE =====================
     let table = $('#employee-table').DataTable({
         processing: false,
         serverSide: true,
         searching: false,
+        ordering: true,
         ajax: {
             url: "{{ route('getLeadsData') }}",
+            type: "GET",
             data: function (d) {
                 d.employee_id = $('#employee_id').val();
                 d.campaign_id = $('#campaign_id').val();
@@ -331,33 +331,64 @@ $(document).ready(function() {
                 d.date_to = $('#date_to_new').val();
                 d.filter_by = $('#filter_by').val();
                 d.reminder_for_conversation = $('#reminder_for_conversation').val();
+            },
+            beforeSend: function() {
+                // Show loader
+                $('#spinner-overlay').show();
+
+                // Disable filter button
+                $('#sub_cmap').prop('disabled', true);
+            },
+            error: function() {
+                // Hide loader on error
+                $('#spinner-overlay').hide();
+                $('#sub_cmap').prop('disabled', false);
             }
         },
+
         columns: [
-            { data: 'lead_name', name: 'lead_name',orderable: true },
-            { data: 'conversation_type', name: 'conversation_type',orderable: false },
-            { data: 'note', name: 'note',orderable: false },
-            { data: 'note_date_time', name: 'note_date_time',orderable: true },
-            { data: 'status', name: 'status',orderable: false }
+            { data: 'lead_name', name: 'lead_name', orderable: true },
+            { data: 'conversation_type', name: 'conversation_type', orderable: false },
+            { data: 'note', name: 'note', orderable: false },
+            { data: 'note_date_time', name: 'note_date_time', orderable: true },
+            { data: 'status', name: 'status', orderable: false }
         ],
+
         order: [[3, 'desc']],
-        initComplete: function() {
-            $('#spinner-overlay').hide();
-        },
+
         language: {
             emptyTable: "No records found",
-            zeroRecords: "No matching records found"
+            zeroRecords: "No matching records found",
+            processing: "Loading..."
         }
     });
 
-    // Filter action
+    // ===================== AFTER DATA LOAD =====================
+    table.on('xhr.dt', function() {
+        // Small delay for smooth UI
+        setTimeout(function() {
+            $('#spinner-overlay').hide();
+            $('#sub_cmap').prop('disabled', false);
+        }, 200);
+    });
+
+    // ===================== FILTER BUTTON =====================
     $('#sub_cmap').click(function() {
-        $('#spinner-overlay').show();
         table.ajax.reload(null, false);
     });
+
+    // ===================== OPTIONAL: AUTO FILTER ON ENTER =====================
+    $('#searchform input, #searchform select').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            table.ajax.reload(null, false);
+        }
+    });
+
 });
 
-// Export function
+
+// ===================== EXPORT FUNCTION =====================
 function exportreport() {
     $('#searchform').attr('action', "{{ route('employee.man_daily_report') }}");
     $('#searchform').submit();

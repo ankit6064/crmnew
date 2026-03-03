@@ -48,6 +48,26 @@
                     </table>
                 </div>
             </div>
+
+
+            <div class="modal fade" id="numberModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #192e62; color: #fff; padding: 10px 15px;">
+                <h6 class="modal-title">Contact Numbers</h6>
+                <button type="button" class="close" data-dismiss="modal" style="color: #fff; opacity: 1;" onclick="closemodal();">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="numberRow" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;">
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
         </div>
     </div>
 </div>
@@ -86,30 +106,8 @@
                 { data: 'prospect_name', name: 'prospect_name', orderable: false, searchable: false },
                 { data: 'timezone', name: 'timezone' },
                 { data: 'designation', name: 'designation' },
+                { data: 'contact_number_1', name: 'contact_number_1', orderable: false, searchable: false },
 
-                // ✅ Phone Number Column with Show More / Less
-                {
-                    data: 'contact_number_1',
-                    name: 'contact_number_1',
-                    orderable: false,
-                    searchable: false,
-                    render: function (data, type, row) {
-                        if (!data) return '';
-
-                        let maxLength = 8; // how many chars to show
-                        let shortText = data.substring(0, maxLength);
-
-                        if (data.length <= maxLength) {
-                            return data;
-                        }
-
-                        return `
-                            <span class="short-text">${shortText}...</span>
-                            <span class="full-text d-none">${data}</span>
-                            <span class="toggle-text">Show More</span>
-                        `;
-                    }
-                },
 
                 { data: 'created_at', name: 'created_at' },
                 { data: 'status', name: 'status', orderable: false, searchable: false },
@@ -119,6 +117,9 @@
             order: [[6, 'desc']],
 
             initComplete: function () {
+                table.on('init.dt', function () {
+                $('div.dataTables_filter input').attr('placeholder', 'Search by company,prospect,designation').css({ 'width': '250px' });
+                });
                 $('#spinner-overlay').hide();
             },
             preDrawCallback: function () {
@@ -156,6 +157,23 @@
     function search() {
         table.ajax.reload();
     }
+
+    function showAllNumbers(numbers) {
+    let rowHtml = '';
+
+        rowHtml += '<p>' + numbers + '</p>';
+    
+
+    $('#numberRow').html(rowHtml);
+    $('#numberModal').modal('show');
+}
+
+
+
+function closemodal(){
+    $('#numberModal').modal('hide');
+
+}
 </script>
 
 @endsection

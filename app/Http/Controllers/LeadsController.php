@@ -236,21 +236,21 @@ class LeadsController extends Controller
         return view('leads.assign_lead')->with(['employees' => $employees, 'sources' => $sources, 'selectedSource' => $id]);
     }
     public function campname(Request $request)
-{
-    $camp_id = $request->camp_id;
+    {
+        $camp_id = $request->camp_id;
 
-    $source = Source::find($camp_id);
-    if (!$source) {
-        return response()->json(['error' => 'Campaign not found'], 404);
-    }
+        $source = Source::find($camp_id);
+        if (!$source) {
+            return response()->json(['error' => 'Campaign not found'], 404);
+        }
 
-    // ===================== MANAGER =====================
-    $manager = User::find($source->assign_to_manager);
-    $manager_name = $manager->name ?? 'N/A';
+        // ===================== MANAGER =====================
+        $manager = User::find($source->assign_to_manager);
+        $manager_name = $manager->name ?? 'N/A';
 
-    // ===================== TOTAL STATUS COUNTS =====================
-    $leadStatusCounts = Lead::where('source_id', $camp_id)
-        ->selectRaw('
+        // ===================== TOTAL STATUS COUNTS =====================
+        $leadStatusCounts = Lead::where('source_id', $camp_id)
+            ->selectRaw('
             COUNT(*) as total,
             SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS pending,
             SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS failed,
@@ -258,24 +258,24 @@ class LeadsController extends Controller
             SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS inprogress,
             SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) AS completed
         ')
-        ->first();
+            ->first();
 
-    $total_leads = $leadStatusCounts->total ?? 0;
-    $pending     = $leadStatusCounts->pending ?? 0;
-    $failed      = $leadStatusCounts->failed ?? 0;
-    $closed      = $leadStatusCounts->closed ?? 0;
-    $inprogress  = $leadStatusCounts->inprogress ?? 0;
-    $completed   = $leadStatusCounts->completed ?? 0;
+        $total_leads = $leadStatusCounts->total ?? 0;
+        $pending = $leadStatusCounts->pending ?? 0;
+        $failed = $leadStatusCounts->failed ?? 0;
+        $closed = $leadStatusCounts->closed ?? 0;
+        $inprogress = $leadStatusCounts->inprogress ?? 0;
+        $completed = $leadStatusCounts->completed ?? 0;
 
-    // ===================== ASSIGNMENT COUNTS =====================
-    $assigned_leads = Lead::where('source_id', $camp_id)
-        ->whereNotNull('asign_to')
-        ->count();
+        // ===================== ASSIGNMENT COUNTS =====================
+        $assigned_leads = Lead::where('source_id', $camp_id)
+            ->whereNotNull('asign_to')
+            ->count();
 
-    $unassigned_leads = $total_leads - $assigned_leads;
+        $unassigned_leads = $total_leads - $assigned_leads;
 
-    // ===================== HEADER TABLE =====================
-    $headerTable = '
+        // ===================== HEADER TABLE =====================
+        $headerTable = '
         <table>
             <thead class="thead-main">
                 <tr>
@@ -293,26 +293,26 @@ class LeadsController extends Controller
             </thead>
             <tbody>
                 <tr>
-                    <td>'.$source->source_name.' ('.$source->description.')</td>
-                    <td>'.$total_leads.'</td>
-                    <td>'.$pending.'</td>
-                    <td>'.$inprogress.'</td>
-                    <td>'.$closed.'</td>
-                    <td>'.$completed.'</td>
-                    <td>'.$failed.'</td>
-                    <td>'.$assigned_leads.'</td>
-                    <td>'.$unassigned_leads.'</td>
+                    <td>' . $source->source_name . ' (' . $source->description . ')</td>
+                    <td>' . $total_leads . '</td>
+                    <td>' . $pending . '</td>
+                    <td>' . $inprogress . '</td>
+                    <td>' . $closed . '</td>
+                    <td>' . $completed . '</td>
+                    <td>' . $failed . '</td>
+                    <td>' . $assigned_leads . '</td>
+                    <td>' . $unassigned_leads . '</td>
                 
                 </tr>
             </tbody>
         </table>';
 
-    // ===================== ASSIGN BLOCK =====================
-    $assignBlock = '
+        // ===================== ASSIGN BLOCK =====================
+        $assignBlock = '
         <div class="form-group">
             <label>Enter Assign Leads Count</label>
             <div class="input-box">
-                <input type="text" id="assign_count" value="'.$unassigned_leads.'" readonly>
+                <input type="text" id="assign_count" value="' . $unassigned_leads . '" readonly>
                 <i class="fa-solid fa-pen-to-square edit-icon"></i>
             </div>
         </div>
@@ -322,12 +322,12 @@ class LeadsController extends Controller
             <select id="employee_id" class="form-control">
                 <option value="">Select Employee</option>';
 
-    $employees = User::where('is_admin', '!=', 1)->get();
-    foreach ($employees as $emp) {
-        $assignBlock .= '<option value="'.$emp->id.'">'.$emp->name.'</option>';
-    }
+        $employees = User::where('is_admin', '!=', 1)->get();
+        foreach ($employees as $emp) {
+            $assignBlock .= '<option value="' . $emp->id . '">' . $emp->name . '</option>';
+        }
 
-    $assignBlock .= '</select>
+        $assignBlock .= '</select>
         <div class="error_msg" style="color:red;margin-top:5px;"></div>
         </div>
 
@@ -335,24 +335,24 @@ class LeadsController extends Controller
             <button type="button" id="assignLeadBtn" class="btn btn-save">Assign Leads</button>
         </div>';
 
-    // ===================== EMPLOYEE WISE DATA =====================
-    $assigned_rows = DB::table('leads')
-        ->select(
-            'asign_to',
-            DB::raw('COUNT(*) as total'),
-            DB::raw('SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS pending'),
-            DB::raw('SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS failed'),
-            DB::raw('SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS closed'),
-            DB::raw('SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS inprogress'),
-            DB::raw('SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) AS completed')
-        )
-        ->where('source_id', $camp_id)
-        ->whereNotNull('asign_to')
-        ->groupBy('asign_to')
-        ->get();
+        // ===================== EMPLOYEE WISE DATA =====================
+        $assigned_rows = DB::table('leads')
+            ->select(
+                'asign_to',
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS pending'),
+                DB::raw('SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS failed'),
+                DB::raw('SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS closed'),
+                DB::raw('SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS inprogress'),
+                DB::raw('SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) AS completed')
+            )
+            ->where('source_id', $camp_id)
+            ->whereNotNull('asign_to')
+            ->groupBy('asign_to')
+            ->get();
 
-    // ===================== ASSIGNED TABLE =====================
-    $assignedTable = '
+        // ===================== ASSIGNED TABLE =====================
+        $assignedTable = '
         <table>
             <thead class="thead-main">
                 <tr>
@@ -369,54 +369,54 @@ class LeadsController extends Controller
             </thead>
             <tbody>';
 
-    if ($assigned_rows->count()) {
+        if ($assigned_rows->count()) {
 
-        // optimize users
-        $userIds = $assigned_rows->pluck('asign_to')->toArray();
-        $users = User::whereIn('id', $userIds)->pluck('name', 'id');
+            // optimize users
+            $userIds = $assigned_rows->pluck('asign_to')->toArray();
+            $users = User::whereIn('id', $userIds)->pluck('name', 'id');
 
-        foreach ($assigned_rows as $row) {
+            foreach ($assigned_rows as $row) {
 
-            $emp_name = $users[$row->asign_to] ?? 'Unknown';
+                $emp_name = $users[$row->asign_to] ?? 'Unknown';
 
-            $assignedTable .= '
+                $assignedTable .= '
                 <tr>
-                    <td>'.$source->source_name.' ('.$source->description.')</td>
-                    <td>'.$row->total.'</td>
-                    <td>'.$row->pending.'</td>
-                    <td>'.$row->inprogress.'</td>
-                    <td>'.$row->closed.'</td>
-                    <td>'.$row->completed.'</td>
-                    <td>'.$row->failed.'</td>
-                    <td>'.$emp_name.'</td>
+                    <td>' . $source->source_name . ' (' . $source->description . ')</td>
+                    <td>' . $row->total . '</td>
+                    <td>' . $row->pending . '</td>
+                    <td>' . $row->inprogress . '</td>
+                    <td>' . $row->closed . '</td>
+                    <td>' . $row->completed . '</td>
+                    <td>' . $row->failed . '</td>
+                    <td>' . $emp_name . '</td>
                     <td>
                         <button class="btn-action Withdraw" 
-                            data-camp="'.$camp_id.'" 
-                            data-emp="'.$row->asign_to.'">Withdraw</button>
+                            data-camp="' . $camp_id . '" 
+                            data-emp="' . $row->asign_to . '">Withdraw</button>
 
                         <button class="btn-action Reassign"
-                            data-camp="'.$camp_id.'" 
-                            data-assign="'.$row->asign_to.'" 
-                            data-count="'.$row->total.'">Reassign</button>
+                            data-camp="' . $camp_id . '" 
+                            data-assign="' . $row->asign_to . '" 
+                            data-count="' . $row->total . '">Reassign</button>
                     </td>
                 </tr>';
-        }
+            }
 
-    } else {
-        $assignedTable .= '
+        } else {
+            $assignedTable .= '
             <tr>
                 <td colspan="9" style="text-align:center;">No Assigned Leads Found</td>
             </tr>';
+        }
+
+        $assignedTable .= '</tbody></table>';
+
+        return response()->json([
+            'headerTable' => $headerTable,
+            'assignBlock' => $assignBlock,
+            'assignedTable' => $assignedTable
+        ]);
     }
-
-    $assignedTable .= '</tbody></table>';
-
-    return response()->json([
-        'headerTable'   => $headerTable,
-        'assignBlock'   => $assignBlock,
-        'assignedTable' => $assignedTable
-    ]);
-}
     public function Unassigned(Request $request)
     {
         // Fetch the parameters
@@ -636,15 +636,15 @@ class LeadsController extends Controller
             $draw = $request->get('draw');
             $start = $request->get("start");
             $rowperpage = $request->get("length");
-    
+
             $columnIndex_arr = $request->get('order');
             $columnName_arr = $request->get('columns');
             $search_arr = $request->get('search');
-    
-            $columnIndex = $columnIndex_arr[0]['column']; 
-            $columnSortOrder = $columnIndex_arr[0]['dir']; 
-            $searchValue = $search_arr['value']; 
-    
+
+            $columnIndex = $columnIndex_arr[0]['column'];
+            $columnSortOrder = $columnIndex_arr[0]['dir'];
+            $searchValue = $search_arr['value'];
+
             // Map column index to DB columns for ordering
             $columnsMap = [
                 '2' => 'company_name',
@@ -653,7 +653,7 @@ class LeadsController extends Controller
                 '5' => 'created_at'
             ];
             $orderByColumn = $columnsMap[$columnIndex] ?? 'created_at';
-    
+
             // 1. Initialize Base Query
             $baseQuery = Lead::with('source');
             // 2. Apply Role-based filters
@@ -662,61 +662,61 @@ class LeadsController extends Controller
             } else {
                 $baseQuery->where('asign_to_manager', auth()->user()->id);
             }
-        
+
             $baseQuery->where('approval_status', '2');
-    
+
             // 3. Apply the Search Filter (for campaign, employee name, prospect, and company)
             if (!empty($searchValue)) {
-                $baseQuery->where(function($query) use ($searchValue) {
+                $baseQuery->where(function ($query) use ($searchValue) {
                     $query->where('company_name', 'LIKE', "%{$searchValue}%")
-                          ->orWhere('prospect_first_name', 'LIKE', "%{$searchValue}%")
-                          ->orWhere('prospect_last_name', 'LIKE', "%{$searchValue}%")
-                          ->orWhere('designation', 'LIKE', "%{$searchValue}%")
-                          // Search in Source Relationship
-                          ->orWhereHas('source', function($q) use ($searchValue) {
-                              $q->where('source_name', 'LIKE', "%{$searchValue}%");
-                          })
-                          // Search by Employee Name (using subquery since relationship isn't used for fetching)
-                          ->orWhereIn('user_id', function($sub) use ($searchValue) {
-                              $sub->select('id')->from('users')->where('name', 'LIKE', "%{$searchValue}%");
-                          });
+                        ->orWhere('prospect_first_name', 'LIKE', "%{$searchValue}%")
+                        ->orWhere('prospect_last_name', 'LIKE', "%{$searchValue}%")
+                        ->orWhere('designation', 'LIKE', "%{$searchValue}%")
+                        // Search in Source Relationship
+                        ->orWhereHas('source', function ($q) use ($searchValue) {
+                            $q->where('source_name', 'LIKE', "%{$searchValue}%");
+                        })
+                        // Search by Employee Name (using subquery since relationship isn't used for fetching)
+                        ->orWhereIn('user_id', function ($sub) use ($searchValue) {
+                            $sub->select('id')->from('users')->where('name', 'LIKE', "%{$searchValue}%");
+                        });
                 });
             }
-    
+
             // Calculate counts for DataTables
-            $totalRecords = (Auth::user()->is_admin == 1) 
+            $totalRecords = (Auth::user()->is_admin == 1)
                 ? Lead::where('user_id', auth()->user()->id)->where('approval_status', '2')->count()
                 : Lead::where('asign_to_manager', auth()->user()->id)->where('approval_status', '2')->count();
-            
+
             $recordsFiltered = $baseQuery->count();
-    
+
             // 4. Handle Sorting & Pagination
             if ($columnIndex == "6") {
                 $leadsDataRaw = $baseQuery->get();
-                $sorted = $leadsDataRaw->sortBy(function($lead) {
+                $sorted = $leadsDataRaw->sortBy(function ($lead) {
                     return $lead->source->source_name ?? '';
                 }, SORT_REGULAR, ($columnSortOrder === 'desc'));
                 $leadsData = $sorted->slice($start, $rowperpage)->toArray();
             } else {
                 $leadsData = $baseQuery->orderBy($orderByColumn, $columnSortOrder)
-                                       ->skip($start)
-                                       ->take($rowperpage)
-                                       ->get()
-                                       ->toArray();
+                    ->skip($start)
+                    ->take($rowperpage)
+                    ->get()
+                    ->toArray();
             }
-    
+
             $sources = Source::orderBy('source_name')->get()->toArray();
             $formattedData = [];
-    
+
             foreach ($leadsData as $lead) {
                 // Build Source Options
                 $optionsHtml = '';
                 foreach ($sources as $source) {
                     $selected = ($source["id"] == $lead["source_id"]) ? ' selected' : '';
-                    $optionsHtml .= '<option value="' . $source["id"] . '"' . $selected . '>' 
-                                    . $source["source_name"] . ' ' . $source["description"] . '</option>';
+                    $optionsHtml .= '<option value="' . $source["id"] . '"' . $selected . '>'
+                        . $source["source_name"] . ' ' . $source["description"] . '</option>';
                 }
-    
+
                 // Action HTML
                 $campaignsHtml = '
                 <span id="icons_' . $lead["id"] . '" class="group_actions" style="display:flex; gap:10px; align-items:center; cursor:pointer;">
@@ -725,21 +725,23 @@ class LeadsController extends Controller
                 </span>';
                 $campaignsHtml .= '<select class="unapproved_lead" name="source_id" id="' . $lead["id"] . '" style="width:140px" data-id="' . $lead["source_id"] . '">';
                 $campaignsHtml .= '<option value="">Select a source</option>' . $optionsHtml . '</select>';
-    
+
                 // Employee Name (Using User::find exactly as before)
                 $userDetails = User::find($lead["user_id"]);
                 $employeeName = (isset($userDetails) && !empty($userDetails)) ? $userDetails['name'] : 'N/A';
-    
+
                 // LinkedIn Logic
                 $var = $lead["linkedin_address"];
                 if (strpos($var, 'linkedin') === false) {
                     $linkdin = '<td><a href="javascript:void(0)"><i style="color: #000" class="fa-brands fa-linkedin" title="LinkedIn Address Not Valid"></i></a></td>';
                 } else {
                     $cleanUrl = $var;
-                    if (!preg_match('/^https?:\/\//i', $cleanUrl)) { $cleanUrl = 'https://' . ltrim($cleanUrl, '/'); }
+                    if (!preg_match('/^https?:\/\//i', $cleanUrl)) {
+                        $cleanUrl = 'https://' . ltrim($cleanUrl, '/');
+                    }
                     $linkdin = '<td><div style="display:flex; align-items:center; gap:8px;"><a href="' . $cleanUrl . '" target="_blank"><i class="fa-brands fa-linkedin"></i></a><i class="fa-solid fa-pen-to-square" onclick="editmodule(' . $lead["id"] . ', \'' . $cleanUrl . '\')" style="cursor:pointer;"></i></div></td>';
                 }
-    
+
                 $formattedData[] = [
                     'action' => $campaignsHtml,
                     'employee_name' => trim($employeeName),
@@ -752,7 +754,7 @@ class LeadsController extends Controller
                     'Lead_id' => $lead['id']
                 ];
             }
-    
+
             return response()->json([
                 'data' => $formattedData,
                 'draw' => intval($draw),
@@ -890,14 +892,14 @@ class LeadsController extends Controller
                             'approval_status' => 1,
                             'asign_to' => $user_id
                         );
-                        $leadDetails = Lead::where('id',$leadId)->first();
+                        $leadDetails = Lead::where('id', $leadId)->first();
                         if ($status == 'approved') {
-    
+
                             Lead::where('id', $leadId)->update($data1);
-                            
-                            $logs = New Logs();
+
+                            $logs = new Logs();
                             $logs->user_id = Auth::id();
-                            $logs->description = $leadDetails->company_name.' lead is approved';
+                            $logs->description = $leadDetails->company_name . ' lead is approved';
                             $logs->type = 15;
                             $logs->source_id = $sourceId;
                             $logs->reference_id = $leadId;
@@ -906,9 +908,9 @@ class LeadsController extends Controller
                         } else {
                             Lead::where('id', $leadId)->update($data1);
                             Lead::where('id', $leadId)->delete();
-                            $logs = New Logs();
+                            $logs = new Logs();
                             $logs->user_id = Auth::id();
-                            $logs->description = $leadDetails->company_name.' lead is disapproved';
+                            $logs->description = $leadDetails->company_name . ' lead is disapproved';
                             $logs->type = 15;
                             $logs->source_id = $sourceId;
                             $logs->reference_id = $leadId;
@@ -940,7 +942,7 @@ class LeadsController extends Controller
     public function getLeadsData(Request $request, $id = null)
     {
         $id = $request->source_id;
-        
+
         if ($request->ajax()) {
             // Base Query
             $data = Lead::join('sources', 'sources.id', '=', 'leads.source_id')
@@ -959,20 +961,20 @@ class LeadsController extends Controller
                     'leads.created_at',
                     'leads.status',
                 ]);
-    
+
             return DataTables::of($data)
                 // --- Custom Search Filter ---
                 ->filter(function ($query) use ($request) {
                     if ($request->has('search') && !empty($request->search['value'])) {
                         $searchValue = strtolower($request->search['value']);
-    
+
                         $query->where(function ($q) use ($searchValue) {
                             $q->whereRaw('LOWER(leads.company_name) LIKE ?', ["%{$searchValue}%"])
-                              ->orWhereRaw('LOWER(leads.designation) LIKE ?', ["%{$searchValue}%"])
-                              ->orWhereRaw('LOWER(leads.prospect_first_name) LIKE ?', ["%{$searchValue}%"])
-                              ->orWhereRaw('LOWER(leads.prospect_last_name) LIKE ?', ["%{$searchValue}%"])
-                              // Optional: Search full name combined
-                              ->orWhereRaw("LOWER(CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name)) LIKE ?", ["%{$searchValue}%"]);
+                                ->orWhereRaw('LOWER(leads.designation) LIKE ?', ["%{$searchValue}%"])
+                                ->orWhereRaw('LOWER(leads.prospect_first_name) LIKE ?', ["%{$searchValue}%"])
+                                ->orWhereRaw('LOWER(leads.prospect_last_name) LIKE ?', ["%{$searchValue}%"])
+                                // Optional: Search full name combined
+                                ->orWhereRaw("LOWER(CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name)) LIKE ?", ["%{$searchValue}%"]);
                         });
                     }
                 })
@@ -986,40 +988,40 @@ class LeadsController extends Controller
                     $linkedinLink = $linkedin && (str_starts_with($linkedin, 'http://') || str_starts_with($linkedin, 'https://'))
                         ? $linkedin
                         : 'https://' . $linkedin;
-    
+
                     $icon = (str_contains($linkedin, 'linkedin'))
                         ? "<a href='{$linkedinLink}' target='_blank' style='color:#0077b5'><i class='fa-brands fa-linkedin'></i></a>"
                         : "<i class='fa-brands fa-linkedin' style='color:#ccc' title='LinkedIn Address Not Valid'></i>";
-    
+
                     return "<a href='/leads/{$row->id}' target='_blank' style='color:black; font-weight:500;'>{$name}</a> " . $icon;
                 })
-              ->editColumn('contact_number_1', function ($row) {
-    if (empty($row->contact_number_1)) {
-        return 'N/A';
-    }
+                ->editColumn('contact_number_1', function ($row) {
+                    if (empty($row->contact_number_1)) {
+                        return 'N/A';
+                    }
 
-    // Split by comma, semicolon, or space
-    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
-    $numbers = array_filter($numbers); // Remove empty strings
-    $count = count($numbers);
+                    // Split by comma, semicolon, or space
+                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    $numbers = array_filter($numbers); // Remove empty strings
+                    $count = count($numbers);
 
-    if ($count <= 1) {
-        return $row->contact_number_1;
-    }
+                    if ($count <= 1) {
+                        return $row->contact_number_1;
+                    }
 
-    $firstNumber = $numbers[0];
-    $contact = json_encode($row->contact_number_1);
-    // Pass the rest of the numbers as a JSON array to the JS function
-
-    return "{$firstNumber} 
+                    $firstNumber = $numbers[0];
+                    $contact = json_encode($row->contact_number_1);
+                    // Pass the rest of the numbers as a JSON array to the JS function
+    
+                    return "{$firstNumber} 
             <span class='badge' 
                   style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
                   onclick='showAllNumbers({$contact})'>
                   + show more
             </span>";
-})
-// Ensure 'contact_number_1' is in rawColumns
-->rawColumns(['prospect_name', 'status', 'action', 'contact_number_1'])
+                })
+                // Ensure 'contact_number_1' is in rawColumns
+                ->rawColumns(['prospect_name', 'status', 'action', 'contact_number_1'])
                 ->addColumn('status', function ($row) {
                     $statuses = [
                         1 => '<p class="status-label pending">Pending</p>',
@@ -1033,11 +1035,11 @@ class LeadsController extends Controller
                     return "<a href='/leads/{$row->id}' target='_blank'><i class='fa fa-eye' style='color:black; cursor:pointer;'></i></a>";
                 })
                 ->editColumn('created_at', function ($row) {
-                    return $row->created_at 
-                        ? \Carbon\Carbon::parse($row->created_at)->format('d-m-Y H:i') 
+                    return $row->created_at
+                        ? \Carbon\Carbon::parse($row->created_at)->format('d-m-Y H:i')
                         : '';
                 })
-                ->rawColumns(['prospect_name', 'status', 'action','contact_number_1'])
+                ->rawColumns(['prospect_name', 'status', 'action', 'contact_number_1'])
                 ->make(true);
         }
     }
@@ -1045,14 +1047,14 @@ class LeadsController extends Controller
 
     public function allleadview()
     {
-       
+
         return view('leads.allleadview');
     }
 
     public function allgetLeadsData(Request $request, $id = null)
     {
         if ($request->ajax()) {
-    
+
             $data = Lead::join('sources', 'sources.id', 'leads.source_id')
                 ->where('asign_to_manager', Auth::id())
                 ->with('source', 'feedback')
@@ -1069,31 +1071,45 @@ class LeadsController extends Controller
                     'leads.created_at',
                     'status',
                 ]);
-    
+
             return DataTables::of($data)
-    
+
+            ->filter(function ($query) use ($request) {
+                if ($request->has('search') && !empty($request->search['value'])) {
+                    $searchValue = strtolower($request->search['value']);
+
+                    $query->where(function ($q) use ($searchValue) {
+                        $q->whereRaw('LOWER(leads.company_name) LIKE ?', ["%{$searchValue}%"])
+                            ->orWhereRaw('LOWER(leads.designation) LIKE ?', ["%{$searchValue}%"])
+                            ->orWhereRaw('LOWER(leads.prospect_first_name) LIKE ?', ["%{$searchValue}%"])
+                            ->orWhereRaw('LOWER(leads.prospect_last_name) LIKE ?', ["%{$searchValue}%"])
+                            // Optional: Search full name combined
+                            ->orWhereRaw("LOWER(CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name)) LIKE ?", ["%{$searchValue}%"]);
+                    });
+                }
+            })
                 ->order(function ($query) {
                     $query->orderBy('leads.created_at', 'DESC');
                 })
-    
+
                 ->addColumn('campaign_name', function ($row) {
                     return $row->source ? $row->source->source_name : '';
                 })
-    
+
                 ->addColumn('prospect_name', function ($row) {
                     $name = $row->prospect_first_name . ' ' . $row->prospect_last_name;
                     $linkedin = $row->linkedin_address;
-    
+
                     $linkedinLink = $linkedin && (str_starts_with($linkedin, 'http://') || str_starts_with($linkedin, 'https://'))
                         ? $linkedin
                         : 'https://' . $linkedin;
-    
+
                     return "<a href='/leads/{$row->id}' target='_blank'>{$name}</a> " .
                         (strpos($linkedin, 'linkedin') !== false
                             ? "<a href='{$linkedinLink}' target='_blank'><i class='fa-brands fa-linkedin'></i></a>"
                             : "<i class='fa-brands fa-linkedin' title='LinkedIn Address Not Valid'></i>");
                 })
-    
+
                 ->addColumn('status', function ($row) {
                     $statuses = [
                         1 => '<p class="pending">Pending</p>',
@@ -1101,28 +1117,53 @@ class LeadsController extends Controller
                         3 => '<p class="completed">Completed</p>',
                         4 => '<p class="in-progress">In Progress</p>',
                     ];
-    
+
                     return $statuses[$row->status] ?? '';
                 })
-    
+
                 ->addColumn('action', function ($row) {
                     $url = url('leads/' . $row->id);
                     return "<a href='{$url}' target='_blank'><i class='fa fa-eye' style='color:black'></i></a>";
                 })
-                
-    
+
+
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at
                         ? Carbon::parse($row->created_at)->format('d-m-Y H:i')
                         : '';
                 })
+                ->editColumn('contact_number_1', function ($row) {
+                    if (empty($row->contact_number_1)) {
+                        return 'N/A';
+                    }
+
+                    // Split by comma, semicolon, or space
+                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    $numbers = array_filter($numbers); // Remove empty strings
+                    $count = count($numbers);
+
+                    if ($count <= 1) {
+                        return $row->contact_number_1;
+                    }
+
+                    $firstNumber = $numbers[0];
+                    $contact = json_encode($row->contact_number_1);
+                    // Pass the rest of the numbers as a JSON array to the JS function
     
-                ->rawColumns(['prospect_name', 'status', 'action'])
-    
+                    return "{$firstNumber} 
+            <span class='badge' 
+                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+                  onclick='showAllNumbers({$contact})'>
+                  + show more
+            </span>";
+                })
+
+                ->rawColumns(['prospect_name', 'status', 'action', 'contact_number_1'])
+
                 ->make(true);
         }
     }
-    
+
 
 
     public function closed(Request $request)
@@ -1210,7 +1251,7 @@ class LeadsController extends Controller
                                         <i class="fa fa-file-text-o"></i>
                                     </span>
                                 </a>';
-                        } 
+                        }
                     } else {
                         $actionHtml .= '
                             <a href="' . url('/employee/lhs_report', [$data->id]) . '">
@@ -1257,7 +1298,7 @@ class LeadsController extends Controller
                 $query->orderBy('closed_on', 'DESC')
                     ->orderBy('leads.updated_at', 'DESC');
             }
-            
+
 
 
 
@@ -1289,23 +1330,23 @@ class LeadsController extends Controller
                 ->addColumn('options', function ($data) {
                     $lhsReport = $data->lhsReport;
                     $actionHtml = '';
-                        $momReport = $data->momReport;
-                        if (empty($momReport['mom_file_path'])) {
-                            $actionHtml .= '
+                    $momReport = $data->momReport;
+                    if (empty($momReport['mom_file_path'])) {
+                        $actionHtml .= '
                                 <a href="' . route('employee.show_mom', [$data->id]) . '">
                                     <span class="label" data-toggle="tooltip" data-placement="top" title="Create MOM Report" style="color:#000;font-size: 15px;">
                                         <i class="fa fa-file-text-o"></i>
                                     </span>
                                 </a>';
-                        } elseif (!empty($momReport['mom_file_path'])) {
-                            $actionHtml .= '
+                    } elseif (!empty($momReport['mom_file_path'])) {
+                        $actionHtml .= '
                                 <a href="' . asset('storage/' . $momReport['mom_file_path']) . '">
                                     <span class="label" data-toggle="tooltip" data-placement="top" title="MOM Download" style="color:#55ce63;font-size: 15px;">
                                         <i class="ti-download"></i>
                                     </span>
                                 </a>';
-                        }
-                    
+                    }
+
 
                     return $actionHtml;
                 })
@@ -1347,7 +1388,7 @@ class LeadsController extends Controller
         $logs = new Logs();
         $logs->user_id = Auth::id();
         $logs->type = 1;
-        $logs->description = "Note is added(".$request->reminder_for.")";
+        $logs->description = "Note is added(" . $request->reminder_for . ")";
         $logs->reference_id = $request->lead_id;
         $logs->note_id = $note->id;
         $logs->save();
