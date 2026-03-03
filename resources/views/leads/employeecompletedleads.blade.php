@@ -12,12 +12,12 @@
             <div class="graph campaignslist">
 
                 <!-- Filters -->
-                <div class="row">
+                <!-- <div class="row">
                     <div class="add-submanager">
                         <input type="search" id="global_filter" name="search" placeholder="search...">
                     </div>
 
-                </div>
+                </div> -->
                 <div class="filter-row" style="
         display: flex;
         gap: 10px;
@@ -245,73 +245,122 @@
                 $('#spinner-overlay').show(); // Show full-page spinner
 
                 var sourceId = $('#source_id').val();
-                var url = "{{ url('leads/employeecompletedleads') }}/";
+                var url = "{{ url(path: 'leads/employeecompletedleads') }}/";
 
                 var table = $('#employee-table').DataTable({
                     processing: false,
-                    serverSide: true,
-                    searching: false, // Enable search globally
-                    ordering: false, // Disable sorting
+                serverSide: true,
+                searching: true,
+                ordering: false,
+                searchDelay: 500, // smoother search
+                //     ajax: {
+                //         url: url,
+                //         data: function (d) {
+                //             d.timeZone = $('#company_time :selected').val();
+                //             d.cName = $('#company_s :selected').val();
+                //             d.orderBy = $('#note_time :selected').val();
+                //             d.search = $('#global_filter').val();
+                //             d.campaign_name = $('#campaign_name').val();
+                //             d.status = $('#status').val();
+                //             d.closedon = $('#closedon').val();
 
-                    ajax: {
-                        url: url,
-                        data: function (d) {
-                            d.timeZone = $('#company_time :selected').val();
+                //         },
+                //         error: function (xhr, error, thrown) {
+                //             console.error("AJAX Error:", xhr.responseText);
+                //         }
+                //     },
+                //     columns: [
+                //         { data: 'source_name' },               // Campaign Name
+                //         { data: 'description' },               // Sub Campaign Name
+                //         { data: 'company_name' },              // Company Name
+                //         { data: 'completed_by' },                 // Closed By
+                //         { data: 'prospect_first_name_new' },   // Prospect Name
+                //         { data: 'timezone' },                  // Time Zone
+                //         { data: 'designation' },               // Designation
+                //         { data: 'status' },                    // Status
+                //         { data: 'prospect_email' },            // Email Id
+                //         { data: 'contact_number_1' },          // Phone Number
+                //         { data: 'updated_at_new' },            // Closed On
+                //         { data: 'action', orderable: false, searchable: false }, // Actions
+                //     ],
+                //     rawColumns: ['action'], // Ensure HTML is rendered in the actions column
+                //     drawCallback: function () {
+
+                //         // 🔥 DESTROY OLD TIPPY (prevents duplicate)
+                //         document.querySelectorAll('[data-tippy-content]').forEach(el => {
+                //             if (el._tippy) {
+                //                 el._tippy.destroy();
+                //             }
+                //         });
+
+                //         // 🔥 INIT TIPPY AGAIN
+                //         tippy('[data-tippy-content]', {
+                //             theme: 'light-border',
+                //             placement: 'top',
+                //             arrow: true,
+                //             animation: 'scale'
+                //         });
+                //     },
+                // });
+
+                // // Show spinner overlay on processing start
+                // table.on('preXhr.dt', function (e, settings, data) {
+                //     $('#spinner-overlay').show(); // Show full-page spinner
+                // });
+
+                // // Hide spinner overlay when data is loaded
+                // table.on('xhr.dt', function (e, settings, json, xhr) {
+                //     $('#spinner-overlay').hide(); // Hide full-page spinner
+                // });
+
+                ajax: {
+                    url: url,
+                    data: function (d) {
+                        d.timeZone = $('#company_time :selected').val();
                             d.cName = $('#company_s :selected').val();
                             d.orderBy = $('#note_time :selected').val();
-                            d.search = $('#global_filter').val();
                             d.campaign_name = $('#campaign_name').val();
                             d.status = $('#status').val();
                             d.closedon = $('#closedon').val();
+                    }
+                },
+                columns: [
+                    { data: 'source_name', name: 'sources.source_name', searchable: false },
+                    { data: 'description', name: 'sources.description' }, // FIX HERE
+                    { data: 'company_name' },
+                    { data: 'completed_by' },
+                    { data: 'prospect_first_name_new', name: 'prospect_first_name' }, // FIX HERE
+                    { data: 'timezone' },
+                    { data: 'designation' },
+                    { data: 'status' },
+                    { data: 'prospect_email' },
+                    { data: 'contact_number_1' },
+                    { data: 'updated_at_new' },
+                    { data: 'action', orderable: false, searchable: false }
+                ],
+                initComplete: function () {
+                    $('div.dataTables_filter input')
+                        .attr('placeholder', 'Search by company, prospect, designation')
+                        .css({ 'width': '250px' });
 
-                        },
-                        error: function (xhr, error, thrown) {
-                            console.error("AJAX Error:", xhr.responseText);
-                        }
-                    },
-                    columns: [
-                        { data: 'source_name' },               // Campaign Name
-                        { data: 'description' },               // Sub Campaign Name
-                        { data: 'company_name' },              // Company Name
-                        { data: 'completed_by' },                 // Closed By
-                        { data: 'prospect_first_name_new' },   // Prospect Name
-                        { data: 'timezone' },                  // Time Zone
-                        { data: 'designation' },               // Designation
-                        { data: 'status' },                    // Status
-                        { data: 'prospect_email' },            // Email Id
-                        { data: 'contact_number_1' },          // Phone Number
-                        { data: 'updated_at_new' },            // Closed On
-                        { data: 'action', orderable: false, searchable: false }, // Actions
-                    ],
-                    rawColumns: ['action'], // Ensure HTML is rendered in the actions column
-                    drawCallback: function () {
+                    $('#spinner-overlay').hide();
+                }
+            });
 
-                        // 🔥 DESTROY OLD TIPPY (prevents duplicate)
-                        document.querySelectorAll('[data-tippy-content]').forEach(el => {
-                            if (el._tippy) {
-                                el._tippy.destroy();
-                            }
-                        });
+            // 🔥 SHOW loader before every AJAX request
+            table.on('preXhr.dt', function () {
+                $('#spinner-overlay').show();
+            });
 
-                        // 🔥 INIT TIPPY AGAIN
-                        tippy('[data-tippy-content]', {
-                            theme: 'light-border',
-                            placement: 'top',
-                            arrow: true,
-                            animation: 'scale'
-                        });
-                    },
-                });
+            // 🔥 HIDE loader after AJAX response
+            table.on('xhr.dt', function () {
+                $('#spinner-overlay').hide();
+            });
 
-                // Show spinner overlay on processing start
-                table.on('preXhr.dt', function (e, settings, data) {
-                    $('#spinner-overlay').show(); // Show full-page spinner
-                });
-
-                // Hide spinner overlay when data is loaded
-                table.on('xhr.dt', function (e, settings, json, xhr) {
-                    $('#spinner-overlay').hide(); // Hide full-page spinner
-                });
+            // 🔥 EXTRA: Show loader immediately when typing
+            $(document).on('keyup', 'div.dataTables_filter input', function () {
+                $('#spinner-overlay').show();
+            });
 
                 // Ensure filters work by putting event listener inside $(document).ready()
                 $('#company_time').on('change', function () {

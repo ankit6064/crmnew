@@ -1199,8 +1199,7 @@ class LeadsController extends Controller
 
             return DataTables::of($query)
                 // Fix sorting & searching on joined columns
-
-
+            
                 ->addColumn('action', function ($data) {
                     $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
                     $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal"><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';

@@ -18,17 +18,17 @@
 
                 <!-- Filters -->
                 <!-- <div class="row">
-                    <div class="add-submanager">
-                        <input type="search" id="global_filter" name="search" placeholder="search...">
-                    </div>
+                                <div class="add-submanager">
+                                    <input type="search" id="global_filter" name="search" placeholder="search...">
+                                </div>
 
-                </div> -->
+                            </div> -->
                 <div class="filter-row" style="
-                display: flex;
-                gap: 10px;
-                align-items: center;
-                flex-wrap: wrap;
-            ">
+                            display: flex;
+                            gap: 10px;
+                            align-items: center;
+                            flex-wrap: wrap;
+                        ">
 
                     <!-- Campaign Filter -->
                     <select id="campaign_name" class="filter-select">
@@ -252,72 +252,71 @@
 
     <script>
 
-        // ======================================================
-        //  DATATABLE + FILTERS
-        // ======================================================
         $(document).ready(function () {
+
+            $('#spinner-overlay').show(); // show on first load
 
             var url = "{{ url('leads/employeeclosedleads') }}/";
 
             var table = $('#employee-table').DataTable({
-    processing: false,
-    serverSide: true,
-    searching: true,
-    ordering: false,
-    ajax: {
-        url: url,
-        data: function (d) {
-            d.campaign_name = $('#campaign_name').val();
-            d.cName = $('#company_s').val();
-            d.timeZone = $('#company_time').val();
-            d.closedon = $('#closedon').val();
-        }
-    },
-    columns: [
-        { data: 'source_name', searchable:false },
-        { data: 'description' },
-        { data: 'company_name' },
-        { data: 'closed_by' },
-        { data: 'prospect_first_name_new' },
-        { data: 'timezone' },
-        { data: 'designation' },
-        { data: 'status' },
-        { data: 'prospect_email' },
-        { data: 'contact_number_1' },
-        { data: 'updated_at_new' },
-        { data: 'action', orderable: false, searchable: false }
-    ],
+                processing: false,
+                serverSide: true,
+                searching: true,
+                ordering: false,
+                searchDelay: 500, // smoother search
+                ajax: {
+                    url: url,
+                    data: function (d) {
+                        d.campaign_name = $('#campaign_name').val();
+                        d.cName = $('#company_s').val();
+                        d.timeZone = $('#company_time').val();
+                        d.closedon = $('#closedon').val();
+                    }
+                },
+                columns: [
+                    { data: 'source_name', name: 'sources.source_name', searchable: false },
+                    { data: 'description', name: 'sources.description' }, // FIX HERE
+                    { data: 'company_name' },
+                    { data: 'closed_by' },
+                    { data: 'prospect_first_name_new', name: 'prospect_first_name' }, // FIX HERE
+                    { data: 'timezone' },
+                    { data: 'designation' },
+                    { data: 'status' },
+                    { data: 'prospect_email' },
+                    { data: 'contact_number_1' },
+                    { data: 'updated_at_new' },
+                    { data: 'action', orderable: false, searchable: false }
+                ],
+                initComplete: function () {
+                    $('div.dataTables_filter input')
+                        .attr('placeholder', 'Search by company, prospect, designation')
+                        .css({ 'width': '250px' });
 
-    drawCallback: function () {
+                    $('#spinner-overlay').hide();
+                }
+            });
 
-        // 🔥 DESTROY OLD TIPPY (prevents duplicate)
-        document.querySelectorAll('[data-tippy-content]').forEach(el => {
-            if (el._tippy) {
-                el._tippy.destroy();
-            }
-        });
+            // 🔥 SHOW loader before every AJAX request
+            table.on('preXhr.dt', function () {
+                $('#spinner-overlay').show();
+            });
 
-        // 🔥 INIT TIPPY AGAIN
-        tippy('[data-tippy-content]', {
-            theme: 'light-border',
-            placement: 'top',
-            arrow: true,
-            animation: 'scale'
-        });
-    },
+            // 🔥 HIDE loader after AJAX response
+            table.on('xhr.dt', function () {
+                $('#spinner-overlay').hide();
+            });
 
-    initComplete: function () {
-        $('#spinner-overlay').hide();
-    }
-});
+            // 🔥 EXTRA: Show loader immediately when typing
+            $(document).on('keyup', 'div.dataTables_filter input', function () {
+                $('#spinner-overlay').show();
+            });
 
-
-
-            $('#spinner-overlay').show();
-
-            // Filters trigger reload
+            // Filters trigger reload + loader
             $('#campaign_name, #company_s, #company_time, #closedon')
-                .on('keyup change', () => table.ajax.reload());
+                .on('keyup change', function () {
+                    $('#spinner-overlay').show();
+                    table.ajax.reload();
+                });
 
         });
 
@@ -413,44 +412,45 @@
 
         }
 
-        function deleteLead(id){
+        function deleteLead(id) {
             Swal.fire({
-            title: 'Are you sure?',
-            text: 'You won\'t be able to revert this!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // Perform the AJAX request to delete the manager
-              $.ajax({
-                url: `delete/${id}`, // Adjust this URL to match your route
-                type: 'GET', // Use GET request for deletion
-                success: function (response) {
-                  // Handle successful response (e.g., show a success message)
-                  Swal.fire(
-                    'Deleted!',
-                    'The lead has been deleted.',
-                    'success'
-                  );
+                title: 'Are you sure?',
+                text: 'You won\'t be able to revert this!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Perform the AJAX request to delete the manager
+                    $.ajax({
+                        url: `delete/${id}`, // Adjust this URL to match your route
+                        type: 'GET', // Use GET request for deletion
+                        success: function (response) {
+                            // Handle successful response (e.g., show a success message)
+                            Swal.fire(
+                                'Deleted!',
+                                'The lead has been deleted.',
+                                'success'
+                            );
 
-                  // Redraw the DataTable to reflect the changes
-                  $('#employee-table').DataTable()
-                    .draw(); // Redraw the DataTable
-                },
-                error: function (xhr, status, error) {
-                  // Handle error (e.g., show an error message)
-                  Swal.fire(
-                    'Error!',
-                    'There was an issue deleting the lead.',
-                    'error'
-                  );
+                            // Redraw the DataTable to reflect the changes
+                            $('#employee-table').DataTable()
+                                .draw(); // Redraw the DataTable
+                        },
+                        error: function (xhr, status, error) {
+                            // Handle error (e.g., show an error message)
+                            Swal.fire(
+                                'Error!',
+                                'There was an issue deleting the lead.',
+                                'error'
+                            );
+                        }
+                    });
                 }
-              });
-            }
-          });        }
+            });
+        }
 
     </script>
 

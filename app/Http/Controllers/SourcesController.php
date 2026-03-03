@@ -26,7 +26,7 @@ ini_set('memory_limit', '1024M');
 class SourcesController extends Controller
 {
 
-    
+
 
     public function __construct()
     {
@@ -54,7 +54,7 @@ class SourcesController extends Controller
             $sources = Lead::select('leads.source_id', DB::raw('COUNT(*) as leadscount'))
                 ->join('notes', 'leads.id', '=', 'notes.lead_id')
                 ->where('leads.asign_to', $request->employee_id)
-                ->where('notes.user_id',$request->employee_id)
+                ->where('notes.user_id', $request->employee_id)
                 ->where(DB::raw('DATE(notes.created_at)'), $date)
                 ->whereHas('source', function ($query) {
                     $query->where('is_active', '1');
@@ -70,7 +70,7 @@ class SourcesController extends Controller
         $sourceschart = Lead::select('leads.source_id', DB::raw('COUNT(*) as leadscount'))
             ->join('notes', 'leads.id', '=', 'notes.lead_id')
             ->where('leads.asign_to', $request->employee_id)
-            ->where('notes.user_id',$request->employee_id)
+            ->where('notes.user_id', $request->employee_id)
             ->whereIn(DB::raw('DATE(notes.created_at)'), $dates)
             ->whereHas('source', function ($query) {
                 $query->where('is_active', '1');
@@ -108,10 +108,10 @@ class SourcesController extends Controller
         })->get()->toArray();
         // dd($data);
         $externalManagers = DB::table('users')->where('is_admin', 2)->where('deleted_at', NULL)->where('manager_type', 2)->get()->toArray();
-        $active = Source::where('is_active',1)->count();
-        $inactive = Source::where('is_active',2)->count();
-        return view('sources.list_new')->with(['datas' => $data, 'managers' => $managers, 'externalManagers' => $externalManagers,'active'=>$active,'inactive'=>$inactive]);
-        }
+        $active = Source::where('is_active', 1)->count();
+        $inactive = Source::where('is_active', 2)->count();
+        return view('sources.list_new')->with(['datas' => $data, 'managers' => $managers, 'externalManagers' => $externalManagers, 'active' => $active, 'inactive' => $inactive]);
+    }
 
 
     public function create()
@@ -159,9 +159,9 @@ class SourcesController extends Controller
                 $importService->importLeads($file);
             }
 
-            $logs = New Logs();
+            $logs = new Logs();
             $logs->user_id = Auth::id();
-            $logs->description = 'A new campaign '.$request->source_name.'-'.$request->description.' is added';
+            $logs->description = 'A new campaign ' . $request->source_name . '-' . $request->description . ' is added';
             $logs->type = 14;
             $logs->source_id = $source_id->id;
             $logs->save();
@@ -271,17 +271,17 @@ class SourcesController extends Controller
     public function campaignsAjaxPagination(Request $request)
     {
         ini_set('memory_limit', '512M');
-    
+
         if ($request->ajax()) {
-            if($request->status_filter == 'total'){
-                $status = [1,2];
-            }elseif($request->status_filter == 'active'){
+            if ($request->status_filter == 'total') {
+                $status = [1, 2];
+            } elseif ($request->status_filter == 'active') {
                 $status = [1];
-            }else{
+            } else {
                 $status = [2];
             }
             if (Auth::user()->is_admin == null) {
-    
+
                 $query = Source::select(
                     "id",
                     "source_name",
@@ -293,22 +293,22 @@ class SourcesController extends Controller
                     DB::raw("'N/A' as company_distribution"),
                     DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads")
                 )
-                ->whereIn('is_active',$status)
-                ->leftJoinSub(
-                    Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
-                        ->groupBy('source_id'),
-                    'leads_count',
-                    'leads_count.source_id',
-                    'sources.id'
-                )
-                ->with(['closed_leads', 'leadNotImported']);
-    
+                    ->whereIn('is_active', $status)
+                    ->leftJoinSub(
+                        Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
+                            ->groupBy('source_id'),
+                        'leads_count',
+                        'leads_count.source_id',
+                        'sources.id'
+                    )
+                    ->with(['closed_leads', 'leadNotImported']);
+
             } else {
-    
+
                 $query = Source::where(function ($query) {
-                        $query->where('user_id', auth()->user()->id)
-                            ->orWhere('assign_to_manager', auth()->user()->id);
-                    })
+                    $query->where('user_id', auth()->user()->id)
+                        ->orWhere('assign_to_manager', auth()->user()->id);
+                })
                     ->select(
                         "id",
                         "source_name",
@@ -321,7 +321,7 @@ class SourcesController extends Controller
                         DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads"),
                         DB::raw("(SELECT SUM(amount) FROM money WHERE money.source_id = sources.id) as amount")
                     )
-                    ->whereIn('is_active',$status)
+                    ->whereIn('is_active', $status)
                     ->leftJoinSub(
                         Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
                             ->groupBy('source_id'),
@@ -331,100 +331,100 @@ class SourcesController extends Controller
                     )
                     ->with(['closed_leads', 'leadNotImported']);
             }
-    
+
             return DataTables::eloquent($query)
-    
+
                 ->filter(function ($query) use ($request) {
                     if (!empty($request->search['value'])) {
                         $keyword = strtolower($request->search['value']);
-                
+
                         $query->where(function ($q) use ($keyword) {
                             // Search in Source Name
                             $q->whereRaw('LOWER(sources.source_name) LIKE ?', ["%{$keyword}%"])
-                            // OR Search in Description
-                              ->orWhereRaw('LOWER(sources.description) LIKE ?', ["%{$keyword}%"]);
+                                // OR Search in Description
+                                ->orWhereRaw('LOWER(sources.description) LIKE ?', ["%{$keyword}%"]);
                         });
                     }
                 })
-    
+
                 /* Total leads column */
                 ->editColumn('total_leads_new', function ($data) {
-                    return '<p data-tippy-content="View Leads" data-sid="'.$data->id.'" onclick="clickmodal('.$data->id.');" style="color:#5FBC01 !important">'.$data->total_leads.'</p>';
+                    return '<p data-tippy-content="View Leads" data-sid="' . $data->id . '" onclick="clickmodal(' . $data->id . ');" style="color:#5FBC01 !important">' . $data->total_leads . '</p>';
                 })
-    
+
                 /* Source Name */
                 ->editColumn('source_name_new', function ($data) {
-                    return '<div class="tooltip1 source-item source-item-'.$data->id.'" 
-                                data-tippy-content="Source: '.$data->source_name.'" 
-                                data-source-id="'.$data->id.'">
-                                '.$data->source_name.'
+                    return '<div class="tooltip1 source-item source-item-' . $data->id . '" 
+                                data-tippy-content="Source: ' . $data->source_name . '" 
+                                data-source-id="' . $data->id . '">
+                                ' . $data->source_name . '
                             </div>';
                 })
-    
+
                 ->editColumn('created_at_new', function ($data) {
                     return \Carbon\Carbon::parse($data->created_at)->format('d-m-Y');
                 })
-    
+
                 ->editColumn('updated_at_new', function ($data) {
                     return \Carbon\Carbon::parse($data->updated_at)->format('d-m-Y');
                 })
-    
+
                 ->addColumn('manager_name', function ($row) {
                     $manager = User::where(['id' => $row->assign_to_manager, 'is_admin' => '2'])->first();
                     return $manager->name ?? 'N/A';
                 })
-    
+
                 ->addColumn('status', function ($row) {
                     $checked = $row->is_active == 1 ? 'checked' : '';
                     return '<input data-sid="' . $row->id . '" class="switchery" type="checkbox" ' . $checked . ' 
                             onchange="updatestatus(' . $row->id . ');">';
                 })
-    
+
                 /* ACTION COLUMN WITH ALL TIPPY ADDED */
                 ->addColumn('action', function ($row) {
-    
+
                     $checkMomReport = MomReport::join('leads', 'mom_report.lead_id', '=', 'leads.id')
                         ->where('leads.source_id', $row->id)
                         ->whereNotNull('mom_report.mom_file_path')
                         ->first();
-    
+
                     $html = '
-                        <a href="'.url('/sources/'.$row->id.'/leadview').'" target="_blank">
+                        <a href="' . url('/sources/' . $row->id . '/leadview') . '" target="_blank">
                             <span class="label" data-tippy-content="View Leads" style="color:#000;font-size:15px;">
                                 <i class="fa-solid fa-eye"></i>
                             </span>
                         </a>
     
-                        <a href="'.url('/lead/exportCsv/'.$row->id.'/report_down').'">
+                        <a href="' . url('/lead/exportCsv/' . $row->id . '/report_down') . '">
                             <span class="label" data-tippy-content="Download Excel" style="color:#000;font-size:15px;">
                                 <i class="fa-solid fa-file-excel"></i>
                             </span>
                         </a>
     
-                        <a href="'.url('/lead/export/'.$row->id.'/pdf_down').'">
+                        <a href="' . url('/lead/export/' . $row->id . '/pdf_down') . '">
                             <span class="label" data-tippy-content="Download Word File" style="color:#55ce63;font-size:15px;">
                                 <i class="fa-solid fa-file-word"></i>
                             </span>
                         </a>';
-    
+
                     if (!empty($checkMomReport)) {
                         $html .= '
-                            <a href="'.url('download-mom-report', ['source_id' => $row->id]).'">
+                            <a href="' . url('download-mom-report', ['source_id' => $row->id]) . '">
                                 <span class="label" data-tippy-content="Download MOM Report" style="color:blue;font-size:15px;">
                                     <i class="fa-solid fa-file-download"></i>
                                 </span>
                             </a>';
                     }
-    
+
                     if (Auth::user()->is_admin == 2) {
                         $html .= '
-                            <a href="'.url('/add_leads/'.$row->id).'" target="_blank">
+                            <a href="' . url('/add_leads/' . $row->id) . '" target="_blank">
                                 <span class="label" data-tippy-content="Upload Leads" style="color:#000;font-size:15px;">
                                     <i class="fa-solid fa-upload"></i>
                                 </span>
                             </a>';
                     }
-    
+
                     if (!empty($row->leadNotImported)) {
                         $html .= '
                             <a href="#">
@@ -433,9 +433,9 @@ class SourcesController extends Controller
                                 </span>
                             </a>';
                     }
-    
+
                     if (Auth::user()->is_admin == null) {
-    
+
                         if (!empty($row->assign_to_manager)) {
                             $html .= '<a href="javascript:void(0);">
                                         <span class="label label-warning" data-tippy-content="Manager Assigned">
@@ -443,30 +443,30 @@ class SourcesController extends Controller
                                         </span>
                                       </a>';
                         } else {
-                            $html .= '<a href="#" onclick="assignmanager('.$row->id.');">
+                            $html .= '<a href="#" onclick="assignmanager(' . $row->id . ');">
                                         <span class="label label-warning" data-tippy-content="Assign to Manager">
                                             Assign to Manager
                                         </span>
                                       </a>';
                         }
-    
+
                         $html .= '
-                            <a href="'.url('sources/delete', ['id' => $row->id]).'" onclick="return confirm(\'Are you sure?\')">
+                            <a href="' . url('sources/delete', ['id' => $row->id]) . '" onclick="return confirm(\'Are you sure?\')">
                                 <span class="label" data-tippy-content="Delete Source" style="color:#dc3545;font-size:15px;">
                                     <i class="fa-solid fa-trash"></i>
                                 </span>
                             </a>
     
-                            <a href="'.url('sources/source-edit', $row->id).'">
+                            <a href="' . url('sources/source-edit', $row->id) . '">
                                 <span class="label" data-tippy-content="Edit Source" style="color:#000;font-size:15px;">
                                     <i class="fa-solid fa-pen"></i>
                                 </span>
                             </a>';
                     }
-    
+
                     return $html;
                 })
-    
+
                 ->addColumn('transfer', function ($row) {
                     return '<button style="background-color:#192e62;color:#fff;border-radius:3px"
                                 data-tippy-content="Transfer Leads"
@@ -474,15 +474,15 @@ class SourcesController extends Controller
                                 Transfer
                             </button>';
                 })
-    
+
                 ->rawColumns(['total_leads_new', 'action', 'status', 'source_name_new', 'transfer'])
                 ->toJson();
         }
     }
-    
-    
-    
-    
+
+
+
+
 
     public function sourceEdit($id)
     {
@@ -534,19 +534,19 @@ class SourcesController extends Controller
         $campaign = Source::findOrFail($request->source_id);
         if ($campaign->is_active == 1) {
             $campaign->is_active = 2;
-            $message = $campaign->source_name.'-'.$campaign->description.' is deactivated';
+            $message = $campaign->source_name . '-' . $campaign->description . ' is deactivated';
 
-            $logs = New Logs();
+            $logs = new Logs();
             $logs->user_id = Auth::id();
             $logs->description = $message;
             $logs->type = 13;
             $logs->source_id = $request->source_id;
             $logs->save();
         } else {
-            $message = $campaign->source_name.'-'.$campaign->description.' is activated';
+            $message = $campaign->source_name . '-' . $campaign->description . ' is activated';
 
             $campaign->is_active = 1;
-            $logs = New Logs();
+            $logs = new Logs();
             $logs->user_id = Auth::id();
             $logs->description = $message;
             $logs->type = 13;
@@ -554,7 +554,7 @@ class SourcesController extends Controller
             $logs->save();
         }
         $campaign->save();
-        echo json_encode(['status' => 200, 'message' => 'Campaign '.$message.'.']);
+        echo json_encode(['status' => 200, 'message' => 'Campaign ' . $message . '.']);
         exit;
     }
 
@@ -586,9 +586,9 @@ class SourcesController extends Controller
                             </tr>
                         </thead>
                         <tbody>';
-                        if ($leads->count() > 0) {
-                            foreach ($leads as $lead) {
-                                $html .= '<tr>          
+        if ($leads->count() > 0) {
+            foreach ($leads as $lead) {
+                $html .= '<tr>          
                                     <td style="white-space: pre-wrap" width="200">' . $lead->company_name . '</td>
                                     <td>' . $lead->pending_leads . ' <fieldset>
                                         <label class="custom-control custom-checkbox">
@@ -614,15 +614,15 @@ class SourcesController extends Controller
                                         </a>
                                     </td>
                                 </tr>';
-                            }
-                        } else {
-                            $html .= '<tr>
+            }
+        } else {
+            $html .= '<tr>
                                         <td colspan="5" style="text-align:center; padding:20px; font-weight:bold;">
                                             No records found
                                         </td>
                                       </tr>';
-                        }
-                        
+        }
+
         $html .= '</tbody>
             </table>
         </div>';
@@ -654,15 +654,15 @@ class SourcesController extends Controller
                          </thead>
                          <tbody>';
 
-                         if ($leads->isEmpty()) {
-                            $html .= '<tr>
+        if ($leads->isEmpty()) {
+            $html .= '<tr>
                                 <td colspan="2" style="text-align:center; font-weight:600;">
                                     No company found
                                 </td>
                             </tr>';
-                        } else {
-                            foreach ($leads as $lead) {
-                                $html .= '<tr>
+        } else {
+            foreach ($leads as $lead) {
+                $html .= '<tr>
                                     <td width="200">' . htmlspecialchars($lead->company_name) . '</td>
                                     <td width="200">
                                         <fieldset>
@@ -673,9 +673,9 @@ class SourcesController extends Controller
                                         </fieldset>
                                     </td>
                                 </tr>';
-                            }
-                        }
-                        
+            }
+        }
+
 
         $html .= '</tbody>
                  </table>
@@ -708,12 +708,12 @@ class SourcesController extends Controller
 
             }
         }
-        $source = Source::where('id',$request->new_source_id)->first();
+        $source = Source::where('id', $request->new_source_id)->first();
         $companynames = implode(', ', $request->leads);
-        
-        $logs = New Logs();
+
+        $logs = new Logs();
         $logs->user_id = Auth::id();
-        $logs->description = $companynames.' companies are transfered to '.$source->source_name.'-'.$source->description;
+        $logs->description = $companynames . ' companies are transfered to ' . $source->source_name . '-' . $source->description;
         $logs->type = 12;
         $logs->source_id = $request->new_source_id;
         $logs->save();
@@ -913,40 +913,40 @@ class SourcesController extends Controller
         $employee_ids = User::where(function ($query) {
             // 1️⃣ Tumhare direct employees aur submanagers
             $query->where('user_id', auth()->id())
-                  ->whereIn('is_admin', ['1', '3']);
+                ->whereIn('is_admin', ['1', '3']);
         })
-        ->orWhereIn('user_id', function ($subquery) {
-            // 2️⃣ Submanagers ke under wale employees
-            $subquery->select('id')
-                     ->from('users')
-                     ->where('user_id', auth()->id())
-                     ->where('is_admin', '3');
-        })
-        ->where('is_active', 1)
-        ->pluck('id');
-       
+            ->orWhereIn('user_id', function ($subquery) {
+                // 2️⃣ Submanagers ke under wale employees
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', auth()->id())
+                    ->where('is_admin', '3');
+            })
+            ->where('is_active', 1)
+            ->pluck('id');
+
         $comapnyName = Lead::with('source')
             ->where('status', 3)
             ->whereIn('asign_to', $employee_ids)
             ->groupBy('company_name')
-            ->orderBy('company_name','asc')
+            ->orderBy('company_name', 'asc')
             ->get();
 
-            $sourceNames = Source::select('sources.source_name', 'sources.description')
+        $sourceNames = Source::select('sources.source_name', 'sources.description')
             ->join('leads', 'leads.source_id', '=', 'sources.id')
             ->where('leads.status', 3)
             ->whereIn('leads.asign_to', $employee_ids)
             ->groupBy('sources.source_name')
             ->orderBy('sources.source_name')
             ->get();
-        
+
         $timeZone = Lead::with('source')->where(['status' => 3])
             ->whereIn('asign_to', $employee_ids)
             ->orderBy('timezone', 'asc')
             ->groupBy('timezone')
             ->get();
 
-        $closedon = Lead::join('lhs_report','lhs_report.lead_id','leads.id')->where(['leads.status' => 3])
+        $closedon = Lead::join('lhs_report', 'lhs_report.lead_id', 'leads.id')->where(['leads.status' => 3])
             ->whereIn('leads.asign_to', $employee_ids)
             ->selectRaw('DATE(lhs_report.created_at) as date')  // Extract the date part
             ->distinct()  // Ensure distinct dates
@@ -955,7 +955,7 @@ class SourcesController extends Controller
             ->toArray();
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
-            $query = Lead::select('leads.*','sources.source_name','sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
+            $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
                 ->where('status', 3)->whereIn('asign_to', $employee_ids);
             if (!empty(request('cName'))) {
                 $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
@@ -975,27 +975,27 @@ class SourcesController extends Controller
                 // Ensure 'closedon' is in a valid format (Y-m-d) and match only the date part of updated_at
                 // $query->whereRaw('DATE(leads.updated_at) = ?', [request('closedon')]);
                 $query->join('lhs_report', 'lhs_report.lead_id', '=', 'leads.id')
-      ->whereDate('lhs_report.created_at', request('closedon'))
-      ->groupBy('leads.id');
+                    ->whereDate('lhs_report.created_at', request('closedon'))
+                    ->groupBy('leads.id');
 
-                
+
             }
             $columnIndex = $request->input('order.0.column'); // this will be 10
             $direction = $request->input('order.0.dir');      // this will be 'desc'
-            
+
             if (!is_null($columnIndex) && $columnIndex == 10 && $direction == 'desc') {
-               $query->orderbyDesc('leads.closed_on')->orderByDesc('leads.updated_at');
-            
+                $query->orderbyDesc('leads.closed_on')->orderByDesc('leads.updated_at');
+
             }
 
             if (!is_null($columnIndex) && $columnIndex == 10 && $direction == 'asc') {
                 $query->orderBy('leads.closed_on')->orderBy('leads.updated_at');
-             
-             }
+
+            }
 
 
-            
-           
+
+
 
 
             // Apply search and filter conditions
@@ -1010,7 +1010,9 @@ class SourcesController extends Controller
                         ->orWhere(DB::raw('CONCAT(prospect_first_name, " ", prospect_last_name)'), 'LIKE', '%' . $search . '%')
                         ->orWhere('timezone', 'LIKE', '%' . $search . '%')
                         ->orWhere('designation', 'LIKE', '%' . $search . '%')
-                        ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%');
+                        ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%')
+                        ->orWhere('sources.description', 'LIKE', '%' . $search . '%')
+                        ->orWhere('sources.source_name', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -1024,9 +1026,7 @@ class SourcesController extends Controller
 
                     if ($checklhs) {
                         return \Carbon\Carbon::parse($checklhs)->format('d/m/Y');
-                    }
-                              
-                     else {
+                    } else {
                         return date('d/m/Y', strtotime($row->updated_at));
 
                     }
@@ -1034,82 +1034,82 @@ class SourcesController extends Controller
                 ->addColumn('action', function ($row) {
 
                     $notesButton = '';
-                
+
                     // 📝 Notes
                     $notesButton .= '
-                        <a onclick="shownoteslist('.$row->id.')" class="notes_id">
+                        <a onclick="shownoteslist(' . $row->id . ')" class="notes_id">
                             <i class="fas fa-comment label-new" data-tippy-content="Notes"></i>
                         </a>';
-                
+
                     // 👁 View
                     $notesButton .= '
-                        <a href="'.url('leads', $row->id).'" class="notes_id">
+                        <a href="' . url('leads', $row->id) . '" class="notes_id">
                             <i class="fas fa-eye label-new" data-tippy-content="View Lead"></i>
                         </a>';
-                
+
                     // ⬇ Download (only if status = 3)
                     if ($row->status == 3) {
                         $notesButton .= '
-                            <a href="'.url('employee/export/'.$row->id.'/word_single_down').'?employee_id=&campaign_id=&date_from=&date_to=" class="notes_id">
+                            <a href="' . url('employee/export/' . $row->id . '/word_single_down') . '?employee_id=&campaign_id=&date_from=&date_to=" class="notes_id">
                                 <i class="fa fa-arrow-down label-new" style="color:green" data-tippy-content="Download"></i>
                             </a>';
                     }
-                
+
                     // ✏ Edit permission
                     if (Auth::user()->is_admin == SUBMANAGER) {
-                
+
                         $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
-                
+
                         if ($permissions) {
                             $userPermissions = json_decode($permissions->user_permissions);
-                
+
                             if (!empty($userPermissions->lead->edit) && $userPermissions->lead->edit == 1) {
                                 $notesButton .= '
-                                    <a href="'.url('editlead', $row->id).'" class="notes_id">
+                                    <a href="' . url('editlead', $row->id) . '" class="notes_id">
                                         <i class="fas fa-edit label-new" data-tippy-content="Edit Lead"></i>
                                     </a>';
                             }
                         }
-                
+
                     } else {
                         $notesButton .= '
-                            <a href="'.url('editlead', $row->id).'" class="notes_id">
+                            <a href="' . url('editlead', $row->id) . '" class="notes_id">
                                 <i class="fas fa-edit label-new" data-tippy-content="Edit Lead"></i>
                             </a>';
                     }
-                
+
                     // 🗑 Delete permission
                     if (Auth::user()->is_admin == SUBMANAGER) {
-                
+
                         $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
-                
+
                         if ($permissions) {
                             $userPermissions = json_decode($permissions->user_permissions);
-                
+
                             if (!empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) {
                                 $notesButton .= '
                                     <a href="#"
                                        class="notes_id"
-                                       onclick="deleteLead('.$row->id.')">
+                                       onclick="deleteLead(' . $row->id . ')">
                                         <i class="fa fa-trash label-new" style="color:red;font-size:15px"
                                            data-tippy-content="Delete Lead"></i>
                                     </a>';
                             }
                         }
-                
+
                     } else {
                         $notesButton .= '
                             <a href="#"
                                class="notes_id"
-                               onclick="deleteLead('.$row->id.')">
+                               onclick="deleteLead(' . $row->id . ')">
                                <i class="fa fa-trash label-new" style="color:red;font-size:15px"
                                    data-tippy-content="Delete Lead"></i>
                             </a>';
                     }
-                
+
                     return $notesButton;
                 })
-                
+
                 ->editColumn('prospect_first_name_new', function ($row) {
                     $leadName = '<a href="' . url('/leads', [$row->id]) . '" target="_blank">' . $row->prospect_first_name . ' ' . $row->prospect_last_name . '</a>';
                     $linkedinAddress = $row->linkedin_address ?? ''; // Ensure the variable exists
@@ -1140,8 +1140,8 @@ class SourcesController extends Controller
                     }
                 })
                 ->addColumn('closed_by', function ($row) {
-                    $employeedetails = User::where('id',$row->asign_to)->first();
-                    return $employeedetails->first_name.' '.$employeedetails->last_name;
+                    $employeedetails = User::where('id', $row->asign_to)->first();
+                    return $employeedetails->first_name . ' ' . $employeedetails->last_name;
                 })
                 ->rawColumns(['action', 'prospect_first_name_new']) // To render HTML in the actions column
                 ->make(true);
@@ -1166,14 +1166,14 @@ class SourcesController extends Controller
     //         })
     //         ->where('is_active', 1)
     //         ->pluck('id');
-    
+
     //     /* ================= FILTER DATA ================= */
     //     $comapnyName = Lead::where('status', 3)
     //         ->whereIn('asign_to', $employee_ids)
     //         ->groupBy('company_name')
     //         ->orderBy('company_name')
     //         ->get();
-    
+
     //     $sourceNames = Source::select('sources.source_name', 'sources.description')
     //         ->join('leads', 'leads.source_id', '=', 'sources.id')
     //         ->where('leads.status', 3)
@@ -1181,13 +1181,13 @@ class SourcesController extends Controller
     //         ->groupBy('sources.source_name')
     //         ->orderBy('sources.source_name')
     //         ->get();
-    
+
     //     $timeZone = Lead::where('status', 3)
     //         ->whereIn('asign_to', $employee_ids)
     //         ->groupBy('timezone')
     //         ->orderBy('timezone')
     //         ->get();
-    
+
     //     $closedon = Lead::join('lhs_report', 'lhs_report.lead_id', 'leads.id')
     //         ->where('leads.status', 3)
     //         ->whereIn('leads.asign_to', $employee_ids)
@@ -1196,10 +1196,10 @@ class SourcesController extends Controller
     //         ->orderBy('date', 'DESC')
     //         ->get()
     //         ->toArray();
-    
+
     //     /* ================= DATATABLE AJAX ================= */
     //     if ($request->ajax()) {
-    
+
     //         $query = Lead::select(
     //                 'leads.*',
     //                 'sources.source_name',
@@ -1208,29 +1208,29 @@ class SourcesController extends Controller
     //             ->join('sources', 'sources.id', '=', 'leads.source_id')
     //             ->where('leads.status', 3)
     //             ->whereIn('leads.asign_to', $employee_ids);
-    
+
     //         /* ===== CUSTOM FILTERS ===== */
     //         if ($request->filled('cName')) {
     //             $query->where('company_name', 'LIKE', '%' . $request->cName . '%');
     //         }
-    
+
     //         if ($request->filled('timeZone')) {
     //             $query->where('timezone', 'LIKE', '%' . $request->timeZone . '%');
     //         }
-    
+
     //         if ($request->filled('campaign_name')) {
     //             $query->where('sources.source_name', 'LIKE', '%' . $request->campaign_name . '%');
     //         }
-    
+
     //         if ($request->filled('closedon')) {
     //             $query->join('lhs_report', 'lhs_report.lead_id', '=', 'leads.id')
     //                   ->whereDate('lhs_report.created_at', $request->closedon)
     //                   ->groupBy('leads.id');
     //         }
-    
+
     //         /* ===== GLOBAL SEARCH (DataTables) ===== */
     //         $searchValue = $request->input('search.value');
-    
+
     //         if (!empty($searchValue)) {
     //             $query->where(function ($q) use ($searchValue) {
     //                 $q->where('company_name', 'LIKE', "%{$searchValue}%")
@@ -1242,11 +1242,11 @@ class SourcesController extends Controller
     //                   ->orWhere('contact_number_1', 'LIKE', "%{$searchValue}%");
     //             });
     //         }
-    
+
     //         /* ===== ORDERING FIX ===== */
     //         $columnIndex = $request->input('order.0.column');
     //         $direction   = $request->input('order.0.dir', 'desc');
-    
+
     //         $columns = [
     //             0 => 'linkedin_address',
     //             1 => 'employee_name',
@@ -1256,53 +1256,53 @@ class SourcesController extends Controller
     //             5 => 'leads.created_at',
     //             6 => 'sources.source_name',
     //         ];
-    
+
     //         if (isset($columns[$columnIndex])) {
     //             $query->orderBy($columns[$columnIndex], $direction);
     //         } else {
     //             $query->orderByDesc('leads.updated_at');
     //         }
-    
+
     //         /* ===== DATATABLE RESPONSE ===== */
     //         return datatables()->of($query)
-    
+
     //             ->addColumn('updated_at_new', function ($row) {
     //                 $checklhs = LhsReport::where('lead_id', $row->id)->value('created_at');
     //                 return $checklhs
     //                     ? \Carbon\Carbon::parse($checklhs)->format('d/m/Y')
     //                     : date('d/m/Y', strtotime($row->updated_at));
     //             })
-    
+
     //             ->editColumn('prospect_first_name_new', function ($row) {
     //                 $name = '<a href="' . url('/leads/' . $row->id) . '" target="_blank">'
     //                       . $row->prospect_first_name . ' ' . $row->prospect_last_name . '</a>';
-    
+
     //                 if ($row->linkedin_address && str_contains($row->linkedin_address, 'linkedin')) {
     //                     $url = str_starts_with($row->linkedin_address, 'http')
     //                         ? $row->linkedin_address
     //                         : 'https://' . $row->linkedin_address;
-    
+
     //                     $name .= ' <a href="' . $url . '" target="_blank">
     //                                 <i class="fa-brands fa-linkedin"></i>
     //                               </a>';
     //                 }
-    
+
     //                 return $name;
     //             })
-    
+
     //             ->addColumn('status', fn($row) => 'Closed')
-    
+
     //             ->addColumn('closed_by', function ($row) {
     //                 $emp = User::find($row->asign_to);
     //                 return $emp ? $emp->first_name . ' ' . $emp->last_name : '';
     //             })
-    
+
     //          ->addColumn('action', function ($row) { $notesButton = '<a onclick="shownoteslist(' . $row->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"> <i class="fas fa-comment label-new" aria-hidden="true"></i> </a>'; $notesButton .= '<a href="' . url('leads', $row->id) . '" class="notes_id" data-toggle="modal" data-target="#largeModal"> <i class="fas fa-eye label-new" aria-hidden="true"></i> </a>'; if ($row->status == 3) { $notesButton .= '<a href="' . url('employee/export/' . $row->id . '/word_single_down') . '?employee_id=&campaign_id=&date_from=&date_to=" class="notes_id"> <i class="fa fa-arrow-down label-new" style="color:green"> </i> </a>'; } if (Auth::user()->is_admin == SUBMANAGER) { $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first(); if ($permissions) { $userPermissions = json_decode($permissions->user_permissions); if (!empty($userPermissions->lead->edit) && $userPermissions->lead->edit == 1) { $notesButton .= '<a href="' . url('editlead', $row->id) . '" class="notes_id" data-toggle="modal" data-target="#largeModal"> <i class="fas fa-edit label-new" aria-hidden="true"></i> </a>'; } } } else { $notesButton .= '<a href="' . url('editlead', $row->id) . '" class="notes_id" data-toggle="modal" data-target="#largeModal"> <i class="fas fa-edit label-new" aria-hidden="true"></i> </a>'; } if (Auth::user()->is_admin == SUBMANAGER) { $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first(); if ($permissions) { $userPermissions = json_decode($permissions->user_permissions); if (!empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) { $notesButton .= '<a href="' . url('leads/delete', ['id' => $row->id]) . '" class="notes_id" data-toggle="tooltip" data-placement="top" title="Delete" style="color:red;font-size: 15px;" onclick="return confirm(\'Are you sure you want to delete this lead ?\')"> <i class="fa fa-trash" aria-hidden="true"></i> </a>'; } } } else { $notesButton .= '<a href="' . url('leads/delete', ['id' => $row->id]) . '" class="notes_id" data-toggle="tooltip" data-placement="top" title="Delete" style="color:red;font-size: 15px;" onclick="return confirm(\'Are you sure you want to delete this lead ?\')"> <i class="fa fa-trash" aria-hidden="true"></i> </a>'; } return $notesButton; })
-    
+
     //             ->rawColumns(['action', 'prospect_first_name_new'])
     //             ->make(true);
     //     }
-    
+
     //     $id = '';
     //     return view('leads.employeeclosedleads', compact(
     //         'id',
@@ -1318,32 +1318,32 @@ class SourcesController extends Controller
         $employee_ids = User::where(function ($query) {
             // 1️⃣ Tumhare direct employees aur submanagers
             $query->where('user_id', auth()->id())
-                  ->whereIn('is_admin', ['1', '3']);
+                ->whereIn('is_admin', ['1', '3']);
         })
-        ->orWhereIn('user_id', function ($subquery) {
-            // 2️⃣ Submanagers ke under wale employees
-            $subquery->select('id')
-                     ->from('users')
-                     ->where('user_id', auth()->id())
-                     ->where('is_admin', '3');
-        })
-        ->where('is_active', 1)
-        ->pluck('id');
+            ->orWhereIn('user_id', function ($subquery) {
+                // 2️⃣ Submanagers ke under wale employees
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', auth()->id())
+                    ->where('is_admin', '3');
+            })
+            ->where('is_active', 1)
+            ->pluck('id');
         $comapnyName = Lead::with('source')
-        ->where('status', 3)
-        ->whereIn('asign_to', $employee_ids)
-        ->groupBy('company_name')
-        ->orderBy('company_name','asc')
-        ->get();
+            ->where('status', 3)
+            ->whereIn('asign_to', $employee_ids)
+            ->groupBy('company_name')
+            ->orderBy('company_name', 'asc')
+            ->get();
 
         $sourceNames = Source::select('sources.source_name', 'sources.description')
-        ->join('leads', 'leads.source_id', '=', 'sources.id')
-        ->where('leads.status', 3)
-        ->whereIn('leads.asign_to', $employee_ids)
-        ->groupBy('sources.source_name')
-        ->orderBy('sources.source_name')
-        ->get();
-    
+            ->join('leads', 'leads.source_id', '=', 'sources.id')
+            ->where('leads.status', 3)
+            ->whereIn('leads.asign_to', $employee_ids)
+            ->groupBy('sources.source_name')
+            ->orderBy('sources.source_name')
+            ->get();
+
         $timeZone = Lead::with('source')->where(['status' => 5])
             ->whereIn('asign_to', $employee_ids)
             ->orderBy('timezone', 'asc')
@@ -1359,7 +1359,7 @@ class SourcesController extends Controller
             ->toArray();
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
-            $query = Lead::select('leads.*','sources.source_name','sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
+            $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
                 ->where('status', 5)->whereIn('asign_to', $employee_ids);
             if (!empty(request('cName'))) {
                 $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
@@ -1378,47 +1378,44 @@ class SourcesController extends Controller
             if (!empty(request('closedon'))) {
                 // Ensure 'closedon' is in a valid format (Y-m-d) and match only the date part of updated_at
                 $query->whereRaw('DATE(leads.updated_at) = ?', [request('closedon')]);
-                
+
             }
             // $columnIndex = $request->input('order.0.column'); // this will be 10
             // $direction = $request->input('order.0.dir');      // this will be 'desc'
-            
+
             // if (!is_null($columnIndex) && $columnIndex == 10 && $direction == 'desc') {
             //    $query->orderbyDesc('leads.closed_on')->orderByDesc('leads.updated_at');
-            
+
             // }
 
             // if (!is_null($columnIndex) && $columnIndex == 10 && $direction == 'asc') {
             //     $query->orderBy('leads.closed_on')->orderBy('leads.updated_at');
-             
+
             //  }
 
 
-            
-           
+
+
 
 
             // Apply search and filter conditions
             $search = $request->input('search.value');
 
             if (!empty($search)) {
+
                 $query->where(function ($q) use ($search) {
-            
-                    $q->where('leads.company_name', 'LIKE', "%{$search}%")
-                      ->orWhere('leads.prospect_first_name', 'LIKE', "%{$search}%")
-                      ->orWhere('leads.prospect_last_name', 'LIKE', "%{$search}%")
-                      ->orWhere(DB::raw("CONCAT(leads.prospect_first_name,' ',leads.prospect_last_name)"), 'LIKE', "%{$search}%")
-                      ->orWhere('leads.timezone', 'LIKE', "%{$search}%")
-                      ->orWhere('leads.designation', 'LIKE', "%{$search}%")
-                      ->orWhere('leads.prospect_email', 'LIKE', "%{$search}%")
-                      ->orWhere('leads.contact_number_1', 'LIKE', "%{$search}%")
-            
-                      // 🔥 IMPORTANT FIX — joined table search
-                      ->orWhere('sources.source_name', 'LIKE', "%{$search}%")
-                      ->orWhere('sources.description', 'LIKE', "%{$search}%");
+                    $q->where('company_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('prospect_first_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('prospect_last_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere(DB::raw('CONCAT(prospect_first_name, " ", prospect_last_name)'), 'LIKE', '%' . $search . '%')
+                        ->orWhere('timezone', 'LIKE', '%' . $search . '%')
+                        ->orWhere('designation', 'LIKE', '%' . $search . '%')
+                        ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%')
+                        ->orWhere('sources.description', 'LIKE', '%' . $search . '%')
+                        ->orWhere('sources.source_name', 'LIKE', '%' . $search . '%');
                 });
             }
-            
+
 
 
             return datatables()->of($query)
@@ -1433,79 +1430,79 @@ class SourcesController extends Controller
                 ->addColumn('action', function ($row) {
 
                     $notesButton = '';
-                
+
                     // 📝 Notes
                     $notesButton .= '
-                        <a onclick="shownoteslist('.$row->id.')" class="notes_id">
+                        <a onclick="shownoteslist(' . $row->id . ')" class="notes_id">
                             <i class="fas fa-comment label-new" data-tippy-content="Notes"></i>
                         </a>';
-                
+
                     // 👁 View
                     $notesButton .= '
-                        <a href="'.url('leads', $row->id).'" class="notes_id">
+                        <a href="' . url('leads', $row->id) . '" class="notes_id">
                             <i class="fas fa-eye label-new" data-tippy-content="View Lead"></i>
                         </a>';
-                
+
                     // ⬇ Download (only if status = 3)
                     if ($row->status == 3) {
                         $notesButton .= '
-                            <a href="'.url('employee/export/'.$row->id.'/word_single_down').'?employee_id=&campaign_id=&date_from=&date_to=" class="notes_id">
+                            <a href="' . url('employee/export/' . $row->id . '/word_single_down') . '?employee_id=&campaign_id=&date_from=&date_to=" class="notes_id">
                                 <i class="fa fa-arrow-down label-new" style="color:green" data-tippy-content="Download"></i>
                             </a>';
                     }
-                
+
                     // ✏ Edit permission
                     if (Auth::user()->is_admin == SUBMANAGER) {
-                
+
                         $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
-                
+
                         if ($permissions) {
                             $userPermissions = json_decode($permissions->user_permissions);
-                
+
                             if (!empty($userPermissions->lead->edit) && $userPermissions->lead->edit == 1) {
                                 $notesButton .= '
-                                    <a href="'.url('editlead', $row->id).'" class="notes_id">
+                                    <a href="' . url('editlead', $row->id) . '" class="notes_id">
                                         <i class="fas fa-edit label-new" data-tippy-content="Edit Lead"></i>
                                     </a>';
                             }
                         }
-                
+
                     } else {
                         $notesButton .= '
-                            <a href="'.url('editlead', $row->id).'" class="notes_id">
+                            <a href="' . url('editlead', $row->id) . '" class="notes_id">
                                 <i class="fas fa-edit label-new" data-tippy-content="Edit Lead"></i>
                             </a>';
                     }
-                
+
                     // 🗑 Delete permission
                     if (Auth::user()->is_admin == SUBMANAGER) {
-                
+
                         $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
-                
+
                         if ($permissions) {
                             $userPermissions = json_decode($permissions->user_permissions);
-                
+
                             if (!empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) {
                                 $notesButton .= '
                                 <a href="#"
                                 class="notes_id"
-                                onclick="deleteLead('.$row->id.')">
+                                onclick="deleteLead(' . $row->id . ')">
                                 <i class="fa fa-trash label-new" style="color:red;font-size:15px"
                                     data-tippy-content="Delete Lead"></i>
                              </a>';
                             }
                         }
-                
+
                     } else {
                         $notesButton .= '
                         <a href="#"
                         class="notes_id"
-                        onclick="deleteLead('.$row->id.')">
+                        onclick="deleteLead(' . $row->id . ')">
                         <i class="fa fa-trash label-new" style="color:red;font-size:15px"
                             data-tippy-content="Delete Lead"></i>
                      </a>';
                     }
-                
+
                     return $notesButton;
                 })
                 ->editColumn('prospect_first_name_new', function ($row) {
@@ -1535,13 +1532,13 @@ class SourcesController extends Controller
                         return 'Failed';
                     } elseif ($row->status == 5) {
                         return 'Completed';
-                    }else {
+                    } else {
                         return 'Closed';
                     }
                 })
                 ->addColumn('completed_by', function ($row) {
-                    $employeedetails = User::where('id',$row->asign_to)->first();
-                    return $employeedetails->first_name.' '.$employeedetails->last_name;
+                    $employeedetails = User::where('id', $row->asign_to)->first();
+                    return $employeedetails->first_name . ' ' . $employeedetails->last_name;
                 })
                 ->rawColumns(['action', 'prospect_first_name_new']) // To render HTML in the actions column
                 ->make(true);
@@ -1728,21 +1725,21 @@ class SourcesController extends Controller
             $query->where('user_id', auth()->user()->id)
                 ->orWhere('assign_to_manager', auth()->user()->id);
         })
-        ->where('is_active', 1)->count();
+            ->where('is_active', 1)->count();
         $inactive = Source::where(function ($query) {
             $query->where('user_id', auth()->user()->id)
                 ->orWhere('assign_to_manager', auth()->user()->id);
         })
-        ->where('is_active', 2)
-        ->count();
+            ->where('is_active', 2)
+            ->count();
         $totalCampaigns = Source::where(function ($query) {
             $query->where('user_id', auth()->user()->id)
                 ->orWhere('assign_to_manager', auth()->user()->id);
         })
-        ->count();
+            ->count();
 
 
-        return view('sources.list_new')->with(['managers' => $managers, 'externalManagers' => $externalManagers,'permissions'=>$permissions,'active'=>$active,'inactive'=>$inactive,'totalCampaigns'=>$totalCampaigns]);
+        return view('sources.list_new')->with(['managers' => $managers, 'externalManagers' => $externalManagers, 'permissions' => $permissions, 'active' => $active, 'inactive' => $inactive, 'totalCampaigns' => $totalCampaigns]);
     }
 
     public function leadscount(Request $request)
