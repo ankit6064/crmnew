@@ -632,6 +632,7 @@ div#employee-table_length {
     background: #071e38;
     color: #fff;
     border: none;
+    padding: 10px 25px;
 }
 .modal-header span {
     color: #fff !important;
@@ -644,10 +645,16 @@ div#employee-table_length {
     color: #fff;
     padding: 0;
 }
+.modal.show .modal-dialog thead.heading-custom th {
+    padding: 9px;
+}
 .modal-footer button.btn.btn-info {
     background: #0E3C70;
     color: #ffff;
     font-weight: 700;
+}
+.modal.show .modal-dialog th {
+    padding: 15px 20px !important;
 }
 table.table.table-bordered {
     border-collapse: collapse !important;
@@ -661,13 +668,13 @@ table.table.table-bordered thead tr th {
     background: #f5f5f5 !important;
 }
 table.table.table-bordered tbody tr td {
-    padding: 20px !important;
+    padding: 15px 20px !important;
 }
 div#employeelistingbody {
     padding-bottom: 0;
 }
 .graph div#employeelisting tr th {
-    padding: 25px 20px !important;
+    padding: 15px 20px !important;
 }
 .modal-footer {
     border: none;
@@ -1147,6 +1154,7 @@ button.btn.btn-success.addButton {
     gap: 10px !important;
     align-items: center !important;
     justify-content: end;
+       padding: 31px !important;
 }
 .graph.customclass div#employee-table_wrapper table#employee-table {
     display: inline-table !important;
@@ -1360,6 +1368,7 @@ select.form-control.custom-select {
     display: flex;
     align-items: center;
     gap: 15px;
+     flex-wrap:wrap;
   }
   .employee-filterss .filter-select, .filter-date::placeholder {
       color: #0000003d !important;
@@ -1762,9 +1771,6 @@ form.assignleadform .input-box .edit-icon {
 .graph.customclass tr td:last-child a:hover {
     background: transparent !important;
 }
-.main-right.view-camp select#source_id {
-    margin-bottom: 25px;
-}
 .main-right.view-camp .filter-container {
     display: block !important;
 }
@@ -2018,6 +2024,8 @@ div#RevertModel select.form-control.ReassignedCustomer {
     max-width: 120px;
     text-align: center;
 }
+
+
 /*-mediaquery-*/
 @media screen and (max-width: 1366px) and (min-width: 1200px) {
   .main-right .card-header h4 {
@@ -2033,6 +2041,8 @@ div#RevertModel select.form-control.ReassignedCustomer {
 .sidebar {
     width: 21vw;
 }
+
+
 }
 
 @media screen and (max-width: 1199px) and (min-width: 768px)
@@ -2052,6 +2062,9 @@ div#RevertModel select.form-control.ReassignedCustomer {
 }
 .main-right .graph{
     margin: 0 auto;
+}
+.employee-filterss .filter-container {
+    margin-bottom: 25px !important;
 }
 }
 

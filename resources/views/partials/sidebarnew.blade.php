@@ -78,13 +78,13 @@
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">
-        <a href="{{ route('leads.create') }}"><i class="fas fa-plus"></i>Add Lead</a>
-        <a href="{{ route('leads.assign_lead_emp') }}"><i class="fas fa-plus"></i>Assign Lead</a>
+        <a href="{{ route('leads.create') }}"><i class="fa-solid fa-user-plus"></i>Add Lead</a>
+        <a href="{{ route('leads.assign_lead_emp') }}"><i class="fa-solid fa-user-check"></i>Assign Lead</a>
         
-        <a href="{{ route('leads.unapprovedLeads') }}"><i class="fas fa-eye"></i>Unapproved Leads</a>
+        <a href="{{ route('leads.unapprovedLeads') }}"><i class="fa-solid fa-user-clock"></i>Unapproved Leads</a>
 
-            <a href="{{ route('employeeclosedleads') }}"><i class="fas fa-eye"></i>Emp. Closed Leads</a>
-            <a href="{{ route('employeecompletedleads') }}"><i class="fas fa-eye"></i>Emp. Completed Leads</a>
+            <a href="{{ route('employeeclosedleads') }}"><i class="fa-solid fa-circle-xmark"></i>Emp. Closed Leads</a>
+            <a href="{{ route('employeecompletedleads') }}"><i class="fa-solid fa-circle-check"></i>Emp. Completed Leads</a>
         </div>
     </div>
 
