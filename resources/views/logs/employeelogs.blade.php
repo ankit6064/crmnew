@@ -7,7 +7,7 @@
 		<h2>Employee Logs</h2>
 
 		<!-- Filter Section -->
-		<div class="employee-filterss">
+		<div class="employee-filterss employeefilter2">
 			<div class="filter-container">
 				<select id="employee_id" class="filter-select">
 					<option value="">Select Employee</option>
