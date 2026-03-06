@@ -1,657 +1,517 @@
 @extends('layouts.admin')
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
-<style>
-    .table td,
-    .table th {
-        padding: 5px 0 !important;
-        font-size: 12.5px;
-        vertical-align: middle !important;
-    }
+@push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+@endpush
 
-    .table-striped tbody tr:nth-of-type(odd) {
-        background: #f2f4f859 !important;
-    }
-
-    .wraping {
-        height: auto !important;
-    }
-
-    .table-responsive>.table-bordered {
-        border: 1px solid #dee2e6 !important;
-    }
-
-    .label-new {
-        display: inline-block;
-        font-size: 15px !important;
-        color: black !important;
-        padding: 3px 10px;
-        line-height: 13px;
-    }
-</style>
 
 @section('content')
 
-<style type="text/css">
-    .icons {
-        width: 40px;
-    }
-</style>
-<?php date_default_timezone_set('Asia/Kolkata'); ?>
-<div class="row page-titles">
-    <div class="col-md-5 align-self-center">
-        <h3 class="text-themecolor">Dashboard</h3>
-    </div>
-    <div class="col-md-7 align-self-center">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-            <li class="breadcrumb-item active">Lead List </li>
-        </ol>
-    </div>
-    <div>
-    </div>
-</div>
+    <input type="hidden" id="source_id" value="{{ $id }}">
 
-<input type="hidden" value="{{$id}}" id="source_id">
-<div class="container-fluid">
-    <!-- ============================================================== -->
-    <!-- Start Page Content -->
-    <!-- ============================================================== -->
-    <div class="row">
-        <div class="col-12">
-            @if (Session::has('success'))
-                <div class="alert alert-success" role="alert">
-                    {{Session::get('success')}}
-                </div>
-            @elseif (Session::has('error'))
-                <div class="alert alert-danger" role="alert">
-                    {{Session::get('error')}}
-                </div>
-            @endif
+    <div class="main-right">
+        <div class="right-side submanager completed-leads closed-leads">
 
-            <div class="card card-outline-info">
-                <div class="card-header">
-                    <h4 class="m-b-0 text-white">Leads</h4>
+            <h2>Leads Listing</h2>
+
+            <div class="graph campaignslist">
+
+                <!-- Filters -->
+                <!-- <div class="row">
+                                    <div class="add-submanager">
+                                        <input type="search" id="global_filter" name="search" placeholder="search...">
+                                    </div>
+
+                                </div> -->
+                <div class="filter-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+                    <!-- Company Filter -->
+                    <select id="company_s" class="filter-select">
+                        <option value="">Company</option>
+                        @foreach($comapnyName as $c)
+                            <option value="{{ $c['company_name'] }}">{{ $c['company_name'] }}</option>
+                        @endforeach
+                    </select>
+
+                    <!-- Timezone -->
+                    <select id="company_time" class="filter-select">
+                        <option value="">Time Zone</option>
+                        @foreach($timeZone as $t)
+                            <option value="{{ $t['timezone'] }}">{{ $t['timezone'] }}</option>
+                        @endforeach
+                    </select>
+
+                    <button id="reset_filters" class="btn btn-secondary">
+                        <i class="fa fa-rotate-left"></i> Reset
+                    </button>
+
                 </div>
 
-                <div class="card-body">
-                    <div class="table-responsive m-t-40" style="padding-bottom: 50px;">
-                        <div class="">
-                                                <label for="recipient-name" class="control-label">Search: </label>
-                                                &nbsp; 
-                                                <input type="text" placeholder="Global Search" class="global_filter newfilter" id="global_filter" name="search" value="">
-                                                                                                <!-- <button class="btn btn-success"> Search </button> -->
 
-                                            </div>
-                                           
-                        <table id="example23" class="display nowrap table table-hover table-striped table-bordered"
-    cellspacing="0" width="100%">
-    <thead>
-        <tr>
-            <th>Action</th>
-            <th>Company Name <br>
-                <select id="company_s" style="margin-top: 5px;">
-                    <option value="">Select Company</option>
-                    <?php if (!empty($comapnyName)) {
-                        foreach ($comapnyName as $comapnyNameValue) {
-                            if (!empty($comapnyNameValue['company_name']) && $comapnyNameValue['company_name'] != "0") { ?>
-                                <option value="{{ $comapnyNameValue['company_name'] }}">
-                                    {{ $comapnyNameValue['company_name'] }}
-                                </option>
-                    <?php } } } ?>
-                </select>
-            </th>
-            <th>Prospect Name</th>
-            <th>Time Zone <br>
-                <select id="company_time" style="margin-top: 5px;">
-                    <option value="">Select Time Zone</option>
-                    <?php if (!empty($timeZone)) {
-                        foreach ($timeZone as $timeZoneValue) {
-                            if (!empty($timeZoneValue['timezone'])) { ?>
-                                <option value="{{ $timeZoneValue['timezone'] }}">
-                                    {{ $timeZoneValue['timezone'] }}
-                                </option>
-                    <?php } } } ?>
-                </select>
-            </th>
-            <th>Designation</th>
-            <th>Phone No.</th>
-            <th>Phone No. 2</th>
-            <th>Last Updated Note</th>
-        </tr>
-    </thead>
-    <tbody>
-    </tbody>
-</table>
 
+                <!-- Datatable -->
+                <div class="table">
+                    <div class="table-container">
+                        <table id="employee-table">
+                            <thead class="thead-main">
+                                <tr>
+                                    <th>Company Name</th>
+                                    <th>Prospect Name</th>
+                                    <th>Time Zone </th>
+                                    <th>Designation</th>
+                                    <th>Phone No.</th>
+                                    <th>Phone No. 2</th>
+                                    <th>Last Updated Note</th>
+                                    <th>Action</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-
-
-            <!-- Quick Notes Add -->
-            {{-- <form action="{{route('notes.store')}}" method="post"> --}}
-                {{-- @csrf --}}
-                <form id="form">
-                    <div id="status-modal-quicknote" class="modal fade" tabindex="-1" role="dialog"
-                        aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <meta name="csrf-token" content="{{ csrf_token() }}" />
-                                <div>
-                                    <ul></ul>
-                                </div>
-                                <style type="text/css">
-                                    .responseconversrespo {
-                                        float: left;
-                                        width: 50%;
-                                        margin-bottom: 10px;
-                                    }
-                                </style>
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Add Quick Note</h4>
-                                    <button type="button" id="modelclose" class="close modal-close" data-dismiss="modal"
-                                        aria-hidden="true" style="color:black">×</button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="form-group responseconvers">
-                                        <div class="responseconversrespo">
-                                            <input type="radio" class="conversation_type" id="NoResponse"
-                                                name="conversation_type" value="NoResponse" checked="checked">
-                                              <label for="NoResponse">VM/No Response</label><br>
-                                        </div>
-                                        <div class="responseconversrespo">
-                                              <input type="radio" class="conversation_type" id="Conversation"
-                                                name="conversation_type" value="Conversation">
-                                              <label for="Conversation">Conversation</label><br>
-                                        </div>
-                                    </div>
-                                    <div class="NoResponseData">
-                                        <div class="form-group" id="status" name="status">
-                                            <label class="control-label">Reminder Date</label>
-                                            <input type="date" class="form-control" placeholder="Reminder Date"
-                                                name="reminder_date" value="{{ old('reminder_date') }}" id="min-date"
-                                                data-dtp="dtp_2827e">
-                                            <label class="control-label">Reminder Time</label>
-                                            <input type="time" class="form-control" id="reminder_time"
-                                                name="reminder_time">
-                                            <label class="control-label">Conversation Type</label>
-                                            {{-- <input type="text" class="form-control required"
-                                                placeholder="Reminder Type" id="reminder_for" name="reminder_for"
-                                                value="{{ old('reminder_for') }}"> --}}
-                                            <select id="reminder_for" class="form-control required" name="reminder_for">
-                                                <option value="">Choose Conversation Type</option>
-                                                <option value="Declined">Declined</option>
-                                                <option value="DNC">DNC</option>
-                                                <option value="Follow-up Call">Follow-up Call</option>
-                                                <option value="Follow-up Email/Info Requested">Follow-up Email/Info
-                                                    Requested</option>
-                                                <option value="Meeting Set-up">Meeting Set-up</option>
-                                                <option value="Not Interested">Not Interested</option>
-                                                <option value="Not Right Party">Not Right Party</option>
-                                                <option value="Reference Shared">Reference Shared</option>
-                                            </select>
-                                            <div class="alert alert-danger print-error-msg-1" style="display:none">
-                                                <ul class="custom_text-1"></ul>
-                                            </div>
-                                            @if(Auth::user()->is_admin == 1)
-                                            <label class="control-label">Phone Number</label>
-                                            <input type="tel" class="form-control" placeholder="Phone Number" name="phone_number" value="" id="phone_number" pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number">
-                                            @else
-                                            <input type="tel" class="form-control" placeholder="Phone Number" name="phone_number" value="" id="phone_number" pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number" style="display:none">
-
-                                            @endif
-                                            <label class="control-label">Note</label>
-                                            <input type="hidden" class="form-control" name="lead_id"
-                                                placeholder="Lead Id" value="{{isset($data['id'])}}">
-                                            <textarea required type="text" class="form-control required" name="feedback"
-                                                id="feedback" placeholder="Enter Note"
-                                                style="min-height: 130px;">{{ old('note') }}</textarea>
-                                            <div class="alert alert-danger print-error-msg" style="display:none">
-                                                <ul class="custom_text"></ul>
-                                            </div>
-                                            @if($errors->has('status'))
-                                                <div class="alert alert-danger">{{ $errors->first('status') }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                </div>
-
-
-                                <div class="modal-footer">
-                                    <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
-                                    <button type="button" class="btn btn-default waves-effect modal-close"
-                                        data-dismiss="modal">Close</button>
-                                    {{-- <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i>
-                                        Save</button> --}}
-                                    <button id="save-data-quick-note" type="button"
-                                        class="btn btn-info waves-effect waves-light ">Add Note</button>
-                                </div>
-                            </div>
-                </form>
         </div>
     </div>
 
 
 
-</div>
 
-
-<div id="status-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="ajaxform">
+    <!-- =================================================================== -->
+    <!--                        QUICK NOTE MODAL                             -->
+    <!-- =================================================================== -->
+    <div id="status-modal-quicknote" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
 
                 <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-                <div>
-                    <ul></ul>
+                <div class="modal-header">
+                    <h4 class="modal-title">Add Quick Note</h4>
+                    <button type="button" class="close modal-close" data-dismiss="modal">×</button>
                 </div>
 
-                <div class="modal-header">
-                    <h4 class="modal-title">Change Status</h4>
-                    <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true"
-                        style="color:black">×</button>
-                </div>
-                <div class="alert alert-danger print-error-msg" style="display:none">
-                    <ul></ul>
-                </div>
                 <div class="modal-body">
 
                     <div class="form-group">
-                        <label for="recipient-name" class="control-label">Select Status: </label>
-                        <select class="form-control" id="status" name="status" required>
+                        <input type="radio" name="conversation_type" value="NoResponse" checked> VM / No Response
+                        &nbsp;&nbsp;
+                        <input type="radio" name="conversation_type" value="Conversation"> Conversation
+                    </div>
+
+                    <!-- Reminder Fields -->
+                    <div class="form-group">
+                        <label>Reminder Date</label>
+                        <input type="date" id="min-date" class="form-control">
+
+                        <label>Reminder Time</label>
+                        <input type="time" id="reminder_time" class="form-control">
+
+                        <label>Conversation Type</label>
+                        <select id="reminder_for" class="form-control">
+                            <option value="">Choose Option</option>
+                            <option value="Declined">Declined</option>
+                            <option value="DNC">DNC</option>
+                            <option value="Follow-up Call">Follow-up Call</option>
+                            <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
+                            <option value="Meeting Set-up">Meeting Set-up</option>
+                            <option value="Not Interested">Not Interested</option>
+                            <option value="Not Right Party">Not Right Party</option>
+                            <option value="Reference Shared">Reference Shared</option>
+                        </select>
+
+                        <label>Note</label>
+                        <textarea id="feedback" class="form-control" style="min-height:130px;"></textarea>
+
+                        <div class="alert alert-danger print-error-msg" style="display:none">
+                            <ul></ul>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <input type="hidden" id="lead_id_quick_note">
+                    <button class="btn btn-default modal-close" data-dismiss="modal">Close</button>
+                    <button class="btn btn-info" id="save-data-quick-note">Add Note</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- =================================================================== -->
+    <!--                        STATUS CHANGE MODAL                           -->
+    <!-- =================================================================== -->
+    <div id="status-modal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="ajaxform">
+
+                    <meta name="csrf-token" content="{{ csrf_token() }}" />
+
+                    <div class="modal-header">
+                        <h4 class="modal-title">Change Status</h4>
+                        <button type="button" class="close close-status-modal" data-dismiss="modal">×</button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <label>Select Status</label>
+                        <select class="form-control" id="status" name="status">
                             <option value="">Select Status</option>
                             <option value="4">In progress</option>
                             <option value="3">Closed</option>
                             <option value="2">Failed</option>
                         </select>
-                        @if($errors->has('status'))
-                            <div class="alert alert-danger">{{ $errors->first('status') }}</div>
-                        @endif
+
+                        <div class="alert alert-danger print-error-msg" style="display:none">
+                            <ul></ul>
+                        </div>
+
                     </div>
 
-                </div>
-                <div class="modal-footer">
-                    <input type="hidden" id="lead_id" name="lead_id">
-                    <button type="button" class="btn btn-default waves-effect close-status-modal"
-                        data-dismiss="modal">Close</button>
-                    <button id="save-data" type="button" class="btn btn-info waves-effect waves-light ">Save
-                        changes</button>
-                </div>
+                    <div class="modal-footer">
+                        <input type="hidden" id="lead_id">
+                        <button class="btn btn-default close-status-modal" data-dismiss="modal">Close</button>
+                        <button id="save-data" type="button" class="btn btn-info">Save changes</button>
+                    </div>
+
+                </form>
+
+            </div>
         </div>
-        </form>
     </div>
-</div>
-<!-- large modal -->
-<div class="modal fade" id="largeModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+
+
+    <div class="modal fade" id="numberModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="myModalLabel">View Note</h4>
-                <button type="button" class="close largemodal-close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true" style="color:black">&times;</span>
+            <div class="modal-header" style="background: #192e62; color: #fff; padding: 10px 15px;">
+                <h6 class="modal-title">Contact Numbers</h6>
+                <button type="button" class="close" data-dismiss="modal" style="color: #fff; opacity: 1;" onclick="closemodal();">
+                    <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-body">
-                    <input type="hidden" name="view_lead_id" value=<?php $lead_id = "";?>>
-                </div>
-                {{-- @else
-                <div> Empty data</div>
-                @endif --}}
-                <div class="table-responsive m-t-40" id="notes_data">
-
-
-
-                </div>
+                <div id="numberRow" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;">
+                    </div>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-success largemodal-close" data-dismiss="modal">Close</button>
-            <button type="button" style="display: none;" class="btn btn-primary">Save changes</button>
         </div>
     </div>
 </div>
-</div>
+
+
+
+    <!-- =================================================================== -->
+    <!--                       VIEW NOTES MODAL                              -->
+    <!-- =================================================================== -->
+    <div class="modal fade" id="largeModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h4 class="modal-title">View Notes</h4>
+                    <button class="close largemodal-close" data-dismiss="modal" onclick="closemodal()">×</button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="notes_data" class="table-responsive"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-success largemodal-close" data-dismiss="modal"
+                        onclick="closemodal()">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+@endsection
+
+
+
+
 @push('scripts')
-    <script src="{{url('vendor/moment/moment.js')}}"></script>
 
-    <script src="{{url('vendor/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js')}}">
-    </script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
     <script>
         $(document).ready(function () {
-    $('#spinner-overlay').show(); // Show full-page spinner
+            $('#spinner-overlay').show(); // Show full-page spinner
 
-    var sourceId = $('#source_id').val();
-    var url = "{{ url('campaign/camp_assign_emp') }}/" + sourceId;
+            var sourceId = $('#source_id').val();
+            var url = "{{ url('campaign/camp_assign_emp') }}/" + sourceId;
 
-    var table = $('#example23').DataTable({
-        processing: false,
-        serverSide: true,
-        searching: true, // Enable search globally
-        ajax: {
-            url: url,
-            data: function (d) {
-                d.timeZone = $('#company_time :selected').val();
-                d.cName = $('#company_s :selected').val();
-                d.orderBy = $('#note_time :selected').val();
-                d.search = $('#global_filter').val();
+            var table = $('#employee-table').DataTable({
+                processing: false,
+                serverSide: true,
+                searching: true, // Enable search globally
+                ajax: {
+                    url: url,
+                    data: function (d) {
+                        d.timeZone = $('#company_time :selected').val();
+                        d.cName = $('#company_s :selected').val();
+                        d.orderBy = $('#note_time :selected').val();
 
-            },
-            error: function (xhr, error, thrown) {
-                console.error("AJAX Error:", xhr.responseText);
-            }
-        },
-        columns: [
-            { data: 'action', name: 'action', orderable: false, searchable: false },
-            { data: 'company_name', name: 'company_name', orderable: true,searchable:true },
-            { data: 'prospect_first_name', name: 'prospect_first_name' },
-            { data: 'timezone', name: 'timezone', orderable: false },
-            { data: 'designation', name: 'designation',orderable:false },
-            { data: 'contact_number_1', name: 'contact_number_1',orderable:false },
-            { data: 'contact_number_2', name: 'contact_number_2',orderable:false },
-            { data: 'update_note_date', name: 'update_note_date' }
-        ],
-        rawColumns: ['action'] // Ensure HTML is rendered in the actions column
-    });
-
-    // Show spinner overlay on processing start
-    table.on('preXhr.dt', function (e, settings, data) {
-        $('#spinner-overlay').show(); // Show full-page spinner
-    });
-
-    // Hide spinner overlay when data is loaded
-    table.on('xhr.dt', function (e, settings, json, xhr) {
-        $('#spinner-overlay').hide(); // Hide full-page spinner
-    });
-
-    // Ensure filters work by putting event listener inside $(document).ready()
-    $('#company_time, #company_s, #note_time').on('change', function() {
-        console.log('Filter changed! Reloading table...');
-        table.ajax.reload(); // Reload DataTable with new filter values
-    });
-    
-     $('#global_filter').on('keyup', function() {
-
-        table.ajax.reload(); // Reload DataTable with new filter values
-    });
-});
-
-    </script>
-
-    <script>
-        /* ============================ */
-        $("#save-data-quick-note").click(function (event) {
-            event.preventDefault();
-            let feedback = $("[name=feedback]").val();
-            var selectedVal = "";
-            var selected = $("input[type=radio][name=conversation_type]:checked");
-            if (selected.length > 0) {
-                selectedVal = selected.val();
-            }
-            var selecteddata = ""
-            if (selectedVal == 'Conversation') {
-                selecteddata = $('#reminder_for').val();
-            } else {
-                selecteddata = 1;
-            }
-
-            if (selecteddata == 0) {
-                $('.alert.alert-danger.print-error-msg-1').show();
-                $('ul.custom_text-1').html('<li class="error_list"><span class="tab">Conversation Type Cannot Be Empty!</span></li>');
-            } else if (feedback == 0) {
-                $('.alert.alert-danger.print-error-msg-1').hide();
-                $('.alert.alert-danger.print-error-msg').show();
-                $('ul.custom_text').html('<li class="error_list"><span class="tab">Note Field Cannot Be Empty!</span></li>');
-            } else {
-                $('.alert.alert-danger.print-error-msg').hide();
-                $('ul.custom_text').html('');
-                let feedback = $("[name=feedback]").val();
-                let reminder_date = $("[name=reminder_date]").val();
-                let reminder_time = $("[name=reminder_time]").val();
-                let source_id = $("[name=source_id]").val();
-                console.log(reminder_time);
-                let reminder_for = $("[name=reminder_for]").val();
-                let lead_id = $("input[name=lead_id_quick_note]").val();
-                let _token = $('meta[name="csrf-token"]').attr('content');
-                $.ajax({
-                    url: '{{url("leads/add_note")}}',
-                    type: "POST",
-                    data: {
-                        source_id: source_id,
-                        reminder_date: reminder_date,
-                        reminder_time: reminder_time,
-                        reminder_for: reminder_for,
-                        lead_id: lead_id,
-                        feedback: feedback,
-                        phone_number : $('#phone_number').val(),
-                        _token: _token
                     },
-                    success: function (response) {
-                        if ($.isEmptyObject(response.error)) {
-                            console.log(response);
-                            toastr.success(response.success, 'Success!');
-                            if(selectedVal != 'NoResponse'){
-                                $('#feedback').val('');
-
-                            }else{
-                                $('#feedback').val('');
-                                $('#feedback').val('VM/No Response');
-                            }
-                            $('#phone_number').val('');
-                            $('#min-date').val("");
-                            $('#reminder_for').val("");
-                            $('#reminder_time').val("");
-                            $('.alert.alert-danger.print-error-msg-1').hide();
-                            $('.alert.alert-danger.print-error-msg').hide();
-                            $("#NoResponse").trigger("click");
-                            $("#modelclose").trigger("click");
-                        } else {
-                            toastr.error(response.error, 'Error!');
-                        }
-                    },
-                });
-            }
-
-            function printErrorMsg(msg) {
-                console.log(msg);
-                $(".print-error-msg").find("ul").html('');
-                $(".print-error-msg").css('display', 'block');
-                $(".print-error-msg").find("ul").append('<li>' + msg + '</li>');
-            }
-        });
-
-        function shownoteslist(lead_id) {
-            var url = '{{url("leads/notes_view")}}';
-            var full_url = url + '/' + lead_id;
-            $.ajax({
-                url: full_url,
-                type: "GET",
-                data: {
-                    lead_id: lead_id
-                },
-                success: function (response) {
-                    $('#largeModal').modal('show');
-                    if ($.isEmptyObject(response.error)) {
-                        console.log(response.notes_data);
-                        console.log(response.table);
-                        $("#notes_data").html('');
-                        $("#notes_data").html(response.table);
-                    } else {
-                        toastr.error(response.error, 'Error!');
+                    error: function (xhr, error, thrown) {
+                        console.error("AJAX Error:", xhr.responseText);
                     }
-
                 },
+                columns: [
+                    { data: 'company_name', name: 'company_name', orderable: true, searchable: true },
+                    { data: 'prospect_first_name', name: 'prospect_first_name' },
+                    { data: 'timezone', name: 'timezone', orderable: false },
+                    { data: 'designation', name: 'designation', orderable: false },
+                    { data: 'contact_number_1', name: 'contact_number_1', orderable: false },
+                    { data: 'contact_number_2', name: 'contact_number_2', orderable: false },
+                    { data: 'update_note_date', name: 'update_note_date' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false },
+
+                ],
+                drawCallback: function() {
+                   
+                    tippy('.viewnotes', {
+                        content: 'View Notes',
+                        placement: 'top',
+                        arrow: true,
+                        animation: 'scale'
+                    });
+                    tippy('.addnotes', {
+                        content: 'Add Note',
+                        placement: 'top',
+                        arrow: true,
+                        animation: 'scale'
+                    });
+                    tippy('.changestatus', {
+                        content: 'Change Status',
+                        placement: 'top',
+                        arrow: true,
+                        animation: 'scale'
+                    });
+                    tippy('.editLeads', {
+                        content: 'Edit Leads',
+                        placement: 'top',
+                        arrow: true,
+                        animation: 'scale'
+                    });
+                    tippy('.deleteLeads', {
+                        content: 'Delete Leads',
+                        placement: 'top',
+                        arrow: true,
+                        animation: 'scale'
+                    });
+                },
+                initComplete: function () {
+                    $('div.dataTables_filter input')
+                        .attr('placeholder', 'Search by company, prospect, designation')
+                        .css({ 'width': '250px' });
+
+                    $('#spinner-overlay').hide();
+                },
+                rawColumns: ['action'] // Ensure HTML is rendered in the actions column
             });
 
-        }
+            // Show spinner overlay on processing start
+            table.on('preXhr.dt', function (e, settings, data) {
+                $('#spinner-overlay').show(); // Show full-page spinner
+            });
 
+            // Hide spinner overlay when data is loaded
+            table.on('xhr.dt', function (e, settings, json, xhr) {
+                $('#spinner-overlay').hide(); // Hide full-page spinner
+            });
 
-        $("#status_search").change(function () {
-            if ($(this).val() == "0") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col0').addClass('show');
-            }
-            else if ($(this).val() == "1") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col1').addClass('show');
-            } else if ($(this).val() == "2") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col2').addClass('show');
-            }
-            else if ($(this).val() == "3") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col3').addClass('show');
-            }
-            else if ($(this).val() == "5") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col4').addClass('show');
-            }
-            else if ($(this).val() == "6") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col6').addClass('show');
-            }
-            else if ($(this).val() == "7") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col7').addClass('show');
-            }
-            else if ($(this).val() == "8") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col8').addClass('show');
-            }
-            else if ($(this).val() == "9") {
-                $('.filter_call').removeClass('show');
-                $('#filter_col9').addClass('show');
-            }
-        });
+            // Ensure filters work by putting event listener inside $(document).ready()
+            $('#company_time, #company_s, #note_time').on('change', function () {
+                console.log('Filter changed! Reloading table...');
+                table.ajax.reload(); // Reload DataTable with new filter values
+            });
 
-        $(document).ready(function () {
-            $('#feedback').text('VM/No Response');
-            $('input[type=radio][name=conversation_type]').change(function () {
-                if (this.value == 'NoResponse') {
-                    $('#feedback').val('VM/No Response');
-                    $('#min-date').val("");
-                    $('#reminder_for').val("");
-                    $('#reminder_time').val("");
-                    $('.alert.alert-danger.print-error-msg-1').hide();
-                    $('.alert.alert-danger.print-error-msg').hide();
-                } else if (this.value == 'Conversation') {
-                    $('.alert.alert-danger.print-error-msg-1').hide();
-                    $('.alert.alert-danger.print-error-msg').hide();
-                    $('#feedback').val('');
-                    $('#min-date').val("");
-                    $('#reminder_for').val("");
-                    $('#reminder_time').val("");
-                }
+            $('#global_filter').on('keyup', function () {
+
+                table.ajax.reload(); // Reload DataTable with new filter values
             });
         });
+
     </script>
 
     <script>
+
+
+
+        // ======================================================
+        //  OPEN QUICK NOTE MODAL
+        // ======================================================
         function showaddmodal(id) {
             $('#lead_id_quick_note').val(id);
             $('#status-modal-quicknote').modal('show');
         }
 
-        $('.modal-close').on('click', function (event) {
-            $('#status-modal-quicknote').modal('hide');
-        });
 
-        $('.largemodal-close').on('click', function (event) {
-            $('#largeModal').modal('hide');
-        });
+        // ======================================================
+        //  SAVE QUICK NOTE
+        // ======================================================
+        $('#save-data-quick-note').click(function () {
 
-        function showstatusmodal(id) {
-            $('#lead_id').val(id);
-            $('#status-modal').modal('show');
+            let lead_id = $('#lead_id_quick_note').val();
+            let reminder_date = $('#min-date').val();
+            let reminder_time = $('#reminder_time').val();
+            let reminder_for = $('#reminder_for').val();
+            let feedback = $('#feedback').val();
+            let type = $('input[name=conversation_type]:checked').val();
 
-        }
+            let _token = $('meta[name="csrf-token"]').attr('content');
 
-        $('.close-status-modal').on('click', function (event) {
-            $('#status-modal').modal('hide');
-        });
+            $.post("{{ url('leads/add_note') }}", {
+                lead_id, reminder_date, reminder_time, reminder_for, feedback, type, _token
+            }, function (res) {
 
-
-        $(document).ready(function () {
-
-            $("#save-data").click(function (event) {
-                event.preventDefault();
-
-                let status = $("select[name=status]").val();
-                let lead_id = $("#lead_id").val();
-                let _token = $('meta[name="csrf-token"]').attr('content');
-
-
-                //alert(status+'--lead='+lead_id+'--token='+_token);
-
-                $.ajax({
-                    url: '{{url("changeStatus")}}',
-                    type: "POST",
-                    data: {
-                        lead_id: lead_id,
-                        status: status,
-                        _token: _token
-                    },
-                    success: function (response) {
-
-                        //console.log(response);
-
-                        if ($.isEmptyObject(response.error)) {
-                            console.log(response);
-                            toastr.success(response.success, 'Success!')
-                            if (response) {
-                                $(".print-error-msg").css('display', 'none');
-                                $('.success').text(response.success);
-                                if (response.status == 'failed') {
-                                    var Current_url = base_url + "/leads/failed";
-                                    window.location.href = Current_url;
-                                } else if (response.status == 'close') {
-                                    var Current_url = base_url + "/leads/closed";
-                                    window.location.href = Current_url;
-                                } else {
-                                    // var  Current_url = base_url+"/leads/closed";
-                                    //  window.location.href = Current_url;
-                                    location.reload(true); // inprogress
-                                }
-                                //location.reload(true);
-                                $("#ajaxform")[0].reset();
-                                //}else{
-                                // printErrorMsg(response.error);
-                            }
-
-                        } else {
-                            printErrorMsg(response.lhs_link);
-
-                            //$('.error').text(response.error);
-                            toastr.error(response.error, 'Error!');
-                            // location.reload(true);
-                            // toastr.error('errors messages');
-                        }
-
-                    },
-                });
-
-
-                function printErrorMsg(msg) {
-                    console.log(msg);
-                    $(".print-error-msg").find("ul").html('');
-                    $(".print-error-msg").css('display', 'block');
-                    //$.each( msg, function( key, value ) {
-                    $(".print-error-msg").find("ul").append('<li>' + msg + '</li>');
-                    // });
+                if (res.success) {
+                    toastr.success(res.success);
+                    $('#status-modal-quicknote').modal('hide');
+                } else {
+                    toastr.error("Something went wrong");
                 }
-
 
             });
 
         });
 
 
+        // ======================================================
+        //  OPEN STATUS CHANGE MODAL
+        // ======================================================
+        function showstatusmodal(id) {
+            $('#lead_id').val(id);
+            $('#status-modal').modal('show');
+        }
+
+
+        // ======================================================
+        //  SAVE STATUS
+        // ======================================================
+        $('#save-data').click(function () {
+
+            let lead_id = $('#lead_id').val();
+            let status = $('#status').val();
+            let _token = $('meta[name="csrf-token"]').attr('content');
+
+            $.post("{{ url('changeStatus') }}", { lead_id, status, _token }, function (res) {
+
+                if (res.success) {
+                    toastr.success(res.success);
+                    $('#status-modal').modal('hide');
+                    location.reload();
+                } else {
+                    toastr.error(res.error);
+                }
+
+            });
+
+        });
+
+
+        // ======================================================
+        //  VIEW NOTES
+        // ======================================================
+        function shownoteslist(id) {
+
+            $.get("{{ url('leads/notes_view') }}/" + id, function (res) {
+
+                $('#notes_data').html(res.table);
+                $('#largeModal').modal('show');
+
+            });
+
+        }
+
+        function closemodal() {
+            $('#largeModal').modal('hide');
+
+        }
+
+        function deleteLead(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You won\'t be able to revert this!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Perform the AJAX request to delete the manager
+                    $.ajax({
+                        url: `delete/${id}`, // Adjust this URL to match your route
+                        type: 'GET', // Use GET request for deletion
+                        success: function (response) {
+                            // Handle successful response (e.g., show a success message)
+                            Swal.fire(
+                                'Deleted!',
+                                'The lead has been deleted.',
+                                'success'
+                            );
+
+                            // Redraw the DataTable to reflect the changes
+                            $('#employee-table').DataTable()
+                                .draw(); // Redraw the DataTable
+                        },
+                        error: function (xhr, status, error) {
+                            // Handle error (e.g., show an error message)
+                            Swal.fire(
+                                'Error!',
+                                'There was an issue deleting the lead.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        }
+
+        $('#reset_filters').on('click', function () {
+
+            // Reset dropdowns
+            $('#company_s').val('');
+            $('#company_time').val('');
+            $('#note_time').val('');
+
+            // Reset search
+            $('#global_filter').val('');
+
+            // Reload DataTable
+            table.ajax.reload();
+        });
+
+        function showAllNumbers(numbers) {
+    let rowHtml = '';
+
+        rowHtml += '<p>' + numbers + '</p>';
+    
+
+    $('#numberRow').html(rowHtml);
+    $('#numberModal').modal('show');
+}
+
+
+
+function closemodal(){
+    $('#numberModal').modal('hide');
+
+}
+
     </script>
 
-
 @endpush
-
-@endsection

@@ -846,8 +846,8 @@ class SourcesController extends Controller
 
 
             // Apply search and filter conditions
-            if (!empty(request('search'))) {
-                $search = trim(request('search'));
+            if (!empty(request('search')['value'])) {
+                $search = trim(request('search')['value']);
 
                 $query->where(function ($q) use ($search) {
                     $q->where('company_name', 'LIKE', '%' . $search . '%')
@@ -866,13 +866,13 @@ class SourcesController extends Controller
                     return $row->source->name ?? 'N/A'; // Example: Adjust 'name' as per your source model
                 })
                 ->addColumn('action', function ($row) {
-                    $notesButton = '<a onclick="shownoteslist(' . $row->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal">
+                    $notesButton = '<a class="viewnotes" onclick="shownoteslist(' . $row->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal">
                                      <i class="fas fa-eye label-new" aria-hidden="true"></i>
                                  </a>';
-                    $quickNoteButton = '<a onclick="showaddmodal(' . $row->id . ')" data-toggle="modal">
+                    $quickNoteButton = '<a class="addnotes" onclick="showaddmodal(' . $row->id . ')" data-toggle="modal">
                                      <i class="fas fa-comment label-new" aria-hidden="true"></i>
                                  </a>';
-                    $status = '<a label-info" onclick="showstatusmodal(' . $row->id . ')" data-toggle="modal" data-target="#status-modal"><i class="fa fa-refresh label-new"></i></a>';
+                    $status = '<a class="changestatus" label-info" onclick="showstatusmodal(' . $row->id . ')" data-toggle="modal" data-target="#status-modal" style="color:black"><i class="fa fa-refresh label-new"></i></a>';
                     return $notesButton . ' ' . $quickNoteButton . ' ' . $status;
 
 
@@ -897,7 +897,57 @@ class SourcesController extends Controller
                 ->addColumn('update_note_date', function ($row) {
                     return $row->note_created_date;
                 })
-                ->rawColumns(['action', 'prospect_first_name']) // To render HTML in the actions column
+                ->editColumn('contact_number_1', function ($row) {
+                    if (empty($row->contact_number_1)) {
+                        return 'N/A';
+                    }
+
+                    // Split by comma, semicolon, or space
+                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    $numbers = array_filter($numbers); // Remove empty strings
+                    $count = count($numbers);
+
+                    if ($count <= 1) {
+                        return $row->contact_number_1;
+                    }
+
+                    $firstNumber = $numbers[0];
+                    $contact = json_encode($row->contact_number_1);
+                    // Pass the rest of the numbers as a JSON array to the JS function
+    
+                    return "{$firstNumber} 
+            <span class='badge' 
+                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+                  onclick='showAllNumbers({$contact})'>
+                  + show more
+            </span>";
+                })
+                ->editColumn('contact_number_2', function ($row) {
+                    if (empty($row->contact_number_2)) {
+                        return 'N/A';
+                    }
+
+                    // Split by comma, semicolon, or space
+                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_2);
+                    $numbers = array_filter($numbers); // Remove empty strings
+                    $count = count($numbers);
+
+                    if ($count <= 1) {
+                        return $row->contact_number_2;
+                    }
+
+                    $firstNumber = $numbers[0];
+                    $contact = json_encode($row->contact_number_2);
+                    // Pass the rest of the numbers as a JSON array to the JS function
+    
+                    return "{$firstNumber} 
+            <span class='badge' 
+                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+                  onclick='showAllNumbers({$contact})'>
+                  + show more
+            </span>";
+                })
+                ->rawColumns(['action', 'prospect_first_name','contact_number_1','contact_number_2']) // To render HTML in the actions column
                 ->make(true);
         }
 

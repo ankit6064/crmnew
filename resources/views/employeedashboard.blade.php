@@ -1,234 +1,219 @@
 @extends('layouts.admin')
-<style>
-    .progress-bar.bg-progress {
-        background: #108c36;
-    }
-
-    i.fa.fa-check.text-progress {
-        color: #108c36;
-    }
-</style>
 @section('content')
-
-<div class="row page-titles">
-    <div class="col-md-5 align-self-center">
-        <h3 class="text-themecolor">Dashboard</h3>
-    </div>
-    <div class="col-md-7 align-self-center">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-            <li class="breadcrumb-item active">Dashboard</li>
-        </ol>
-    </div>
-    <div>
-        <!--<button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i class="ti-settings text-white"></i></button>--->
-    </div>
-</div>
-
-<div class="container-fluid">
-    <!-- ============================================================== -->
-    <!-- Start Page Content -->
-    <!-- ============================================================== -->
-    <!-- Row -->
-    <div class="card-group">
-        <!-- Column -->
-        <!-- Column -->
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <a href="{{ url('leads/closed') }}">
-                        <div class="col-12">
-                            <h2 class="m-b-0"><i class="fa fa-check text-progress"></i></h2>
-                            <h3 class="">{{ $totalClosedLeads }}</h3>
-                            <h6 class="card-subtitle">Closed Leads</h6>
-                        </div>
-                    </a>
-                    <div class="col-12">
-                        <div class="progress">
-                            <div class="progress-bar bg-progress" role="progressbar" style="width: 100%; height: 6px;"
-                                aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <a href="{{ url('leads/completed') }}">
-                        <div class="col-12">
-                            <h2 class="m-b-0"><i class="fa fa-check text-success"></i></h2>
-                            <h3 class="">{{ $totalCompletedLeads }}</h3>
-                            <h6 class="card-subtitle">Completed Leads</h6>
-                        </div>
-                    </a>
-                    <div class="col-12">
-                        <div class="progress">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%; height: 6px;"
-                                aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <a href="{{ url('leads/in_progress') }}">
-                        <div class="col-12">
-                            <h2 class="m-b-0"><i class="fa fa-hourglass-half text-info"></i></h2>
-                            <h3 class="">{{ $totalInprogressLeads }}</h3>
-                            <h6 class="card-subtitle">Inprogress Leads</h6>
-                        </div>
-                    </a>
-                    <div class="col-12">
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" style="width: 100%; height: 6px;background-color:#1976d2 !important"
-                                aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Column -->
-        <!-- Column -->
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <a href="{{ url('leads/failed') }}">
-                        <div class="col-12">
-                            <h2 class="m-b-0"><i class="fa fa-exclamation-triangle text-danger"></i></h2>
-                            <h3 class="">{{ $totalFailedLeads }}</h3>
-                            <h6 class="card-subtitle">Failed Leads</h6>
-                        </div>
-                    </a>
-                    <div class="col-12">
-                        <div class="progress">
-                            <div class="progress-bar bg-danger" role="progressbar" style="width: 100%; height: 6px;"
-                                aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Column -->
-        <!-- Column -->
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <a href="{{ url('reminder/view') }}">
-                        <div class="col-12">
-                            <h2 class="m-b-0"><i class="fa fa-bell text-warning"></i></h2>
-                            <h3 class="">{{ $todayReminders }}</h3>
-                            <h6 class="card-subtitle">Today's Reminder</h6>
-                        </div>
-                    </a>
-                    <div class="col-12">
-                        <div class="progress">
-                            <div class="progress-bar bg-warning" role="progressbar" style="width: 100%; height: 6px;"
-                                aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Row -->
-    <div class="container-fluid">
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
-        <div class="row">
-            <div class="col-12">
-
-                @if (Session::has('success'))
-                    <div class="alert alert-success" role="alert">
-                        {{Session::get('success')}}
-                    </div>
-                @elseif (Session::has('error'))
-                    <div class="alert alert-danger" role="alert">
-                        {{Session::get('error')}}
-                    </div>
-                @endif
-                <div class="card card-outline-info">
-                    <div class="card-header">
-                        <h4 class="m-b-0 text-white">Campaigns</h4>
-
-                    </div>
-
-                    <div class="card-body">
-                        <div class="table-responsive m-t-40" style="overflow-x: unset;">
-                            <table id="campaign-table" class="display nowrap table table-hover table-striped table-bordered"
-                                cellspacing="0" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th>Campaign</th>
-                                        <th>Sub-Campaign</th>
-                                        <th>Leads</th>
-                                        <th>Last Login</th>
-                                        <th>Comments since last session</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-
-<!-- <script>
-$(document).ready(function () {
-    $('#spinner-overlay').show();
-
-    let table = $('#campaign-table').DataTable({
-        processing: false,
-        serverSide: true,
-        searching: false,
-        ajax: {
-            url: '{{ route("geEmployeeDashboardData") }}',
-            type: 'GET',
-            error: function (xhr, error, thrown) {
-                console.error('Error:', xhr.responseText);
-                alert('An error occurred while loading data.');
-            }
-        },
-        columns: [
-            { data: 'source_name', name: 'source_name', orderable: true, searchable: true },
-            { data: 'description', name: 'description', orderable: true, searchable: true },
-            { data: 'totalLeads', name: 'totalLeads', orderable: true, searchable: false },
-            { data: 'last_login', name: 'last_login', orderable: false, searchable: false },
-            { data: 'notes_count', name: 'notes_count', orderable: true, searchable: false },
-        ],
-        
-        preDrawCallback: function () {
-            $('#spinner-overlay').show(); // Show loader before table redraws (page change, search, etc.)
-        },
-        
-        drawCallback: function () {
-            $('#spinner-overlay').hide(); // Hide loader after table redraws
-        },
-
-        initComplete: function () {
-            $('#spinner-overlay').hide(); // Hide spinner after table is fully initialized
+    <style>
+        .stat-button.active {
+            background: #51c1c8;
+            color: #fff;
         }
-    });
 
-    // Show loader when page is changed manually (pagination)
-    $('#campaign-table').on('page.dt', function () {
-        $('#spinner-overlay').show();
-    });
-});
+        .chart-container {
+            width: 70%;
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-bar label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        #barChart {
+            width: 100% !important;
+            height: 400px !important;
+        }
+        .stat-card:hover{
+            cursor: pointer;
+        }
+    </style>
+    <div class="main-right managersubmanagerclass">
+        <div class="right-side">
+            <h2>Dashboard</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stat-card" onclick="redirectcard('leads/closed');">
+                        <div class="card-header">
+                            <h4>Closed Leads</h4>
+                            <div class="card-icon">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{ $totalClosedLeads }}</h2>
+                            <div class="arrow-icon">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="stat-card" onclick="redirectcard('leads/completed');">
+                        <div class="card-header">
+                            <h4>Completed Leads</h4>
+                            <div class="card-icon icon2">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{ $totalCompletedLeads }}</h2>
+                            <div class="arrow-icon">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="stat-card" onclick="redirectcard('leads/in_progress');">
+                        <div class="card-header">
+                            <h4>Inprogress Leads</h4>
+                            <div class="card-icon icon3">
+                                <i class="fa-solid fa-spinner"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{ $totalInprogressLeads }}</h2>
+                            <div class="arrow-icon">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="row second-card">
+                <div class="col-md-4">
+                    <div class="stat-card" onclick="redirectcard('reminder/view');">
+                        <div class="card-header">
+                            <h4>Today's Reminder</h4>
+                            <div class="card-icon icon5">
+                                <i class="fa-solid fa-bell"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{ $todayReminders }}</h2>
+                            <div class="arrow-icon">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" onclick="redirectcard('leads/failed');">
+                        <div class="card-header">
+                            <h4>Failed Leads</h4>
+                            <div class="card-icon icon4">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h2>{{ $totalFailedLeads }}</h2>
+                            <div class="arrow-icon">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="graph campaignslist">
+
+                <div class="table">
+                    <div class="table-container">
+                        <table id="employee-table">
+                            <thead class="thead-main">
+                                <tr>
+                                    <th>Source Name</th>
+                                    <th>Description</th>
+                                    <th>Total Leads</th>
+                                    <th>Last Login</th>
+                                    <th>Notes Count</th>
+                                </tr>
+                            </thead>
+                            <tbody id="new-table-body"></tbody>
+                        </table>
+                    </div>
+
+                    {{-- CUSTOM PAGINATION --}}
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    @push('scripts')
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $('#spinner-overlay').show();
+
+                let table = $('#employee-table').DataTable({
+                    processing: false,
+                    serverSide: true,
+                    searching: false,
+                    ajax: {
+                        url: '{{ route("geEmployeeDashboardData") }}',
+                        type: 'GET',
+                        error: function (xhr, error, thrown) {
+                            console.error('Error:', xhr.responseText);
+                            alert('An error occurred while loading data.');
+                        }
+                    },
+                    columns: [
+                        { data: 'campaign_name', name: 'campaign_name', orderable: false, searchable: false },
+                        { data: 'description', name: 'description', orderable: false, searchable: false },
+                        { data: 'totalLeads', name: 'totalLeads', orderable: false, searchable: false },
+                        { data: 'last_login', name: 'last_login', orderable: false, searchable: false },
+                        { data: 'notes_count', name: 'notes_count', orderable: false, searchable: false },
+                    ],
+
+                    preDrawCallback: function () {
+                        $('#spinner-overlay').show(); // Show loader before table redraws (page change, search, etc.)
+                    },
+
+                    drawCallback: function () {
+                        $('#spinner-overlay').hide(); // Hide loader after table redraws
+                    },
+
+                    initComplete: function () {
+                        $('#spinner-overlay').hide(); // Hide spinner after table is fully initialized
+                    }
+                });
+
+                // Show loader when page is changed manually (pagination)
+                $('#campaign-table').on('page.dt', function () {
+                    $('#spinner-overlay').show();
+                });
+            });
 
 
 
-</script> -->
+        </script>
+
+        <script>
+            function redirectcard(page) {
+                window.location.assign(page);
+            }
+
+        </script>
+
+
+    @endpush
 
 @endsection

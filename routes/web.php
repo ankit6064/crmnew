@@ -178,6 +178,7 @@ Route::prefix('leads')->group(function (): void {
 
     Route::get('closed', [LeadsController::class, 'closed'])->name('closed');
     Route::get('completed', [LeadsController::class, 'completed'])->name('completed');
+    Route::post('approval_status', [LeadsController::class, 'approval_status'])->name('approval_status');
 
     Route::get('callbackleads', [LeadsController::class, 'callbackleads'])->name('callbackleads');
     Route::post('changecallbackstatus', [LeadsController::class, 'changecallbackstatus'])->name('changecallbackstatus');

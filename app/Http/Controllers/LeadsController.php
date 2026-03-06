@@ -1199,12 +1199,9 @@ class LeadsController extends Controller
 
             return DataTables::of($query)
                 // Fix sorting & searching on joined columns
-            
-                ->addColumn('action', function ($data) {
-                    $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
-                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal"><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
-                    return $notesButton . ' ' . $quickNoteButton;
-                })
+
+
+               
 
                 ->editColumn('updated_at', function ($data) {
                     if (!empty($data->closed_on)) {
@@ -1222,52 +1219,174 @@ class LeadsController extends Controller
                 })
 
                 ->addColumn('options', function ($data) {
+
                     $lhsReport = $data->lhsReport;
                     $actionHtml = '';
-
+                
                     if ($lhsReport) {
+                
+                        // View LHS Report
                         $actionHtml .= '
-                            <a href="' . url('/employee/lhs_report', [$data->id]) . '">
-                                <i class="fa fa-plus" title="Add LHS Report"></i>
-                            </a>';
+                        <a class = "viewlhs" href="' . url('/lhs_report/view_lhs', [$data->id]) . '" title="View LHS Report">
+                            <i class="fa fa-search" style="margin-right:8px;"></i>
+                        </a>';
+                
+                        // Edit LHS Report
                         $actionHtml .= '
-                            <a href="' . url('/lhs_report/view_lhs', [$data->id]) . '">
-                                <span class="label" data-toggle="tooltip" data-placement="top" title="View LHS Report" style="color:#000;font-size: 15px;">
-                                    <i class="fa fa-eye"></i>
-                                </span>
-                            </a>
-                            <a href="' . url('/lhs_report/edit', [$data->id]) . '">
-                                <span class="label" data-toggle="tooltip" data-placement="top" title="Edit LHS Report" style="color:#000;font-size: 15px;">
-                                    <i class="fa fa-pencil"></i>
-                                </span>
-                            </a>';
-
+                        <a class="editlhs" href="' . url('/lhs_report/edit', [$data->id]) . '" title="Edit LHS Report">
+                            <i class="fa fa-edit" style="margin-right:8px;"></i>
+                        </a>';
+                
                         $momReport = $data->momReport;
+                
                         if (empty($momReport['mom_file_path'])) {
+                
+                            // Create MOM
                             $actionHtml .= '
-                                <a href="' . route('employee.show_mom', [$data->id]) . '">
-                                    <span class="label" data-toggle="tooltip" data-placement="top" title="Create MOM Report" style="color:#000;font-size: 15px;">
-                                        <i class="fa fa-file-text-o"></i>
-                                    </span>
-                                </a>';
-                        }
-                    } else {
-                        $actionHtml .= '
-                            <a href="' . url('/employee/lhs_report', [$data->id]) . '">
-                                <i class="fa fa-plus" title="Add LHS Report"></i>
+                            <a class="createmom" href="' . route('employee.show_mom', [$data->id]) . '" title="Create MOM Report">
+                                <i class="fa fa-file" style="margin-right:8px;"></i>
                             </a>';
+                        }
+                
+                    } else {
+                
+                        $checknote = Note::where('lead_id', $data->id)->orderByDesc('id')->first();
+                
+                        if (isset($checknote) && !empty($checknote) && $checknote->reminder_for == 'Meeting Set-up') {
+                
+                            // Add LHS
+                            $actionHtml .= '
+                            <a class="addlhs" href="' . url('/employee/lhs_report', [$data->id]) . '" title="Add LHS Report">
+                                <i class="fa fa-file-medical" style="margin-right:8px;"></i>
+                            </a>';
+                        }
                     }
-
+                
+                    // KEEP VIEW NOTES ICON SAME
+                    $actionHtml .= '
+                    <a class="viewnotes" onclick="shownoteslist(' . $data->id . ')" data-toggle="modal" data-target="#largeModal">
+                        <i class="fa fa-eye label-new" aria-hidden="true"></i>
+                    </a>';
+                
+                    // KEEP ADD NOTE ICON SAME
+                    $actionHtml .= '
+                    <a class="addnotes" onclick="showaddmodal(' . $data->id . ')" data-toggle="modal">
+                        <i class="fa fa-comment label-new" aria-hidden="true"></i>
+                    </a>';
+                
                     return $actionHtml;
                 })
 
-                ->rawColumns(['action', 'last_updated_note', 'options'])
+                ->addColumn('pending_for_approvalnew', function ($data) {
+
+
+                    if ($data->pending_for_approval == 0) {
+
+                        $meeting1 = $data->lhsReport->meeting_date1 ?? null;
+                        $meeting2 = $data->lhsReport->meeting_date2 ?? null;
+
+                        $isOld = false;
+
+                        if ($meeting2) {
+                            // If meeting_date2 exists, check it
+                            if (\Carbon\Carbon::parse($meeting2)->lt(now()->subDays(30))) {
+                                $isOld = true;
+                            }
+                        } elseif ($meeting1) {
+                            // Else, check meeting_date1
+                            if (\Carbon\Carbon::parse($meeting1)->lt(now()->subDays(30))) {
+                                $isOld = true;
+                            }
+                        }
+
+                        if ($isOld) {
+                            return '<span class="label label-danger">Dropped</span>';
+                        } else {
+                            $actionHtml = '<span class="label label-info" onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal">Pending for Confirmation</span>';
+                            return $actionHtml;
+                        }
+                    } elseif ($data->pending_for_approval == 1) {
+                        return '<span class="label label-success">Completed</span>';
+                    } else {
+                        return '<span class="label label-danger">Dropped</span>';
+                    }
+                })
+
+                ->editColumn('decline_note', function ($data) {
+                    if ($data->pending_for_approval == 0) {
+
+                        $meeting1 = $data->lhsReport->meeting_date1 ?? null;
+                        $meeting2 = $data->lhsReport->meeting_date2 ?? null;
+
+                        $isOld = false;
+
+                        if ($meeting2) {
+                            // If meeting_date2 exists, check it
+                            if (\Carbon\Carbon::parse($meeting2)->lt(now()->subDays(30))) {
+                                $isOld = true;
+                            }
+                        } elseif ($meeting1) {
+                            // Else, check meeting_date1
+                            if (\Carbon\Carbon::parse($meeting1)->lt(now()->subDays(30))) {
+                                $isOld = true;
+                            }
+                        }
+
+                        if ($isOld) {
+                            return "Dropped (meeting date exceeded 30 days)";
+                        } else {
+                            return 'N/A';
+                        }
+                    } else {
+
+                        if (empty($data->decline_note)) {
+                            return "N/A";
+                        } else {
+                            return $data->decline_note;
+                        }
+                    }
+                })
+                ->editColumn('contact_number_1', function ($row) {
+                    if (empty($row->contact_number_1)) {
+                        return 'N/A';
+                    }
+
+                    // Split by comma, semicolon, or space
+                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    $numbers = array_filter($numbers); // Remove empty strings
+                    $count = count($numbers);
+
+                    if ($count <= 1) {
+                        return $row->contact_number_1;
+                    }
+
+                    $firstNumber = $numbers[0];
+                    $contact = json_encode($row->contact_number_1);
+                    // Pass the rest of the numbers as a JSON array to the JS function
+    
+                    return "{$firstNumber} 
+            <span class='badge' 
+                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+                  onclick='showAllNumbers({$contact})'>
+                  + show more
+            </span>";
+                })
+
+
+                ->rawColumns(['action', 'last_updated_note', 'options', 'pending_for_approvalnew', 'decline_note','contact_number_1'])
                 ->make(true);
         }
 
         return view('leads.closed');
     }
 
+
+    public function approval_status(Request $request)
+    {
+        Lead::where('id', $request->lead_id)->update(['pending_for_approval' => $request->status, 'meeting_date' => $request->meeting_datetime, 'decline_note' => $request->decline_note]);
+        echo json_encode(['status' => 200, 'message' => 'Updated']);
+        exit;
+    }
 
     public function completed(Request $request)
     {
@@ -1305,12 +1424,6 @@ class LeadsController extends Controller
                 // Fix sorting & searching on joined columns
 
 
-                ->addColumn('action', function ($data) {
-                    $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
-                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal"><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
-                    return $notesButton . ' ' . $quickNoteButton;
-                })
-
                 ->editColumn('updated_at', function ($data) {
                     if (!empty($data->closed_on)) {
                         return \Carbon\Carbon::parse($data->closed_on)->format('d M, Y H:i:s');
@@ -1327,26 +1440,40 @@ class LeadsController extends Controller
                 })
 
                 ->addColumn('options', function ($data) {
-                    $lhsReport = $data->lhsReport;
+
                     $actionHtml = '';
                     $momReport = $data->momReport;
+                
+                    // Create MOM
                     if (empty($momReport['mom_file_path'])) {
+                
                         $actionHtml .= '
-                                <a href="' . route('employee.show_mom', [$data->id]) . '">
-                                    <span class="label" data-toggle="tooltip" data-placement="top" title="Create MOM Report" style="color:#000;font-size: 15px;">
-                                        <i class="fa fa-file-text-o"></i>
-                                    </span>
-                                </a>';
-                    } elseif (!empty($momReport['mom_file_path'])) {
-                        $actionHtml .= '
-                                <a href="' . asset('storage/' . $momReport['mom_file_path']) . '">
-                                    <span class="label" data-toggle="tooltip" data-placement="top" title="MOM Download" style="color:#55ce63;font-size: 15px;">
-                                        <i class="ti-download"></i>
-                                    </span>
-                                </a>';
+                        <a class="showmom" href="' . route('employee.show_mom', [$data->id]) . '" title="Create MOM Report">
+                            <i class="fa fa-file-alt" style="margin-right:8px;font-size:15px;"></i>
+                        </a>';
+                
                     }
-
-
+                    // Download MOM
+                    elseif (!empty($momReport['mom_file_path'])) {
+                
+                        $actionHtml .= '
+                        <a  class="downloadmom" href="' . asset('storage/' . $momReport['mom_file_path']) . '" title="Download MOM">
+                            <i class="fa fa-download" style="margin-right:8px;color:#55ce63;font-size:15px;"></i>
+                        </a>';
+                    }
+                
+                    // KEEP VIEW NOTES ICON SAME
+                    $actionHtml .= '
+                    <a class="shownotes" onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal">
+                        <i class="fa fa-eye label-new" aria-hidden="true"></i>
+                    </a>';
+                
+                    // KEEP ADD NOTE ICON SAME
+                    $actionHtml .= '
+                    <a class="addnotes"  onclick="showaddmodal(' . $data->id . ')" data-toggle="modal">
+                        <i class="fa fa-comment label-new" aria-hidden="true"></i>
+                    </a>';
+                
                     return $actionHtml;
                 })
 
@@ -1357,52 +1484,64 @@ class LeadsController extends Controller
         return view('leads.completed');
     }
 
-
     public function add_note(Request $request)
     {
-        $status = Lead::where('id', $request->lead_id)->first();
-        $data = array(
-            'user_id' => auth()->user()->id,
-            'lead_id' => $request->lead_id,
+        $leadId = $request->lead_id;
+        $userId = auth()->id();
+
+        // Get last note timestamp only (fast)
+        $lastCreatedAt = Note::where('user_id', $userId)
+            ->latest('created_at')
+            ->value('created_at');
+
+        if ($lastCreatedAt && now()->diffInSeconds($lastCreatedAt) < 15) {
+            return response()->json([
+                'error' => 'Please wait 30 seconds before adding another note.'
+            ], 400);
+        }
+
+        // Get lead status only (not full model)
+        $status = Lead::where('id', $leadId)->value('status');
+
+        // Create note
+        $note = Note::create([
+            'user_id' => $userId,
+            'lead_id' => $leadId,
             'source_id' => $request->source_id,
-            'status' => $status['status'],
+            'status' => $status,
             'reminder_time' => $request->reminder_time,
             'reminder_date' => $request->reminder_date,
             'reminder_for' => $request->reminder_for,
             'feedback' => $request->feedback,
             'phone_number' => $request->phone_number,
-        );
-        $note = Note::create($data);
+        ]);
 
-        if ($request->reminder_for == 'Callback') {
-            $callbackleads = new CallbackLeads();
-            $callbackleads->note_id = $note->id;
-            $callbackleads->employee_id = auth()->user()->id;
-            $callbackleads->lead_id = $request->lead_id;
-            $callbackleads->callback_date = $request->callback_date;
-            $callbackleads->callback_time = $request->callback_time;
-            $callbackleads->save();
-        }
-
+        // Create log (single query)
         $logs = new Logs();
         $logs->user_id = Auth::id();
         $logs->type = 1;
-        $logs->description = "Note is added(" . $request->reminder_for . ")";
         $logs->reference_id = $request->lead_id;
         $logs->note_id = $note->id;
+        $logs->description = 'New note is added on lead -' . $request->reminder_for;
         $logs->save();
 
+        // Callback logic
+        if ($request->reminder_for === 'Callback') {
+            CallbackLeads::create([
+                'note_id' => $note->id,
+                'employee_id' => $userId,
+                'lead_id' => $leadId,
+                'callback_date' => $request->callback_date,
+                'callback_time' => $request->callback_time,
+            ]);
+        }
 
-        // dd(config('app.timezone'));
-        $date = date('Y-m-d H:i:s');
-        $notecreatedat = \Carbon\Carbon::parse($date)
-            ->addHours(1)
-            ->addMinutes(3)
-            ->format('Y-m-d H:i:s');
-        Lead::where('id', $request->lead_id)->update(array('note_created_date' => $notecreatedat));
-        // dd($callbackleads->id); 
+        // Update lead timestamp (no parsing)
+        Lead::where('id', $leadId)->update([
+            'note_created_date' => now()->addHour()->addMinutes(3),
+        ]);
+
         return response()->json(['success' => 'Note Added Successfully']);
-        // }
     }
 
     public function callbackleads(request $request)
@@ -1745,44 +1884,64 @@ class LeadsController extends Controller
     public function failed(Request $request)
     {
         if ($request->ajax()) {
-            // Eager load 'source' and 'notes' with latest feedback
-            $query = Lead::with([
-                'source',
-                'notes' => function ($query) {
-                    $query->latest()->limit(1); // Load only the latest note to improve performance
-                }
+            // Eager load the relationships we need (source and notes)
+            $query = Lead::select([
+                'leads.*',
+                'sources.source_name as source_name',
+                'sources.description as description'
             ])
-                ->where('asign_to', auth()->user()->id)
-                ->where('status', '2')
-                ->whereHas('source', function ($q) {
-                    $q->where('is_active', 1);
-                })
-                ->orderBy('id', 'DESC');
+                ->join('sources', 'leads.source_id', '=', 'sources.id')
+                ->with([
+                    'momReport',
+                    'lhsReport',
+                    'notes' => function ($query) {
+                        $query->latest()->limit(1);
+                    }
+                ])
+                ->where('leads.asign_to', auth()->user()->id)
+                ->where('leads.status', '2')
+                ->where('sources.is_active', 1);
+
+
+            if (
+                !$request->has('order') ||
+                ($request->input('order.0.column') == '0' && $request->input('order.0.dir') === 'asc')
+            ) {
+                $query->orderBy('closed_on', 'DESC')
+                    ->orderBy('leads.updated_at', 'DESC');
+            }
 
             return DataTables::of($query)
-                ->addColumn('action', function ($data) {
-                    // Buttons for notes interaction
-                    $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
-                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
-                    return $notesButton . ' ' . $quickNoteButton;
-                })
+             
                 ->editColumn('updated_at', function ($data) {
                     return $data->updated_at->format('d M, Y H:i:s');
                 })
                 ->addColumn('last_updated_note', function ($data) {
-                    // Retrieve the latest note feedback from the eager-loaded relationship
-                    $latestNote = $data->notes->first();
+                    // Retrieve the latest note feedback
+                    $latestNote = $data->notes->first(); // Already eager loaded
                     return $latestNote && strlen($latestNote->feedback) > 20
                         ? substr($latestNote->feedback, 0, 20) . '...'
                         : $latestNote->feedback ?? '';
                 })
                 ->addColumn('options', function ($data) {
-                    // Eager load LhsReport for performance and avoid querying per row
-                    $getLhsReport = LhsReport::where('lead_id', $data->id)->first();
+                    // Eager load LhsReport and avoid querying inside the column
 
-                    $actionHtml = '<span class="label label-info" onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal">Change Status</span>';
-
-                    return $actionHtml;
+                    $actionHtml = '
+                    <a class="shownotes" onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal">
+                        <i class="fa fa-eye label-new" aria-hidden="true"></i>
+                    </a>';
+                
+                    // KEEP ADD NOTE ICON SAME
+                    $actionHtml .= '
+                    <a class="addnotes"  onclick="showaddmodal(' . $data->id . ')" data-toggle="modal">
+                        <i class="fa fa-comment label-new" aria-hidden="true"></i>
+                    </a>';
+                
+                    $actionHtml .= '
+                    <a onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal" title="Change Status">
+                    <i class="fa fa-exchange label-new" aria-hidden="true"></i>
+                </a>';                    
+                return $actionHtml;
                 })
                 ->rawColumns(['action', 'last_updated_note', 'options'])
                 ->make(true);
@@ -1822,12 +1981,7 @@ class LeadsController extends Controller
             }
 
             return DataTables::of($query)
-                ->addColumn('action', function ($data) {
-                    // Buttons for notes interaction
-                    $notesButton = '<a onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal"><i class="fa fa-eye label-new" aria-hidden="true"></i></a>';
-                    $quickNoteButton = '<a onclick="showaddmodal(' . $data->id . ')" data-toggle="modal" ><i class="fa fa-comment label-new" aria-hidden="true"></i></a>';
-                    return $notesButton . ' ' . $quickNoteButton;
-                })
+             
                 ->editColumn('updated_at', function ($data) {
                     return $data->updated_at->format('d M, Y H:i:s');
                 })
@@ -1840,9 +1994,23 @@ class LeadsController extends Controller
                 })
                 ->addColumn('options', function ($data) {
                     // Eager load LhsReport and avoid querying inside the column
+
                     $actionHtml = '
-                    <span class="label label-info" onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal">Change Status</span>';
-                    return $actionHtml;
+                    <a class="shownotes" onclick="shownoteslist(' . $data->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal">
+                        <i class="fa fa-eye label-new" aria-hidden="true"></i>
+                    </a>';
+                
+                    // KEEP ADD NOTE ICON SAME
+                    $actionHtml .= '
+                    <a class="addnotes"  onclick="showaddmodal(' . $data->id . ')" data-toggle="modal">
+                        <i class="fa fa-comment label-new" aria-hidden="true"></i>
+                    </a>';
+                
+                    $actionHtml .= '
+                    <a onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal" title="Change Status">
+                    <i class="fa fa-exchange label-new" aria-hidden="true"></i>
+                </a>';                    
+                return $actionHtml;
                 })
                 ->rawColumns(['action', 'last_updated_note', 'options'])
                 ->make(true);
