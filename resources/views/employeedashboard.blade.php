@@ -129,7 +129,7 @@
                 </div>
             </div>
 
-            <div class="graph campaignslist">
+            <!-- <div class="graph campaignslist">
 
                 <div class="table">
                     <div class="table-container">
@@ -150,7 +150,7 @@
                     {{-- CUSTOM PAGINATION --}}
                     <div class="pagination" id="pagination"></div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 
@@ -159,7 +159,7 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
-        <script>
+        <!-- <script>
             $(document).ready(function () {
                 $('#spinner-overlay').show();
 
@@ -204,7 +204,7 @@
 
 
 
-        </script>
+        </script> -->
 
         <script>
             function redirectcard(page) {

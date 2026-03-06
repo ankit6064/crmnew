@@ -89,10 +89,10 @@
     </div>
 
     <!-- Lead Chart -->
-    <a href="{{ route('manageleadchart')}}"><i class="fa-solid fa-chart-line"></i> Lead Chart</a>
+    <a href="{{ route('manageleadchart')}}" class="{{ request()->is('manageleadchart') ? 'active' : '' }} menu-link"><i class="fa-solid fa-chart-line"></i> Lead Chart</a>
 
     <!-- Daily Report -->
-    <a href="{{ url('man_daily_report') }}"><i class="fa-solid fa-file-lines"></i> Daily Report</a>
+    <a href="{{ url('man_daily_report') }}" class="{{ request()->is('man_daily_report') ? 'active' : '' }} menu-link"><i class="fa-solid fa-file-lines"></i> Daily Report</a>
 
     <!-- Logs -->
     <div class="menu-item dropdown">
@@ -120,9 +120,11 @@
 
  
 
-    <a href="{{ route('sources.getMangerSource') }}"><i class="fas fa-eye"></i>Campaigns</a>
 
-
+    <a href="{{ route('sources.employeecampaign') }}" 
+       class="{{ request()->is('sources/employeecampaign') ? 'active' : '' }} menu-link">
+       <i class="fas fa-eye"></i> Campaigns
+    </a>
  
     <!-- Manage Leads -->
     <div class="menu-item dropdown">
@@ -131,14 +133,14 @@
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">
-        <a href="{{ route('leads.create') }}"><i class="fas fa-plus"></i>Add Lead</a>        
-        <a href="{{ route('leads.unapprovedLeads') }}"><i class="fas fa-eye"></i>Unapproved Leads</a>
+        <a href="{{ route('leads.create') }}"><i class="fa-solid fa-user-plus"></i>Add Lead</a>
+        <a href="{{ route('leads.unapprovedLeadsemp') }}"><i class="fa-solid fa-user-clock"></i>Unapproved Leads</a>
         </div>
     </div>
 
 
     <!-- Daily Report -->
-    <a href="{{ url('man_daily_report') }}"><i class="fa-solid fa-file-lines"></i> Daily Report</a>
+    <a href="{{ url('man_daily_report') }}" class="{{ request()->is('man_daily_report') ? 'active' : '' }} menu-link"><i class="fa-solid fa-file-lines"></i> Daily Report</a>
 
 
 

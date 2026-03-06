@@ -65,6 +65,8 @@ Route::prefix('sources')->group(function () {
     Route::get('getMangerSource', [SourcesController::class, 'getMangerSource'])->name('sources.getMangerSource');
     Route::get('leadscount', [SourcesController::class, 'leadscount'])->name('sources.leadscount');
 
+    Route::get('employeecampaign', [SourcesController::class, 'employeecampaign'])->name('sources.employeecampaign');
+
     
     Route::post('updateAmount', [SourcesController::class, 'updateAmount'])->name('updateAmount');
     Route::get('campaigns_list_ajax_pagination', [SourcesController::class, 'campaignsAjaxPagination'])->name('campaigns_list_ajax_pagination');

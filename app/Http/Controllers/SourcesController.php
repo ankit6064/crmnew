@@ -947,7 +947,7 @@ class SourcesController extends Controller
                   + show more
             </span>";
                 })
-                ->rawColumns(['action', 'prospect_first_name','contact_number_1','contact_number_2']) // To render HTML in the actions column
+                ->rawColumns(['action', 'prospect_first_name', 'contact_number_1', 'contact_number_2']) // To render HTML in the actions column
                 ->make(true);
         }
 
@@ -1919,6 +1919,31 @@ class SourcesController extends Controller
         // Download ZIP & delete after sending
         return response()->download($zipPath)->deleteFileAfterSend(true);
 
+    }
+
+
+    public function employeecampaign(Request $request)
+    {
+        $userId = Auth::id();
+        $totalCampaign = Source::whereHas('leads', function ($q) use ($userId) {
+            $q->where('asign_to', $userId)
+                ->where('status', '!=', '2');
+        })->count();
+
+        $activeCampaign = Source::where('is_active', 1)
+            ->whereHas('leads', function ($q) use ($userId) {
+                $q->where('asign_to', $userId)
+                    ->where('status', '!=', '2');
+            })->count();
+
+        $inactiveCampaign = Source::where('is_active', operator: 2)
+            ->whereHas('leads', function ($q) use ($userId) {
+                $q->where('asign_to', $userId)
+                    ->where('status', '!=', '2');
+            })->count();
+
+
+        return view('employeecampaigns',compact('totalCampaign','activeCampaign','inactiveCampaign'));
     }
 
 }

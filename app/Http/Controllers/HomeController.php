@@ -233,48 +233,69 @@ class HomeController extends Controller
     public function geEmployeeDashboardData(Request $request)
     {
         $userId = auth()->user()->id;
-
-        // Fetch only necessary user fields
+    
+        $statusFilter = $request->get('status_filter', 'total');
+    
         $lastLogin = User::where('id', $userId)->value('last_login') ?? now();
-
-        // Optimize Query with Indexing & Preloading
+    
         $query = Lead::where('asign_to', $userId)
-            ->where('status', '!=', '2')
-            ->whereHas('source', fn($q) => $q->where('is_active', '1'))
+            ->whereHas('source', function ($q) use ($statusFilter) {
+    
+                if ($statusFilter == 'active') {
+                    $q->where('is_active', '1');
+                } elseif ($statusFilter == 'inactive') {
+                    $q->where('is_active', '2');
+                } else {
+                    $q->whereIn('is_active', ['1','2']); // total
+                }
+    
+            })
             ->select('source_id', DB::raw('COUNT(*) as totalLeads'))
             ->groupBy('source_id');
-
-        // Fetch all related sources in a single query
-        $sourceData = Source::whereIn('id', $query->pluck('source_id'))
+    
+        $sourceIds = $query->pluck('source_id');
+    
+        // Fetch sources
+        $sourceData = Source::whereIn('id', $sourceIds)
             ->select('id', 'source_name', 'description')
             ->get()
-            ->keyBy('id'); // Use keyBy for quick lookup
-
-        // Fetch all note counts in a single query
-        $noteCounts = Note::whereIn('source_id', $query->pluck('source_id'))
+            ->keyBy('id');
+    
+        // Fetch note counts
+        $noteCounts = Note::whereIn('source_id', $sourceIds)
             ->where('created_at', '>=', $lastLogin)
             ->groupBy('source_id')
             ->select('source_id', DB::raw('COUNT(*) as notes_count'))
-            ->pluck('notes_count', 'source_id'); // Key by source_id for fast retrieval
-
+            ->pluck('notes_count', 'source_id');
+    
         return datatables()->of($query)
+    
             ->addColumn('campaign_name', function ($data) use ($sourceData) {
+    
                 $source = $sourceData[$data->source_id] ?? null;
+    
                 if ($source) {
                     return '<a href="' . url('campaign/camp_assign_emp/' . $data->source_id) . '" 
                             class="set_camp_id" target="_blank">
-                            <span class="label" data-toggle="tooltip" data-placement="top" 
-                                title="View Campaign" 
-                                style="color:#000;font-size: 15px;">'
-                        . $source->source_name . '</span></a>';
+                            <span class="label" data-toggle="tooltip" data-placement="top"
+                            title="View Campaign"
+                            style="color:#000;font-size:15px;">'
+                            . $source->source_name . '</span></a>';
                 }
+    
                 return '--';
             })
+    
             ->addColumn('description', fn($data) => $sourceData[$data->source_id]->description ?? '--')
+    
             ->addColumn('totalLeads', fn($data) => $data->totalLeads)
+    
             ->addColumn('last_login', fn() => date("d-m-Y H:i:s", strtotime($lastLogin)))
+    
             ->addColumn('notes_count', fn($data) => $noteCounts[$data->source_id] ?? 0)
-            ->rawColumns(['campaign_name']) // Allow HTML in campaign_name
+    
+            ->rawColumns(['campaign_name'])
+    
             ->make(true);
     }
 }
