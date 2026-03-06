@@ -1370,6 +1370,10 @@ select.form-control.custom-select {
     gap: 15px;
      flex-wrap:wrap;
   }
+.employee-filterss.employeefilter2 .form-group input, select {
+    width: 100%;
+    max-width: 245px !important;
+}
   .employee-filterss .filter-select, .filter-date::placeholder {
       color: #0000003d !important;
   }
@@ -1603,6 +1607,12 @@ div#employee-table_processing {
 .graph.campaignslist.logstable.myself-logs.daily-report tr td:first-child {
     display: flex;
     gap: 0;
+}
+.employee-filterss.daily-report-filter .filter-select, .filter-date {
+    min-width: 492px;
+}
+.employee-filterss.daily-report-filter .filter-select, .filter-date {
+    min-width: 492px !important;
 }
 .graph.campaignslist.logstable.myself-logs.daily-report tr td:first-child a {
     color: #212529!important;
