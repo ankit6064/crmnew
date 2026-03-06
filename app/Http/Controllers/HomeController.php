@@ -235,27 +235,36 @@ class HomeController extends Controller
         $userId = auth()->user()->id;
     
         $statusFilter = $request->get('status_filter', 'total');
+        $searchValue = $request->get('search')['value'] ?? null;
     
         $lastLogin = User::where('id', $userId)->value('last_login') ?? now();
     
         $query = Lead::where('asign_to', $userId)
-            ->whereHas('source', function ($q) use ($statusFilter) {
+            ->whereHas('source', function ($q) use ($statusFilter, $searchValue) {
     
+                // Status filter
                 if ($statusFilter == 'active') {
                     $q->where('is_active', '1');
                 } elseif ($statusFilter == 'inactive') {
                     $q->where('is_active', '2');
                 } else {
-                    $q->whereIn('is_active', ['1','2']); // total
+                    $q->whereIn('is_active', ['1','2']);
                 }
     
+                // Search filter
+                if ($searchValue) {
+                    $q->where(function ($s) use ($searchValue) {
+                        $s->where('source_name', 'LIKE', "%{$searchValue}%")
+                          ->orWhere('description', 'LIKE', "%{$searchValue}%");
+                    });
+                }
             })
             ->select('source_id', DB::raw('COUNT(*) as totalLeads'))
             ->groupBy('source_id');
     
         $sourceIds = $query->pluck('source_id');
     
-        // Fetch sources
+        // Fetch source info
         $sourceData = Source::whereIn('id', $sourceIds)
             ->select('id', 'source_name', 'description')
             ->get()
@@ -277,7 +286,7 @@ class HomeController extends Controller
                 if ($source) {
                     return '<a href="' . url('campaign/camp_assign_emp/' . $data->source_id) . '" 
                             class="set_camp_id" target="_blank">
-                            <span class="label" data-toggle="tooltip" data-placement="top"
+                            <span class="label" data-toggle="tooltip"
                             title="View Campaign"
                             style="color:#000;font-size:15px;">'
                             . $source->source_name . '</span></a>';

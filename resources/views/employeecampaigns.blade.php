@@ -131,7 +131,7 @@
                             <thead class="thead-main">
                                 <tr>
                                     <th>Source Name</th>
-                                    <th>Description</th>
+                                    <th>Sub Campaign</th>
                                     <th>Total Leads</th>
                                     <th>Last Login</th>
                                     <th>Notes Count</th>
@@ -209,7 +209,7 @@ $(document).ready(function () {
     // 🔹 Custom search placeholder
     table.on('init.dt', function () {
         $('div.dataTables_filter input')
-            .attr('placeholder', 'Search by name,email')
+            .attr('placeholder', 'Search by campaign,sub campaign')
             .css({ 'width': '250px' });
     });
 
