@@ -30,6 +30,10 @@
     color: white;
     font-size: 16px;
 }
+.form-control {
+            min-width: 100%;
+
+        }
 </style>
 
 <div class="row page-titles">

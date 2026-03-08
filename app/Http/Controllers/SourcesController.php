@@ -780,9 +780,8 @@ class SourcesController extends Controller
 
 
 
-    public function camp_assign_emp()
+    public function camp_assign_emp($id)
     {
-
         return view('employeemodule.compaignlist');
     }
 
@@ -832,7 +831,6 @@ class SourcesController extends Controller
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
             $query = Lead::with('source')
-                ->where('status', '1')
                 ->where('asign_to', auth()->user()->id)
                 ->where('source_id', $id);
 
@@ -866,9 +864,29 @@ class SourcesController extends Controller
                     return $row->source->name ?? 'N/A'; // Example: Adjust 'name' as per your source model
                 })
                 ->addColumn('action', function ($row) {
-                    $notesButton = '<a class="viewnotes" onclick="shownoteslist(' . $row->id . ')" class="notes_id" data-toggle="modal" data-target="#largeModal">
-                                     <i class="fas fa-eye label-new" aria-hidden="true"></i>
-                                 </a>';
+                    $notedetails = Note::where('lead_id', $row->id)->orderByDesc('id')->first();
+
+                    $notesButton = '';
+                    
+                    if ($notedetails) {
+                    
+                        $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
+                    
+                        // check if note created within last 24 hours
+                        if ($createdAt->diffInHours(now()) <= 24) {
+                    
+                            $notesButton = '<a class="viewnotes shake-note" onclick="shownoteslist(' . $row->id . ')" data-toggle="modal" data-target="#largeModal">
+                                <i class="fas fa-eye label-new" style="color:#8B8000 !important"></i>
+                            </a>';
+                    
+                        } else {
+                    
+                            $notesButton = '<a class="viewnotes" onclick="shownoteslist(' . $row->id . ')" data-toggle="modal" data-target="#largeModal">
+                                <i class="fas fa-eye label-new"></i>
+                            </a>';
+                    
+                        }
+                    }
                     $quickNoteButton = '<a class="addnotes" onclick="showaddmodal(' . $row->id . ')" data-toggle="modal">
                                      <i class="fas fa-comment label-new" aria-hidden="true"></i>
                                  </a>';
@@ -953,8 +971,9 @@ class SourcesController extends Controller
 
         $comapnyName = Lead::with('source')->where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('company_name', 'asc')->groupBy('company_name')->get();
         $timeZone = Lead::with('source')->where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('timezone', 'asc')->groupBy('timezone')->get();
+        $source = Source::where('id',$id)->first();
 
-        return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone'));
+        return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone','source'));
 
     }
     public function employeeclosedleads(Request $request)
@@ -1081,6 +1100,32 @@ class SourcesController extends Controller
 
                     }
                 })
+                ->editColumn('contact_number_1', function ($row) {
+                    if (empty($row->contact_number_1)) {
+                        return 'N/A';
+                    }
+
+                    // Split by comma, semicolon, or space
+                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    $numbers = array_filter($numbers); // Remove empty strings
+                    $count = count($numbers);
+
+                    if ($count <= 1) {
+                        return $row->contact_number_1;
+                    }
+
+                    $firstNumber = $numbers[0];
+                    $contact = json_encode($row->contact_number_1);
+                    // Pass the rest of the numbers as a JSON array to the JS function
+    
+                    return "{$firstNumber} 
+            <span class='badge' 
+                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+                  onclick='showAllNumbers({$contact})'>
+                  + show more
+            </span>";
+                })
+              
                 ->addColumn('action', function ($row) {
 
                     $notesButton = '';
@@ -1193,7 +1238,7 @@ class SourcesController extends Controller
                     $employeedetails = User::where('id', $row->asign_to)->first();
                     return $employeedetails->first_name . ' ' . $employeedetails->last_name;
                 })
-                ->rawColumns(['action', 'prospect_first_name_new']) // To render HTML in the actions column
+                ->rawColumns(['action', 'prospect_first_name_new','contact_number_1']) // To render HTML in the actions column
                 ->make(true);
         }
         $id = '';

@@ -6,23 +6,62 @@
 
 
 @section('content')
+    <style>
+        .label-new {
+            background: #ffc107;
+            padding: 6px;
+            border-radius: 5px;
+            color: #000;
+        }
+
+        .shake-note i {
+            animation: shake 1s infinite;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-2px);
+            }
+
+            50% {
+                transform: translateX(2px);
+            }
+
+            75% {
+                transform: translateX(-2px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .form-control {
+            min-width: 100%;
+
+        }
+    </style>
 
     <input type="hidden" id="source_id" value="{{ $id }}">
 
     <div class="main-right">
         <div class="right-side submanager completed-leads closed-leads">
 
-            <h2>Leads Listing</h2>
+            <h2>Leads Listing - {{ $source->source_name }}</h2>
 
             <div class="graph campaignslist">
 
                 <!-- Filters -->
                 <!-- <div class="row">
-                                    <div class="add-submanager">
-                                        <input type="search" id="global_filter" name="search" placeholder="search...">
-                                    </div>
+                                        <div class="add-submanager">
+                                            <input type="search" id="global_filter" name="search" placeholder="search...">
+                                        </div>
 
-                                </div> -->
+                                    </div> -->
                 <div class="filter-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
 
                     <!-- Company Filter -->
@@ -190,21 +229,23 @@
 
 
     <div class="modal fade" id="numberModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
-        <div class="modal-content">
-            <div class="modal-header" style="background: #192e62; color: #fff; padding: 10px 15px;">
-                <h6 class="modal-title">Contact Numbers</h6>
-                <button type="button" class="close" data-dismiss="modal" style="color: #fff; opacity: 1;" onclick="closemodal();">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="numberRow" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;">
+        <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background: #192e62; color: #fff; padding: 10px 15px;">
+                    <h6 class="modal-title">Contact Numbers</h6>
+                    <button type="button" class="close" data-dismiss="modal" style="color: #fff; opacity: 1;"
+                        onclick="closemodal();">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="numberRow"
+                        style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;">
                     </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
 
@@ -279,8 +320,8 @@
                     { data: 'action', name: 'action', orderable: false, searchable: false },
 
                 ],
-                drawCallback: function() {
-                   
+                drawCallback: function () {
+
                     tippy('.viewnotes', {
                         content: 'View Notes',
                         placement: 'top',
@@ -436,10 +477,7 @@
 
         }
 
-        function closemodal() {
-            $('#largeModal').modal('hide');
 
-        }
 
         function deleteLead(id) {
             Swal.fire({
@@ -491,26 +529,33 @@
             // Reset search
             $('#global_filter').val('');
 
-            // Reload DataTable
-            table.ajax.reload();
+            location.reload(true);
         });
 
         function showAllNumbers(numbers) {
-    let rowHtml = '';
+            let rowHtml = '';
 
-        rowHtml += '<p>' + numbers + '</p>';
-    
-
-    $('#numberRow').html(rowHtml);
-    $('#numberModal').modal('show');
-}
+            rowHtml += '<p>' + numbers + '</p>';
 
 
+            $('#numberRow').html(rowHtml);
+            $('#numberModal').modal('show');
+        }
 
-function closemodal(){
-    $('#numberModal').modal('hide');
 
-}
+
+        function closemodal() {
+            $('#numberModal').modal('hide');
+
+        }
+
+        $('.modal-close').on('click', function (event) {
+            $('#status-modal-quicknote').modal('hide');
+        });
+
+        $('.largemodal-close').on('click', function (event) {
+            $('#largeModal').modal('hide');
+        });
 
     </script>
 

@@ -10,6 +10,42 @@
         i.fa {
             color: black;
         }
+
+        .label-new {
+            padding: 6px;
+            border-radius: 5px;
+            color: #000;
+        }
+
+        .shake-note i {
+            animation: shake 1s infinite;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-2px);
+            }
+
+            50% {
+                transform: translateX(2px);
+            }
+
+            75% {
+                transform: translateX(-2px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+        .form-control {
+            min-width: 100%;
+
+        }
     </style>
     <?php date_default_timezone_set('Asia/Kolkata'); ?>
 
@@ -331,7 +367,7 @@
                             arrow: true,
                             animation: 'scale'
                         });
-                        tippy('.shownotes', {
+                        tippy('.viewnotes', {
                             content: 'View Notes',
                             placement: 'top',
                             arrow: true,

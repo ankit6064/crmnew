@@ -187,18 +187,21 @@
                 <div class="form-group">
     <label class="control-label" style="font-weight: 600; margin-bottom: 8px;">Status</label>
     <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #e9ecef;">
-        
         <!-- Status Indicator -->
         <div style="margin-bottom: 10px;">
-            @if ($data['status'] == 1)
+            @if ($data['status'] == "1")
                 <span style="background: #ffc107; color: #212529; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
                     <i class="ti-time"></i> Pending
                 </span>
-            @elseif($data['status'] == 2)
+                @elseif($data['status'] == "0")
+                <span style="background: #dc3545; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
+                    <i class="ti-close"></i> fresh lead
+                </span>
+            @elseif($data['status'] == "2")
                 <span style="background: #dc3545; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
                     <i class="ti-close"></i> Failed
                 </span>
-            @elseif($data['status'] == 4)
+            @elseif($data['status'] == "4")
                 <span style="background: #ffc107; color: #212529; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
                     <i class="ti-reload"></i> In Progress
                 </span>
@@ -271,6 +274,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @if(Auth::user()->is_admin != 1)
                                     @foreach (($record['notes'] ?? []) as $note)
                                                             <tr>
                                                                 <td width="300">
@@ -295,6 +299,44 @@
                                                                 </td>
                                                             </tr>
                                     @endforeach
+
+                                    @else
+@foreach (($record['notes'] ?? []) as $note)
+
+@php
+    $date = \Carbon\Carbon::parse($note['updated_at']);
+    $isRecent = $date->diffInHours(\Carbon\Carbon::now()) <= 24;
+    $tdStyle = $isRecent ? 'background:#fff3cd !important;' : '';
+@endphp
+
+<tr>
+    <td width="300" style="{{ $tdStyle }}">
+        <p class="notes_comment">{{ $note['feedback'] }}</p>
+    </td>
+
+    <td style="{{ $tdStyle }}">
+        @if(!empty($note['reminder_date']))
+            {{ date('d M, Y', strtotime($note['reminder_date'])) }}
+        @else
+            N/A
+        @endif
+    </td>
+
+    <td style="{{ $tdStyle }}">
+        {{ !empty($note['reminder_for']) ? $note['reminder_for'] : 'N/A' }}
+    </td>
+
+    <td style="{{ $tdStyle }}">
+        {{ !empty($note['phone_number']) ? $note['phone_number'] : 'N/A' }}
+    </td>
+
+    <td style="white-space:nowrap !important; {{ $tdStyle }}">
+        {{ $date->format('d M, Y h:i A') }}
+    </td>
+</tr>
+
+@endforeach
+@endif
                                 </tbody>
                             </table>
                         </div>

@@ -452,6 +452,23 @@
             });
         }
 
+        function showAllNumbers(numbers) {
+    let rowHtml = '';
+
+        rowHtml += '<p>' + numbers + '</p>';
+    
+
+    $('#numberRow').html(rowHtml);
+    $('#numberModal').modal('show');
+}
+
+
+
+function closemodal(){
+    $('#numberModal').modal('hide');
+
+}
+
     </script>
 
 @endpush

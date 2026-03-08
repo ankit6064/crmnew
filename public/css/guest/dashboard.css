@@ -1757,6 +1757,7 @@ form.assignleadform .input-box .edit-icon {
 }
 .main-right.addsubmanager.assignlead select#source_id {
     padding: 15px !important;
+    min-width: 100%;
 }
 .main-right.addsubmanager.assignlead .table-container.add_table {
     margin-top: 30px;
