@@ -284,12 +284,11 @@ class HomeController extends Controller
                 $source = $sourceData[$data->source_id] ?? null;
     
                 if ($source) {
-                    return '<a href="' . url('campaign/camp_assign_emp/' . $data->source_id) . '" 
-                            class="set_camp_id" target="_blank">
+                    return '
                             <span class="label" data-toggle="tooltip"
                             title="View Campaign"
                             style="color:#000;font-size:15px;">'
-                            . $source->source_name . '</span></a>';
+                            . $source->source_name . '</span>';
                 }
     
                 return '--';
@@ -302,8 +301,18 @@ class HomeController extends Controller
             ->addColumn('last_login', fn() => date("d-m-Y H:i:s", strtotime($lastLogin)))
     
             ->addColumn('notes_count', fn($data) => $noteCounts[$data->source_id] ?? 0)
+
+            ->addColumn('action', function ($data) use ($sourceData) {
     
-            ->rawColumns(['campaign_name'])
+               $html = ' <a href="' . url('campaign/camp_assign_emp/' . $data->source_id) . '">
+                <span class="label viewleads" data-tippy-content="View Leads" style="color:#000;font-size:15px;">
+                    <i class="fa-solid fa-eye"></i>
+                </span>
+            </a>';
+            return $html;
+            })
+    
+            ->rawColumns(['campaign_name','action'])
     
             ->make(true);
     }

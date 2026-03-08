@@ -104,7 +104,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                        <h2>{{ $activeCampaign }}</h2>
+                            <h2>{{ $activeCampaign }}</h2>
                         </div>
                     </div>
                 </div>
@@ -135,6 +135,7 @@
                                     <th>Total Leads</th>
                                     <th>Last Login</th>
                                     <th>Notes Count</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="new-table-body"></tbody>
@@ -154,81 +155,88 @@
         <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
         <script>
-$(document).ready(function () {
+            $(document).ready(function () {
 
-    $('#spinner-overlay').show();
-    var currentStatus = 'total'; // default filter
+                $('#spinner-overlay').show();
+                var currentStatus = 'total'; // default filter
 
-    let table = $('#employee-table').DataTable({
-        processing: false,
-        serverSide: true,
-        searching: true,
+                let table = $('#employee-table').DataTable({
+                    processing: false,
+                    serverSide: true,
+                    searching: true,
 
-        ajax: {
-            url: '{{ route("geEmployeeDashboardData") }}',
-            type: 'GET',
-            data: function (d) {
-                d.status_filter = currentStatus;
-            },
-            error: function (xhr, error, thrown) {
-                console.error('Error:', xhr.responseText);
-                alert('An error occurred while loading data.');
-            }
-        },
+                    ajax: {
+                        url: '{{ route("geEmployeeDashboardData") }}',
+                        type: 'GET',
+                        data: function (d) {
+                            d.status_filter = currentStatus;
+                        },
+                        error: function (xhr, error, thrown) {
+                            console.error('Error:', xhr.responseText);
+                            alert('An error occurred while loading data.');
+                        }
+                    },
 
-        columns: [
-            { data: 'campaign_name', orderable: false, searchable: false },
-            { data: 'description', orderable: false, searchable: false },
-            { data: 'totalLeads', orderable: false, searchable: false },
-            { data: 'last_login', orderable: false, searchable: false },
-            { data: 'notes_count', orderable: false, searchable: false },
-        ],
+                    columns: [
+                        { data: 'campaign_name', orderable: false, searchable: false },
+                        { data: 'description', orderable: false, searchable: false },
+                        { data: 'totalLeads', orderable: false, searchable: false },
+                        { data: 'last_login', orderable: false, searchable: false },
+                        { data: 'notes_count', orderable: false, searchable: false },
+                        { data: 'action', orderable: false, searchable: false },
+                    ],
 
-        preDrawCallback: function () {
-            $('#spinner-overlay').show();
-        },
+                    preDrawCallback: function () {
+                        $('#spinner-overlay').show();
+                    },
 
-        drawCallback: function () {
-            $('#spinner-overlay').hide();
-        },
+                    drawCallback: function () {
+                        tippy('.viewleads', {
+                            content: 'View Leads',
+                            placement: 'top',
+                            arrow: true,
+                            animation: 'scale'
+                        });
+                        $('#spinner-overlay').hide();
+                    },
 
-        initComplete: function () {
-            $('#spinner-overlay').hide();
-        }
-    });
+                    initComplete: function () {
+                        $('#spinner-overlay').hide();
+                    }
+                });
 
-    // 🔹 Filter Card Click
-    $('.filter-card').on('click', function () {
-        $('.filter-card').removeClass('active-card');
-        $(this).addClass('active-card');
+                // 🔹 Filter Card Click
+                $('.filter-card').on('click', function () {
+                    $('.filter-card').removeClass('active-card');
+                    $(this).addClass('active-card');
 
-        currentStatus = $(this).data('filter');
-        table.draw();
-    });
+                    currentStatus = $(this).data('filter');
+                    table.draw();
+                });
 
-    // 🔹 Custom search placeholder
-    table.on('init.dt', function () {
-        $('div.dataTables_filter input')
-            .attr('placeholder', 'Search by campaign,sub campaign')
-            .css({ 'width': '250px' });
-    });
+                // 🔹 Custom search placeholder
+                table.on('init.dt', function () {
+                    $('div.dataTables_filter input')
+                        .attr('placeholder', 'Search by campaign,sub campaign')
+                        .css({ 'width': '250px' });
+                });
 
-    // 🔹 Loader control
-    table.on('preXhr.dt', function () {
-        $('#spinner-overlay').show();
-    });
+                // 🔹 Loader control
+                table.on('preXhr.dt', function () {
+                    $('#spinner-overlay').show();
+                });
 
-    table.on('xhr.dt', function () {
-        $('#spinner-overlay').hide();
-    });
+                table.on('xhr.dt', function () {
+                    $('#spinner-overlay').hide();
+                });
 
-    // 🔹 Pagination loader
-    $('#employee-table').on('page.dt', function () {
-        $('#spinner-overlay').show();
-    });
+                // 🔹 Pagination loader
+                $('#employee-table').on('page.dt', function () {
+                    $('#spinner-overlay').show();
+                });
 
-});
-</script>
+            });
+        </script>
 
         <script>
             function redirectcard(page) {
