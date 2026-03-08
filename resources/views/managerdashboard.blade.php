@@ -130,22 +130,7 @@ class="stat-card-link" style="text-decoration:none; color:inherit;">
             </div>
             <div class="row second-card">
 
-<div class="col-md-3">
-    <a href="{{ route('managercallbackleads') }}" class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Callbacks</h4>
-                <div class="card-icon icon5">
-                    <i class="fa-solid fa-phone-volume"></i>
-                </div>
-            </div>
-            <div class="card-body">
-                <h2>{{$callbackleads}}</h2>
-                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
-            </div>
-        </div>
-    </a>
-</div>
+
 
 <div class="col-md-3">
     <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
@@ -192,6 +177,23 @@ class="stat-card-link" style="text-decoration:none; color:inherit;">
             </div>
             <div class="card-body">
                 <h2>20</h2>
+                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
+            </div>
+        </div>
+    </a>
+</div>
+
+<div class="col-md-3">
+    <a href="{{ route('managercallbackleads') }}" class="stat-card-link" style="text-decoration:none; color:inherit;">
+        <div class="stat-card">
+            <div class="card-header">
+                <h4>Total Callbacks</h4>
+                <div class="card-icon icon5">
+                    <i class="fa-solid fa-phone-volume"></i>
+                </div>
+            </div>
+            <div class="card-body">
+                <h2>{{$callbackleads}}</h2>
                 <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
             </div>
         </div>
