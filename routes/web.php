@@ -13,6 +13,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DailyReportController;
 use App\Http\Controllers\LeadClosedCsv;
 use App\Http\Controllers\LeadClosedController;
+use App\Http\Controllers\ImportExportController;
 
 
 /*
@@ -255,6 +256,7 @@ Route::get('filteremployeelogs', [LogsController::class, 'filteremployeelogs'])-
 Route::get('filterleadslogs', [LogsController::class, 'filterleadslogs'])->name('filterleadslogs');
 Route::get('viewleadlogs/{id}', [LogsController::class, 'viewleadlogs'])->name('viewleadlogs');
 Route::get('viewleadlogstable', [LogsController::class, 'viewleadlogstable'])->name('viewleadlogstable');
+Route::get('download-csv/{filename}', [ImportExportController::class,'downloadCsv'])->name('download.csv');
 
 
 

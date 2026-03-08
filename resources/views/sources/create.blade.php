@@ -11,22 +11,23 @@
 <div class="main-right addsubmanager">
     <div class="right-side add-sub">
         <div class="graph">
-            <h2>Add Campaigns</h2>
+            <h2>Add Campaign</h2>
 
             <form id="campaignForm" action="{{ route('sources.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="campaign">Campaigns</label>
+                        <label for="campaign">Campaign Name</label>
                         <input type="text" name="source_name" id="campaign" placeholder="Enter Campaign">
                     </div>
 
                     <div class="form-group">
-                        <label for="sub_campaign">Sub Campaigns</label>
+                        <label for="sub_campaign">Sub Campaign</label>
                         <input type="text" name="description" id="sub_campaign" placeholder="Enter Sub Campaigns">
                     </div>
                 </div>
+                
 
                 <div class="file-upload-section">
                     <label for="lead_file" class="file-label">Import Bulk Leads</label>
@@ -67,66 +68,84 @@
 <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
 
 <script>
-    $(document).ready(function () {
+$(document).ready(function () {
 
-        $('#campaignForm').validate({
-            rules: {
-                source_name: {
-                    required: true,
-                    minlength: 2
-                },
-                description: {
-                    required: true,
-                    minlength: 2
-                },
-                lead_file: {
-                    required: true,
-                    extension: "csv|xls|xlsx"
-                }
+    $('#campaignForm').validate({
+        rules: {
+            source_name: {
+                required: true,
+                minlength: 2
             },
-
-            messages: {
-                source_name: {
-                    required: "Please enter a campaign name.",
-                    minlength: "Campaign name must be at least 2 characters"
-                },
-                description: {
-                    required: "Please enter a sub campaign name.",
-                    minlength: "Sub campaign name must be at least 2 characters"
-                },
-                lead_file: {
-                    required: "Please choose a file.",
-                    extension: "Only CSV, XLS, or XLSX files are allowed"
-                }
+            description: {
+                required: true,
+                minlength: 2
             },
-
-            errorElement: 'span',
-
-            errorPlacement: function (error, element) {
-                error.addClass('text-danger');
-                if (element.attr("type") === "file") {
-                    error.insertAfter('#file-name');
-                } else {
-                    error.insertAfter(element);
-                }
-            },
-
-            // ⭐ Add red border on error
-            highlight: function (element) {
-                $(element).addClass('error-input');
-            },
-            unhighlight: function (element) {
-                $(element).removeClass('error-input');
+            lead_file: {
+                required: true,
+                extension: "csv|xls|xlsx"
             }
-        });
+        },
 
-        // Show selected file name
-        $('#lead_file').change(function () {
-            const fileName = $(this).val().split('\\').pop();
-            $('#file-name').text(fileName || 'No File Chosen');
-        });
+        messages: {
+            source_name: {
+                required: "Please enter a campaign name.",
+                minlength: "Campaign name must be at least 2 characters"
+            },
+            description: {
+                required: "Please enter a sub campaign name.",
+                minlength: "Sub campaign name must be at least 2 characters"
+            },
+            lead_file: {
+                required: "Please choose a file.",
+                extension: "Only CSV, XLS, or XLSX files are allowed"
+            }
+        },
 
+        errorElement: 'span',
+
+        errorPlacement: function (error, element) {
+            error.addClass('text-danger');
+
+            if (element.attr("type") === "file") {
+                error.insertAfter('#file-name');
+            } else {
+                error.insertAfter(element);
+            }
+        },
+
+        highlight: function (element) {
+            $(element).addClass('error-input');
+        },
+
+        unhighlight: function (element) {
+            $(element).removeClass('error-input');
+        },
+
+        // ⭐ Check CSV before submit
+        submitHandler: function(form) {
+
+            const fileName = $('#lead_file').val().split('\\').pop();
+            const ext = fileName.split('.').pop().toLowerCase();
+
+            if(ext === 'csv'){
+                if(confirm("CSV file detected. Leads will be imported. Continue?")){
+                    form.submit();
+                }
+            } else {
+                form.submit();
+            }
+
+        }
     });
+
+
+    // Show selected file name
+    $('#lead_file').change(function () {
+        const fileName = $(this).val().split('\\').pop();
+        $('#file-name').text(fileName || 'No File Chosen');
+    });
+
+});
 </script>
 
 

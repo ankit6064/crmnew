@@ -10,12 +10,12 @@
                     @csrf
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="campaign">Campaigns</label>
+                            <label for="campaign">Campaign Name</label>
                             <input type="hidden" id="source_name1" name='source_name' class="form-control" value="{{$source['id']}}">
                             <input type="text" id="source" name='source' readonly placeholder="Enter Campaign" value="{{$source['source_name']}}">
                         </div>
                         <div class="form-group">
-                            <label for="sub_campaign">Sub Campaigns</label>
+                            <label for="sub_campaign">Sub Campaign</label>
                             <input type="text" name="sub_campaign" readonly placeholder="Enter Campaign" value="{{$source['description']}}">
                         </div>
                     </div>

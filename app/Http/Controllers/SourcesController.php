@@ -427,12 +427,22 @@ class SourcesController extends Controller
 
                     if (!empty($row->leadNotImported)) {
                         $html .= '
-                            <a href="#">
+                            <a href="' . route('download.csv', ['filename' => $row->leadNotImported->file_name]) . '">
                                 <span class="label" data-tippy-content="Download Raw Leads" style="color:#ac2609;font-size:15px;">
                                     <i class="fa-solid fa-file-download"></i>
                                 </span>
                             </a>';
                     }
+
+                    // if (!empty($row->leadNotImported)) {
+                    //     $html .=
+                    //         '<a href="' . route('download.csv', ['filename' => $row->leadNotImported->file_name]) . '">
+                    //         <span class="label" data-toggle="tooltip" data-placement="top" title="Download leads not imported" 
+                    //             style="color:red;font-size: 15px;">
+                    //             <i class="ti-download"></i>
+                    //         </span>
+                    //     </a>';
+                    // }
 
                     if (Auth::user()->is_admin == null) {
 
