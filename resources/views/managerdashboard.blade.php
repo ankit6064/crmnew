@@ -49,7 +49,7 @@
             <h2>Dashboard</h2>
             <div class="row first-card">
             <div class="col-md-3">
-    <a href="{{ route('employee.submanagerlisting') }}"    target="_blank" class="stat-card-link" style="text-decoration:none; color:inherit;">
+    <a href="{{ route('employee.submanagerlisting') }}"     class="stat-card-link" style="text-decoration:none; color:inherit;">
         <div class="stat-card">
             <div class="card-header">
                 <h4>Total Submanagers</h4>
@@ -68,7 +68,7 @@
 </div>
 
 <div class="col-md-3">
-    <a href="{{ route('employee.manageremployeeindex') }}"    target="_blank"
+    <a href="{{ route('employee.manageremployeeindex') }}"    
  class="stat-card-link" style="text-decoration:none; color:inherit;">
         <div class="stat-card">
             <div class="card-header">
@@ -88,7 +88,7 @@
 </div>
 
 <div class="col-md-3">
-    <a href="{{ route('sources.getMangerSource') }}"     target="_blank"
+    <a href="{{ route('sources.getMangerSource') }}"     
 class="stat-card-link" style="text-decoration:none; color:inherit;">
         <div class="stat-card">
             <div class="card-header">
@@ -108,7 +108,7 @@ class="stat-card-link" style="text-decoration:none; color:inherit;">
 </div>
 
 <div class="col-md-3">
-    <a href="{{ route('allleadview') }}"    target="_blank"
+    <a href="{{ route('allleadview') }}"    
  class="stat-card-link" style="text-decoration:none; color:inherit;">
         <div class="stat-card">
             <div class="card-header">

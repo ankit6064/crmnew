@@ -78,8 +78,21 @@
     </style>
     <div class="main-right managersubmanagerclass">
         <div class="right-side">
-            <h2>Campaign Listing</h2>
+            <div class="row">
+                <div class="row align-items-center mb-3">
+                    <div class="col-md-8">
+                        <h2 class="mb-0">Campaign Listing</h2>
+                    </div>
 
+                    <div class="col-md-4 text-end">
+                        <button type="button" class="btn return-btn"
+                            onclick="window.history.back() || (window.location.href='/employeedashboard');">
+                            <i class="fas fa-arrow-left me-2"></i> Back
+                        </button>
+                    </div>
+                </div>
+
+            </div>
 
             <div class="row">
                 <div class="col-md-3">

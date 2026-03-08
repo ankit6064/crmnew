@@ -80,7 +80,21 @@
 
   <div class="main-right">
     <div class="right-side">
-      <h2>Employee Listing</h2>
+      <div class="row">
+        <div class="row align-items-center mb-3">
+          <div class="col-md-8">
+            <h2 class="mb-0">Employee Listing</h2>
+          </div>
+
+          <div class="col-md-4 text-end">
+            <button type="button" class="btn return-btn"
+              onclick="window.history.back() || (window.location.href='/managerdashboard');">
+              <i class="fas fa-arrow-left me-2"></i> Back
+            </button>
+          </div>
+        </div>
+
+      </div>
       <div class="row">
         <div class="col-md-3">
           <div class="stat-card filter-card active-card" data-filter="total">
@@ -134,9 +148,11 @@
             </div>
             <div id="submanagerbody" class="modal-body"></div>
             <div class="modal-footer">
-            <button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="transfer();">Assign Campaign & Assign Role</button>
-            <button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="skip();">Skip & Assign Role</button>
-            <button type="button" class="btn btn-info" data-dismiss="modal" onclick="closemodal()">Close</button>
+              <button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="transfer();">Assign Campaign
+                & Assign Role</button>
+              <button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="skip();">Skip & Assign
+                Role</button>
+              <button type="button" class="btn btn-info" data-dismiss="modal" onclick="closemodal()">Close</button>
             </div>
           </div>
         </div>
@@ -402,11 +418,11 @@
       });
     }
 
-    function closemodal() { 
+    function closemodal() {
       $('#assignsubmanager').modal('hide');
       $('#campaignlisting').modal('hide');
 
-     }
+    }
     function closemodalemp() { $('#assignempmanager').modal('hide'); location.reload(); }
   </script>
 @endpush

@@ -51,7 +51,22 @@
     <div class="main-right">
         <div class="right-side submanager completed-leads closed-leads">
 
-            <h2>Leads Listing - {{ $source->source_name }}</h2>
+        <div class="row">
+                <div class="row align-items-center mb-3">
+                    <div class="col-md-8">
+                        <h2 class="mb-0">Leads Listing - {{ $source->source_name }}</h2>
+
+                    </div>
+
+                    <div class="col-md-4 text-end">
+                        <button type="button" class="btn return-btn"
+                            onclick="window.history.back() || (window.location.href='/sources/employeecampaign');">
+                            <i class="fas fa-arrow-left me-2"></i> Back
+                        </button>
+                    </div>
+                </div>
+
+            </div>
 
             <div class="graph campaignslist">
 

@@ -721,6 +721,7 @@ div#employeelisting button.btn.btn-info {
     background-position: right 10px center;
     background-size: 16px 16px;
 }
+
 div#employee-table_paginate a.paginate_button.current {
     margin-top: 0px !important;
     margin-bottom: 0 !important;

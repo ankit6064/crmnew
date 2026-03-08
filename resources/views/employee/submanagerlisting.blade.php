@@ -84,7 +84,21 @@
 
     <div class="main-right">
         <div class="right-side">
-            <h2>Submanager Listing</h2>
+            <div class="row">
+                <div class="row align-items-center mb-3">
+                    <div class="col-md-8">
+                        <h2 class="mb-0">Submanager Listing</h2>
+                    </div>
+
+                    <div class="col-md-4 text-end">
+                        <button type="button" class="btn return-btn"
+                            onclick="window.history.back() || (window.location.href='/managerdashboard');">
+                            <i class="fas fa-arrow-left me-2"></i> Back
+                        </button>
+                    </div>
+                </div>
+
+            </div>
             <div class="row">
                 <div class="col-md-3">
                     <div class="stat-card filter-card active-card" data-filter="total">
@@ -341,9 +355,9 @@
                 url: "{{ route('employee.viewemployees') }}",
                 method: 'get',
                 data: { managerid: managerid },
-                dataType:"json",
+                dataType: "json",
                 success: function (response) {
-                    if (response.status == 200) {                       
+                    if (response.status == 200) {
                         $('#employeelistingbody').html(response.html);
                         $('#employeelisting').modal('show');
                     }
@@ -356,7 +370,7 @@
                 url: "{{ route('employee.viewcampaigns') }}",
                 method: 'get',
                 data: { managerid: managerid },
-                dataType:"json",
+                dataType: "json",
                 success: function (response) {
                     if (response.status == 200) {
                         let modal = new bootstrap.Modal(document.getElementById('campaignlisting'));

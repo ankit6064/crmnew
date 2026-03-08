@@ -157,6 +157,15 @@
                 <!-- Buttons -->
                 <div class="btn-group">
                     <button type="submit" class="btn btn-save" id="saveButton">Save</button>
+                    @if(Auth::user()->is_admin == 2)
+                    <button type="button" class="btn btn-cancel"
+                            onclick="window.location.href='{{ route('managerdashboard') }}'">Cancel</button>
+                            @else
+                            <button type="button" class="btn btn-cancel"
+                            onclick="window.location.href='{{ route('employeedashboard') }}'">Cancel</button>
+                    @endif
+                    </div>
+                  
                     <!-- <button type="reset" class="btn btn-cancel">Cancel</button>
 
                     <a href="{{ url('leads') }}">
