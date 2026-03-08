@@ -57,7 +57,7 @@
 
 <!-- Total Leads -->
 <div class="col-md-3">
-    <div class="stat-card" onclick="redirectcard('leads/completed');">
+    <div class="stat-card" onclick="redirectcard('leads/totalLeads');">
         <div class="card-header">
             <h4>Total Leads</h4>
             <div class="card-icon icon-leads">
@@ -73,7 +73,7 @@
 
 <!-- Fresh Leads -->
 <div class="col-md-3">
-    <div class="stat-card" onclick="redirectcard('leads/in_progress');">
+    <div class="stat-card" onclick="redirectcard('leads/freshleads');">
         <div class="card-header">
             <h4>Fresh Leads</h4>
             <div class="card-icon icon-fresh">

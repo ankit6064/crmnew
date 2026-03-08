@@ -190,6 +190,9 @@ Route::prefix('leads')->group(function (): void {
     Route::get('managercallbackleads', [LeadsController::class, 'managercallbackleads'])->name('managercallbackleads');
 
     Route::get('failed', [LeadsController::class, 'failed'])->name('failed');
+    Route::get('freshleads', [LeadsController::class, 'freshleads'])->name('freshleads');
+    Route::get('totalLeads', [LeadsController::class, 'totalLeads'])->name('totalLeads');
+
     Route::get('in_progress', [LeadsController::class, 'in_progress'])->name('in_progress');
     Route::post('add_note', [LeadsController::class,'add_note'])->name('add_note');
     Route::get('notes_view/{id}', [LeadsController::class,'notes_view'])->name('notes_view');

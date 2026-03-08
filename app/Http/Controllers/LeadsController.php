@@ -2135,6 +2135,188 @@ class LeadsController extends Controller
     }
 
 
+    public function freshleads(Request $request)
+    {
+        if ($request->ajax()) {
+            // Eager load the relationships we need (source and notes)
+            $query = Lead::select([
+                'leads.*',
+                'sources.source_name as source_name',
+                'sources.description as description'
+            ])
+                ->join('sources', 'leads.source_id', '=', 'sources.id')
+                ->with([
+                    'momReport',
+                    'lhsReport',
+                    'notes' => function ($query) {
+                        $query->latest()->limit(1);
+                    }
+                ])
+                ->where('leads.asign_to', auth()->user()->id)
+                ->where('leads.status', '1')
+                ->where('sources.is_active', 1);
+
+
+            if (
+                !$request->has('order') ||
+                ($request->input('order.0.column') == '0' && $request->input('order.0.dir') === 'asc')
+            ) {
+                $query->orderBy('closed_on', 'DESC')
+                    ->orderBy('leads.updated_at', 'DESC');
+            }
+
+            return DataTables::of($query)
+
+                ->editColumn('updated_at', function ($data) {
+                    return $data->updated_at->format('d M, Y H:i:s');
+                })
+                ->addColumn('last_updated_note', function ($data) {
+                    // Retrieve the latest note feedback
+                    $latestNote = $data->notes->first(); // Already eager loaded
+                    return $latestNote && strlen($latestNote->feedback) > 20
+                        ? substr($latestNote->feedback, 0, 20) . '...'
+                        : $latestNote->feedback ?? '';
+                })
+                ->addColumn('options', function ($data) {
+                    // Eager load LhsReport and avoid querying inside the column
+    
+                  
+                    $notedetails = Note::where('lead_id', $data->id)->orderByDesc('id')->first();
+
+                    $actionHtml = '';
+                    
+                    if ($notedetails) {
+                    
+                        $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
+                    
+                        // check if note created within last 24 hours
+                        if ($createdAt->diffInHours(now()) <= 24) {
+                    
+                            $actionHtml .= '<a class="viewnotes shake-note" onclick="shownoteslist(' . $data->id . ')" data-toggle="modal" data-target="#largeModal">
+                                <i class="fas fa-eye label-new" style="color:#8B8000 !important"></i>
+                            </a>';
+                    
+                        } else {
+                    
+                            $actionHtml .= '<a class="viewnotes" onclick="shownoteslist(' . $data->id . ')" data-toggle="modal" data-target="#largeModal">
+                                <i class="fas fa-eye" style="color:black"></i>
+                            </a>';
+                    
+                        }
+                    }
+
+
+                    // KEEP ADD NOTE ICON SAME
+                    $actionHtml .= '
+                    <a class="addnotes"  onclick="showaddmodal(' . $data->id . ')" data-toggle="modal">
+                        <i class="fa fa-comment label-new" aria-hidden="true"></i>
+                    </a>';
+
+                    $actionHtml .= '
+                    <a onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal" title="Change Status">
+                    <i class="fa fa-exchange label-new" aria-hidden="true"></i>
+                </a>';
+                    return $actionHtml;
+                })
+                ->rawColumns(['action', 'last_updated_note', 'options'])
+                ->make(true);
+        }
+
+        return view('leads.freshleads');
+    }
+
+
+    public function totalLeads(Request $request)
+    {
+        if ($request->ajax()) {
+            // Eager load the relationships we need (source and notes)
+            $query = Lead::select([
+                'leads.*',
+                'sources.source_name as source_name',
+                'sources.description as description'
+            ])
+                ->join('sources', 'leads.source_id', '=', 'sources.id')
+                ->with([
+                    'momReport',
+                    'lhsReport',
+                    'notes' => function ($query) {
+                        $query->latest()->limit(1);
+                    }
+                ])
+                ->where('leads.asign_to', auth()->user()->id)
+                // ->where('leads.status', '1')
+                ->where('sources.is_active', 1);
+
+
+            if (
+                !$request->has('order') ||
+                ($request->input('order.0.column') == '0' && $request->input('order.0.dir') === 'asc')
+            ) {
+                $query->orderBy('closed_on', 'DESC')
+                    ->orderBy('leads.updated_at', 'DESC');
+            }
+
+            return DataTables::of($query)
+
+                ->editColumn('updated_at', function ($data) {
+                    return $data->updated_at->format('d M, Y H:i:s');
+                })
+                ->addColumn('last_updated_note', function ($data) {
+                    // Retrieve the latest note feedback
+                    $latestNote = $data->notes->first(); // Already eager loaded
+                    return $latestNote && strlen($latestNote->feedback) > 20
+                        ? substr($latestNote->feedback, 0, 20) . '...'
+                        : $latestNote->feedback ?? '';
+                })
+                ->addColumn('options', function ($data) {
+                    // Eager load LhsReport and avoid querying inside the column
+    
+                  
+                    $notedetails = Note::where('lead_id', $data->id)->orderByDesc('id')->first();
+
+                    $actionHtml = '';
+                    
+                    if ($notedetails) {
+                    
+                        $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
+                    
+                        // check if note created within last 24 hours
+                        if ($createdAt->diffInHours(now()) <= 24) {
+                    
+                            $actionHtml .= '<a class="viewnotes shake-note" onclick="shownoteslist(' . $data->id . ')" data-toggle="modal" data-target="#largeModal">
+                                <i class="fas fa-eye label-new" style="color:#8B8000 !important"></i>
+                            </a>';
+                    
+                        } else {
+                    
+                            $actionHtml .= '<a class="viewnotes" onclick="shownoteslist(' . $data->id . ')" data-toggle="modal" data-target="#largeModal">
+                                <i class="fas fa-eye" style="color:black"></i>
+                            </a>';
+                    
+                        }
+                    }
+
+
+                    // KEEP ADD NOTE ICON SAME
+                    $actionHtml .= '
+                    <a class="addnotes"  onclick="showaddmodal(' . $data->id . ')" data-toggle="modal">
+                        <i class="fa fa-comment label-new" aria-hidden="true"></i>
+                    </a>';
+
+                    $actionHtml .= '
+                    <a onclick="showstatusmodal(' . $data->id . ')" data-toggle="modal" data-target="#status-modal" title="Change Status">
+                    <i class="fa fa-exchange label-new" aria-hidden="true"></i>
+                </a>';
+                    return $actionHtml;
+                })
+                ->rawColumns(['action', 'last_updated_note', 'options'])
+                ->make(true);
+        }
+
+        return view('leads.totalLeads');
+    }
+
+
     public function changeStatus(Request $request)
     {
         $notesCountObj = Note::where(['lead_id' => $request->lead_id]);
