@@ -2,7 +2,6 @@
 namespace App\Exports;
 
 use App\Models\Lead;
-use App\Models\Note;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -27,15 +26,21 @@ class LeadClosedExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
                 'prospect_last_name', 'linkedin_address', 'source_id',
                 'asign_to', 'created_at', 'status'
             ])
-            ->with(['source:id,source_name,description', 'user:id,name'])
+            ->with([
+                'source:id,source_name,description', 
+                'user:id,name',
+                // This uses your existing notes() relationship from the model
+                'notes' => function($query) {
+                    $query->select('lead_id', 'feedback');
+                }
+            ])
             ->orderBy('status', 'desc');
     }
 
     public function map($lead): array
     {
-        $user = $lead->user;
-        $source = $lead->source;
-        $notes = Note::where('lead_id', $lead->id)->pluck('feedback')->implode(",\n");
+        // 2. Access the pre-loaded notes collection instead of querying the DB
+        $notes = $lead->notes->pluck('feedback')->implode(",\n");
 
         return [
             $lead->id,
@@ -43,9 +48,9 @@ class LeadClosedExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
             $lead->company_name,
             "{$lead->prospect_first_name} {$lead->prospect_last_name}",
             $lead->linkedin_address,
-            optional($source)->source_name ?? 'N/A',
-            optional($source)->description ?? 'N/A',
-            optional($user)->name ?? 'N/A',
+            $lead->source->source_name ?? 'N/A',
+            $lead->source->description ?? 'N/A',
+            $lead->user->name ?? 'N/A',
             $notes,
             $lead->created_at->format('d/m/Y h:i a'),
         ];
@@ -62,9 +67,14 @@ class LeadClosedExport implements FromQuery, WithHeadings, WithMapping, ShouldAu
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:J1')->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '4CAF50']],
-        ]);
+        // Added wrap text for feedback since it can have newlines
+        $sheet->getStyle('I')->getAlignment()->setWrapText(true);
+
+        return [
+            1 => [
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '4CAF50']],
+            ],
+        ];
     }
 }
