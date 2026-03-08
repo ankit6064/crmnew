@@ -105,15 +105,19 @@ class HomeController extends Controller
     {
         $userId = auth()->user()->id;
         $today = Carbon::today();
-
+        $totalCampaign = Source::whereHas('leads', function ($q) use ($userId) {
+            $q->where('asign_to', $userId)
+                ->where('status', '!=', '2');
+        })->count();
         // Retrieve all counts in one query
         $leadCounts = Lead::selectRaw('
+            COUNT(*) as totalLeads,
+            SUM(CASE WHEN status = "1" THEN 1 ELSE 0 END) as freshleads,
             SUM(CASE WHEN status = "3" THEN 1 ELSE 0 END) as totalClosedLeads,
             SUM(CASE WHEN status = "2" THEN 1 ELSE 0 END) as totalFailedLeads,
             SUM(CASE WHEN status = "4" THEN 1 ELSE 0 END) as totalInprogressLeads,
             SUM(CASE WHEN status = "5" THEN 1 ELSE 0 END) as totalCompletedLeads
-
-        ')
+            ')
             ->where('asign_to', $userId)
             ->whereHas('source', function ($query) {
                 $query->where('is_active', 1);
@@ -129,23 +133,26 @@ class HomeController extends Controller
             ->count();
 
         return view('employeedashboard', [
+            'totalLeads' => $leadCounts->totalLeads,
+            'totalFreshLeads' => $leadCounts->freshleads,
             'totalClosedLeads' => $leadCounts->totalClosedLeads,
             'totalFailedLeads' => $leadCounts->totalFailedLeads,
             'totalInprogressLeads' => $leadCounts->totalInprogressLeads,
             'totalCompletedLeads' => $leadCounts->totalCompletedLeads,
             'todayReminders' => $todayReminders,
+            'totalCampaign' => $totalCampaign
         ]);
     }
 
     public function managerdashboard(Request $request)
     {
         $submangercount = User::where('is_admin', 3)->where('user_id', Auth::id())->count();
-        $employeecount = User::whereIn('is_admin', [1,3])->where('user_id', Auth::id())->count();
+        $employeecount = User::whereIn('is_admin', [1, 3])->where('user_id', Auth::id())->count();
         $campaigncount = Source::where(function ($query) {
             $query->where('user_id', auth()->user()->id)
                 ->orWhere('assign_to_manager', auth()->user()->id);
         })
-        ->count();
+            ->count();
         $totalleads = Lead::where('asign_to_manager', Auth::id())->count();
         $totallhscount = Lead::join('lhs_report', 'leads.id', 'lhs_report.lead_id')->where('leads.asign_to_manager', Auth::id())->count();
         $totalmomcount = Lead::join('mom_report', 'leads.id', 'mom_report.lead_id')->where('leads.asign_to_manager', Auth::id())->count();
@@ -173,7 +180,7 @@ class HomeController extends Controller
             ->whereIn('callback_leads.employee_id', $employeeids)
             ->whereDate('callback_leads.callback_date', $currentDate)->count();
 
-        return view('managerdashboard', compact('submangercount', 'employeecount', 'campaigncount', 'totalleads', 'totallhscount', 'totalmomcount', 'employee', 'sources','callbackleads'));
+        return view('managerdashboard', compact('submangercount', 'employeecount', 'campaigncount', 'totalleads', 'totallhscount', 'totalmomcount', 'employee', 'sources', 'callbackleads'));
     }
 
     public function getmanagergraph(Request $request)
@@ -233,87 +240,87 @@ class HomeController extends Controller
     public function geEmployeeDashboardData(Request $request)
     {
         $userId = auth()->user()->id;
-    
+
         $statusFilter = $request->get('status_filter', 'total');
         $searchValue = $request->get('search')['value'] ?? null;
-    
+
         $lastLogin = User::where('id', $userId)->value('last_login') ?? now();
-    
+
         $query = Lead::where('asign_to', $userId)
             ->whereHas('source', function ($q) use ($statusFilter, $searchValue) {
-    
+
                 // Status filter
                 if ($statusFilter == 'active') {
                     $q->where('is_active', '1');
                 } elseif ($statusFilter == 'inactive') {
                     $q->where('is_active', '2');
                 } else {
-                    $q->whereIn('is_active', ['1','2']);
+                    $q->whereIn('is_active', ['1', '2']);
                 }
-    
+
                 // Search filter
                 if ($searchValue) {
                     $q->where(function ($s) use ($searchValue) {
                         $s->where('source_name', 'LIKE', "%{$searchValue}%")
-                          ->orWhere('description', 'LIKE', "%{$searchValue}%");
+                            ->orWhere('description', 'LIKE', "%{$searchValue}%");
                     });
                 }
             })
             ->select('source_id', DB::raw('COUNT(*) as totalLeads'))
             ->groupBy('source_id');
-    
+
         $sourceIds = $query->pluck('source_id');
-    
+
         // Fetch source info
         $sourceData = Source::whereIn('id', $sourceIds)
             ->select('id', 'source_name', 'description')
             ->get()
             ->keyBy('id');
-    
+
         // Fetch note counts
         $noteCounts = Note::whereIn('source_id', $sourceIds)
             ->where('created_at', '>=', $lastLogin)
             ->groupBy('source_id')
             ->select('source_id', DB::raw('COUNT(*) as notes_count'))
             ->pluck('notes_count', 'source_id');
-    
+
         return datatables()->of($query)
-    
+
             ->addColumn('campaign_name', function ($data) use ($sourceData) {
-    
+
                 $source = $sourceData[$data->source_id] ?? null;
-    
+
                 if ($source) {
                     return '
                             <span class="label" data-toggle="tooltip"
                             title="View Campaign"
                             style="color:#000;font-size:15px;">'
-                            . $source->source_name . '</span>';
+                        . $source->source_name . '</span>';
                 }
-    
+
                 return '--';
             })
-    
+
             ->addColumn('description', fn($data) => $sourceData[$data->source_id]->description ?? '--')
-    
+
             ->addColumn('totalLeads', fn($data) => $data->totalLeads)
-    
+
             ->addColumn('last_login', fn() => date("d-m-Y H:i:s", strtotime($lastLogin)))
-    
+
             ->addColumn('notes_count', fn($data) => $noteCounts[$data->source_id] ?? 0)
 
             ->addColumn('action', function ($data) use ($sourceData) {
-    
-               $html = ' <a href="' . url('campaign/camp_assign_emp/' . $data->source_id) . '">
+
+                $html = ' <a href="' . url('campaign/camp_assign_emp/' . $data->source_id) . '">
                 <span class="label viewleads" data-tippy-content="View Leads" style="color:#000;font-size:15px;">
                     <i class="fa-solid fa-eye"></i>
                 </span>
             </a>';
-            return $html;
+                return $html;
             })
-    
-            ->rawColumns(['campaign_name','action'])
-    
+
+            ->rawColumns(['campaign_name', 'action'])
+
             ->make(true);
     }
 }

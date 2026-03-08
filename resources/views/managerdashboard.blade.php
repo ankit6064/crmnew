@@ -32,6 +32,17 @@
             width: 100% !important;
             height: 400px !important;
         }
+        .stat-card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
     </style>
     <div class="main-right managersubmanagerclass">
         <div class="right-side">
