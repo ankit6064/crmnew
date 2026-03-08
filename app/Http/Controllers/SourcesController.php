@@ -127,48 +127,50 @@ class SourcesController extends Controller
 
     public function store(Request $request)
     {
-        /*$data = array(
-            'source_name'=>$request->source_name
-        );
-
-        Source::create($data);
-
-        return redirect('sources')->with('success', 'Source Added Successfully.');*/
-
+    
         $validator = Validator::make($request->all(), [
             'source_name' => 'required',
             'description' => 'required',
         ]);
-
-
-        if ($validator->passes()) {
-
-
-            $data = array(
-                'user_id' => auth()->user()->id,
-                'source_name' => $request->source_name,
-                'description' => $request->description
-            );
-            //dd($data);
-            $source_id = Source::create($data);
-            $file = request()->file('source_file');
-            if ($request->hasFile('source_file') && $request->file('source_file')->isValid()) {
-
-
-                $importService = new CampaignImport($source_id->id);
-                $importService->importLeads($file);
-            }
-
-            $logs = new Logs();
-            $logs->user_id = Auth::id();
-            $logs->description = 'A new campaign ' . $request->source_name . '-' . $request->description . ' is added';
-            $logs->type = 14;
-            $logs->source_id = $source_id->id;
-            $logs->save();
-
-            return redirect()->route('sources.create')->with('success', 'Campaign added successfully');
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => $validator->errors()->all()
+            ]);
         }
-        return response()->json(['error' => $validator->errors()->all()]);
+    
+        // Create Campaign
+        $data = [
+            'user_id' => auth()->id(),
+            'source_name' => $request->source_name,
+            'description' => $request->description
+        ];
+    
+        $source = Source::create($data);
+    
+        // File Upload
+        if ($request->hasFile('lead_file') && $request->file('lead_file')->isValid()) {
+    
+            $file = $request->file('lead_file');
+    
+            $importService = new CampaignImport($source->id);
+    
+            $importService->importLeads(
+                $file,
+                $request->import_duplicate ?? 0,
+                $request->source_name ?? null
+            );
+        }
+    
+        // Logs
+        $logs = new Logs();
+        $logs->user_id = Auth::id();
+        $logs->description = 'A new campaign ' . $request->source_name . '-' . $request->description . ' is added';
+        $logs->type = 14;
+        $logs->source_id = $source->id;
+        $logs->save();
+    
+        return redirect()->route('sources.create')->with('success', 'Campaign added successfully');
     }
 
 
@@ -1906,17 +1908,25 @@ class SourcesController extends Controller
 
     public function import_leads(Request $request)
     {
-        // dd($request->source_name);
         $source_id = $request->source_name;
-        //$data = Source::where('id')->first();
-        $file = request()->file('file');
+        $import_duplicate = $request->import_duplicate ?? 0;
+        $source = $request->source;
+    
         if ($request->hasFile('file') && $request->file('file')->isValid()) {
-
-
+    
+            $file = $request->file('file');
+    
             $importService = new CampaignImport($source_id);
-            $importService->importLeads($file);
+    
+            $importService->importLeads(
+                $file,
+                $import_duplicate,
+                $source
+            );
         }
-        return redirect('leads/assign_lead_emp/' . $source_id)->with('success', 'Lead Imported Successfully.');
+    
+        return redirect('leads/assign_lead_emp/' . $source_id)
+            ->with('success', 'Lead Imported Successfully.');
     }
 
     public function usersByManager(Request $request): string
@@ -1999,6 +2009,32 @@ class SourcesController extends Controller
 
 
         return view('employeecampaigns',compact('totalCampaign','activeCampaign','inactiveCampaign'));
+    }
+
+    public function checkCampaignExists(Request $request)
+    {
+        $campaignName = strtolower($request->source_name);
+
+        if(isset($request->source_id) && !empty($request->source_id)){
+            $checkSourceName = Source::whereRaw('LOWER(source_name) = ?', [$campaignName])->where('id','!=',$request->source_id)->first();
+
+        }else{
+            $checkSourceName = Source::whereRaw('LOWER(source_name) = ?', [$campaignName])->first();
+
+        }
+    
+    
+        if ($checkSourceName) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Source Exists'
+            ]);
+        } else {
+            return response()->json([
+                'status' => 200,
+                'message' => 'Source Available'
+            ]);
+        }
     }
 
 }

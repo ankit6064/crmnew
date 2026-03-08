@@ -2,75 +2,102 @@
 
 @section('content')
 
-<style>
-    .error-input {
-        border: 1px solid red !important;
-    }
-</style>
+    <style>
+        .error-input {
+            border: 1px solid red !important;
+        }
+    </style>
 
-<div class="main-right addsubmanager">
-    <div class="right-side add-sub">
-        <div class="graph">
-            <h2>Add Campaign</h2>
+    <div class="main-right addsubmanager">
+        <div class="right-side add-sub">
+            <div class="graph">
+                <h2>Add Campaign</h2>
 
-            <form id="campaignForm" action="{{ route('sources.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
+                <form id="campaignForm" action="{{ route('sources.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="import_duplicate" id="import_duplicate" value="0">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="campaign">Campaign Name</label>
+                            <input type="text" name="source_name" id="campaign" placeholder="Enter Campaign">
+                        </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="campaign">Campaign Name</label>
-                        <input type="text" name="source_name" id="campaign" placeholder="Enter Campaign">
+                        <div class="form-group">
+                            <label for="sub_campaign">Sub Campaign</label>
+                            <input type="text" name="description" id="sub_campaign" placeholder="Enter Sub Campaigns">
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="sub_campaign">Sub Campaign</label>
-                        <input type="text" name="description" id="sub_campaign" placeholder="Enter Sub Campaigns">
+
+                    <div class="file-upload-section">
+                        <label for="lead_file" class="file-label">Import Bulk Leads</label>
+                        <div class="file-upload">
+                            <label class="custom-file-upload">
+                                Choose File
+                                <input type="file" name="lead_file" id="lead_file" />
+                            </label>
+                            <span id="file-name">No File Chosen</span>
+                        </div>
                     </div>
-                </div>
-                
 
-                <div class="file-upload-section">
-                    <label for="lead_file" class="file-label">Import Bulk Leads</label>
-                    <div class="file-upload">
-                        <label class="custom-file-upload">
-                            Choose File
-                            <input type="file" name="lead_file" id="lead_file" />
-                        </label>
-                        <span id="file-name">No File Chosen</span>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-save">Save</button>
+                        <button type="button" class="btn btn-cancel"
+                            onclick="window.location.href='{{ route('sources.getMangerSource') }}'">Cancel</button>
                     </div>
-                </div>
 
-                <div class="btn-group">
-                    <button type="submit" class="btn btn-save">Save</button>
-                    <button type="button" class="btn btn-cancel"
-                        onclick="window.location.href='{{ route('sources.getMangerSource') }}'">Cancel</button>
-                </div>
+                </form>
 
-            </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Success Modal --}}
+    <div class="popupcenter" id="successModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                                background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+        <div class="popupp">
+            <div class="success-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <p>Campagin has been <br> added successfully.</p>
+        </div>
+    </div>
+
+    <div class="popupcenter" id="duplicateModal" style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh;
+        background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+
+        <div class="popupp" style="background:#fff; padding:30px; border-radius:8px; text-align:center; width:350px;">
+
+            <h4 style="margin-bottom:15px;">Campaign Already Exists</h4>
+
+            <p style="margin-bottom:25px;">
+                Do you want to import duplicate leads?
+            </p>
+
+            <div style="display:flex; justify-content:center; gap:15px;">
+                <button id="importDuplicateBtn" class="btn btn-save">
+                    Import Duplicate
+                </button>
+
+                <button id="skipDuplicateBtn" class="btn btn-cancel">
+                    Don't Import
+                </button>
+            </div>
 
         </div>
     </div>
-</div>
 
-{{-- Success Modal --}}
-<div class="popupcenter" id="successModal"
-     style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-    <div class="popupp">
-        <div class="success-icon">
-            <i class="fa-solid fa-circle-check"></i>
-        </div>
-        <p>Campagin has been <br> added successfully.</p>
-    </div>
-</div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
-
-<script>
+    <script>
 $(document).ready(function () {
 
+    let skipCampaignCheck = false;
+
     $('#campaignForm').validate({
+
         rules: {
             source_name: {
                 required: true,
@@ -121,49 +148,110 @@ $(document).ready(function () {
             $(element).removeClass('error-input');
         },
 
-        // ⭐ Check CSV before submit
-        submitHandler: function(form) {
+        submitHandler: function (form) {
+
+            if (skipCampaignCheck) {
+                form.submit();
+                return;
+            }
 
             const fileName = $('#lead_file').val().split('\\').pop();
             const ext = fileName.split('.').pop().toLowerCase();
+            const campaignName = $('#campaign').val();
 
-            if(ext === 'csv'){
-                if(confirm("CSV file detected. Leads will be imported. Continue?")){
-                    form.submit();
-                }
+            if (ext === 'csv') {
+
+                $.ajax({
+                    url: "{{ route('sources.checkCampaignExists') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        source_name: campaignName
+                    },
+
+                    success: function (response) {
+
+                        if (response.status == 400) {
+
+                            $('#duplicateModal').css('display', 'flex');
+
+                        } else {
+
+                            skipCampaignCheck = true;
+                            form.submit();
+
+                        }
+
+                    },
+
+                    error: function () {
+                        alert("Something went wrong while checking campaign.");
+                    }
+
+                });
+
             } else {
-                form.submit();
-            }
 
+                form.submit();
+
+            }
         }
+
     });
 
 
-    // Show selected file name
-    $('#lead_file').change(function () {
+    // File name preview
+    $('#lead_file').on('change', function () {
         const fileName = $(this).val().split('\\').pop();
         $('#file-name').text(fileName || 'No File Chosen');
+    });
+
+
+    // Import Duplicate
+    $('#importDuplicateBtn').click(function () {
+
+        $('#import_duplicate').val(1);
+        skipCampaignCheck = true;
+
+        $('#duplicateModal').hide();
+
+        $('#campaignForm').submit();
+
+    });
+
+
+    // Don't Import Duplicate
+    $('#skipDuplicateBtn').click(function () {
+
+        $('#import_duplicate').val(0);
+        skipCampaignCheck = true;
+
+        $('#duplicateModal').hide();
+
+        $('#campaignForm').submit();
+
     });
 
 });
 </script>
 
 
-<script>
-    @if(session('success'))
-        $(document).ready(function () {
-            setTimeout(function () {
-                $('#successModal').css('display', 'flex');
-
+    <script>
+        @if(session('success'))
+            $(document).ready(function () {
                 setTimeout(function () {
-                    $('#successModal').fadeOut(300, function () {
-                        window.location.href = "{{ route('sources.getMangerSource') }}";
-                    });
-                }, 3000);
+                    $('#successModal').css('display', 'flex');
 
-            }, 100);
-        });
-    @endif
-</script>
+                    setTimeout(function () {
+                        $('#successModal').fadeOut(300, function () {
+                            window.location.href = "{{ route('sources.getMangerSource') }}";
+                        });
+                    }, 3000);
+
+                }, 100);
+            });
+        @endif
+    </script>
+
 
 @endsection

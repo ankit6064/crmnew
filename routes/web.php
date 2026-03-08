@@ -224,6 +224,7 @@ Route::post('import_leads', [SourcesController::class,'import_leads'])->name('im
 Route::get('source-lead/{id}', [SourcesController::class,'getLeadBySourceId']);
 Route::get('source-lead-transfer/{id}', [SourcesController::class,'getLeadBySourceIdtransfer'])->name('getLeadBySourceIdtransfer');
 Route::post('transferleads', [SourcesController::class,'transferleads'])->name('transferleads');
+Route::post('checkCampaignExists', [SourcesController::class,'checkCampaignExists'])->name('sources.checkCampaignExists');
 
 
 Route::get('/campaign/camp_assign_emp', [SourcesController::class,'camp_assign_emp'])->name('camp_assign_emp');

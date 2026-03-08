@@ -41,50 +41,46 @@ class CampaignImport
     /**
      * Import Leads
      */
-    public function importLeads($file)
+    public function importLeads($file, $duplicateleads, $sourcename)
     {
         try {
-
+    
             $filePath = $file->getRealPath();
             $extension = strtolower($file->getClientOriginalExtension());
-
-            /*
-            |--------------------------------------------------------------------------
-            | Detect File Type Properly (Fix Special Characters Issue)
-            |--------------------------------------------------------------------------
-            */
-
+    
             if ($extension === 'csv') {
-
+    
                 $reader = IOFactory::createReader('Csv');
                 $reader->setDelimiter(',');
                 $reader->setEnclosure('"');
                 $reader->setSheetIndex(0);
-
-                // Most Excel CSV files are CP1252 (Windows encoding)
                 $reader->setInputEncoding('CP1252');
-
+    
             } else {
-
+    
                 $reader = IOFactory::createReaderForFile($filePath);
             }
-
+    
             $reader->setReadDataOnly(true);
             $spreadsheet = $reader->load($filePath);
-
+    
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray(null, true, true, true);
-
+    
             $data = Source::findOrFail($this->source_id);
-
+    
+            // Get source ids once (performance improvement)
+            $sourceids = Source::whereRaw('LOWER(source_name) = ?', [strtolower($sourcename)])
+                ->pluck('id');
+    
             foreach ($rows as $key => $row) {
-
+    
                 if ($key === 1) {
-                    continue; // Skip header
+                    continue;
                 }
-
+    
                 $fillable = [
-                    'user_id' => auth()->user()->id,
+                    'user_id' => auth()->id(),
                     'source_id' => $this->source_id,
                     'company_name' => $this->cleanValue($row['A'] ?? ''),
                     'prospect_first_name' => $this->cleanValue($row['C'] ?? ''),
@@ -100,47 +96,52 @@ class CampaignImport
                     'bussiness_function' => $this->cleanValue($row['K'] ?? ''),
                     'contact_number_2' => $this->cleanValue($row['H'] ?? ''),
                     'designation_level' => $this->cleanValue($row['F'] ?? ''),
-                    'date_shared' => isset($row['N']) && !empty($row['N'])
+                    'date_shared' => !empty($row['N'])
                         ? date('Y-m-d', strtotime($row['N']))
                         : null,
                 ];
-
+    
                 /*
                 |--------------------------------------------------------------------------
-                | Check Duplicate Leads
+                | Duplicate Check
                 |--------------------------------------------------------------------------
                 */
-
+    
                 if (empty($fillable['linkedin_address']) || $fillable['linkedin_address'] === '-') {
-
+    
                     Lead::create($fillable);
-
+                    continue;
+                }
+    
+                $exists = Lead::where('linkedin_address', $fillable['linkedin_address'])
+                    ->whereIn('source_id', $sourceids)
+                    ->first();
+    
+                if (!$exists) {
+    
+                    Lead::create($fillable);
+    
                 } else {
-
-                    $exists = Lead::where([
-                        ['linkedin_address', $fillable['linkedin_address']],
-                        ['source_id', $fillable['source_id']]
-                    ])->first();
-
-                    if (!$exists) {
-
+    
+                    if ($duplicateleads == 1) {
+    
                         Lead::create($fillable);
-
+    
                     } else {
-
+    
                         $userdetails = User::find($exists->asign_to);
-
+    
                         $fillable['employee_name'] = $userdetails
                             ? $this->cleanValue($userdetails->first_name . ' ' . $userdetails->last_name)
                             : '';
-
+    
                         $this->appendToCsvFile($this->source_id, $fillable, $key - 2);
                     }
                 }
             }
-
+    
         } catch (\Exception $e) {
-
+    
             Log::error('Import failed: ' . $e->getMessage());
         }
     }

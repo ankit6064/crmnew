@@ -21,7 +21,7 @@ class LeadImport implements ToModel
         $headingRow = new HeadingRowImport;
 
         // You can access the headings like this
-        dd($headingRow->toArray());
+        $headingRow->toArray();
         return new Lead([
               // Ensure this is a boolean or integer (0 or 1)
         ]);
