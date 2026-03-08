@@ -87,6 +87,28 @@
     </div>
 </div>
 
+<!-- Inprogress Leads -->
+<div class="col-md-3">
+    <div class="stat-card" onclick="redirectcard('leads/in_progress');">
+        <div class="card-header">
+            <h4>Inprogress Leads</h4>
+            <div class="card-icon icon-progress">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+        </div>
+        <div class="card-body">
+            <h2>{{ $totalInprogressLeads }}</h2>
+            <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
+        </div>
+    </div>
+</div>
+
+
+</div>
+
+
+<div class="row second-card">
+
 <!-- Closed Leads -->
 
 <div class="col-md-3">
@@ -103,12 +125,6 @@
         </div>
     </div>
 </div>
-</div>
-
-
-<div class="row second-card">
-
-
 
 <!-- Completed Leads -->
 <div class="col-md-3">
@@ -126,21 +142,7 @@
     </div>
 </div>
 
-<!-- Inprogress Leads -->
-<div class="col-md-3">
-    <div class="stat-card" onclick="redirectcard('leads/in_progress');">
-        <div class="card-header">
-            <h4>Inprogress Leads</h4>
-            <div class="card-icon icon-progress">
-                <i class="fa-solid fa-hourglass-half"></i>
-            </div>
-        </div>
-        <div class="card-body">
-            <h2>{{ $totalInprogressLeads }}</h2>
-            <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
-        </div>
-    </div>
-</div>
+
 
 <!-- Failed Leads -->
 <div class="col-md-3">
