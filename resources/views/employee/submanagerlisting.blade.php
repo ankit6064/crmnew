@@ -91,10 +91,18 @@
                     </div>
 
                     <div class="col-md-4 text-end">
+                        @if(Auth::user()->is_admin == null)
+                        <button type="button" class="btn return-btn"
+                            onclick="window.history.back() || (window.location.href='/dashboard');">
+                            <i class="fas fa-arrow-left me-2"></i> Back
+                        </button>
+                        @else
                         <button type="button" class="btn return-btn"
                             onclick="window.history.back() || (window.location.href='/managerdashboard');">
                             <i class="fas fa-arrow-left me-2"></i> Back
                         </button>
+                        @endif
+                     
                     </div>
                 </div>
 

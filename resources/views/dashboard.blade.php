@@ -71,7 +71,7 @@
             </div>
 
             <div class="col-md-3">
-                <a href="{{ route('employee.manageremployeeindex') }}" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                <a href="{{ route('employee.submanagerlisting') }}" class="stat-card-link" style="text-decoration:none; color:inherit;">
                     <div class="stat-card">
                         <div class="card-header">
                             <h4>Total Submanagers</h4>

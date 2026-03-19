@@ -1056,7 +1056,23 @@ class LeadsController extends Controller
     public function allgetLeadsData(Request $request, $id = null)
     {
         if ($request->ajax()) {
-
+            if(Auth::user()->is_admin == null){
+                $data = Lead::join('sources', 'sources.id', 'leads.source_id')
+                ->with('source', 'feedback')
+                ->select([
+                    'leads.id',
+                    'source_id',
+                    'company_name',
+                    'prospect_first_name',
+                    'prospect_last_name',
+                    'linkedin_address',
+                    'timezone',
+                    'designation',
+                    'contact_number_1',
+                    'leads.created_at',
+                    'leads.status',
+                ]);
+            }else{
             $data = Lead::join('sources', 'sources.id', 'leads.source_id')
                 ->where('asign_to_manager', Auth::id())
                 ->with('source', 'feedback')
@@ -1073,6 +1089,7 @@ class LeadsController extends Controller
                     'leads.created_at',
                     'status',
                 ]);
+            }
 
             return DataTables::of($data)
 
@@ -1112,15 +1129,16 @@ class LeadsController extends Controller
                             : "<i class='fa-brands fa-linkedin' title='LinkedIn Address Not Valid'></i>");
                 })
 
-                ->addColumn('status', function ($row) {
+                ->editColumn('status', function ($row) {
                     $statuses = [
                         1 => '<p class="pending">Pending</p>',
                         2 => '<p class="failed">Failed</p>',
-                        3 => '<p class="completed">Completed</p>',
+                        3 => '<p class="completed">Closed</p>',
                         4 => '<p class="in-progress">In Progress</p>',
+                        5 => '<p class="in-progress">Completed</p>',
                     ];
 
-                    return $statuses[$row->status] ?? '';
+                    return $statuses[$row->status] ?? '--';
                 })
 
                 ->addColumn('action', function ($row) {

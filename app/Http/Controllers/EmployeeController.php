@@ -47,7 +47,7 @@ class EmployeeController extends Controller
             return redirect()->route('employee.manageremployeeindex');
         }
         $total = User::where('is_admin', 1)
-        ->count();
+            ->count();
 
         $active = User::where('is_admin', 1)
             ->where('is_active', 1)
@@ -57,7 +57,7 @@ class EmployeeController extends Controller
             ->where('is_active', 2)
             ->count();
 
-        return view('employee.index', compact('active', 'deactive','total'));
+        return view('employee.index', compact('active', 'deactive', 'total'));
     }
 
     /**
@@ -69,16 +69,16 @@ class EmployeeController extends Controller
     public function getEmployees(Request $request)
     {
         if ($request->ajax()) {
-            if($request->status_filter == 'total'){
-                $status = [1,2];
-            }elseif($request->status_filter == 'active'){
+            if ($request->status_filter == 'total') {
+                $status = [1, 2];
+            } elseif ($request->status_filter == 'active') {
                 $status = [1];
-            }else{
+            } else {
                 $status = [2];
             }
             $managers = User::where('is_admin', USER)
                 ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
-                ->whereIn('is_active',$status)
+                ->whereIn('is_active', $status)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -105,15 +105,15 @@ class EmployeeController extends Controller
                     $checked = $data->is_active == 1 ? 'checked' : '';
                     $status = '<input data-sid = "' . $data->source_id . '" class="switchery" type="checkbox" ' . $checked . '>';
 
-                
 
-            $editLink = '
+
+                    $editLink = '
             <a href="' . route('employee.edit', ['employee_id' => $data->id]) . '" style="padding:unset !important">
                 <i class="fa-solid fa-pen-to-square text-success editManager"></i>
             </a>';
 
-        // Delete
-        $deleteLink = '
+                    // Delete
+                    $deleteLink = '
             <a href="javascript:void(0);"  class="delete-manager" data-id="' . $data->id . '" style="padding:unset !important">
                 <i class="fa-solid fa-trash text-danger deleteEmployee" data-id="' . $data->id . '"></i>
             </a>';
@@ -268,9 +268,9 @@ class EmployeeController extends Controller
     public function manageremployeeindex()
     {
         $employees = User::where(function ($query) {
-                $query->where('is_admin', USER)
-                    ->orWhere('is_admin', SUBMANAGER);
-            })
+            $query->where('is_admin', USER)
+                ->orWhere('is_admin', SUBMANAGER);
+        })
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->get();
@@ -286,27 +286,27 @@ class EmployeeController extends Controller
             $query->where('is_admin', USER)
                 ->orWhere('is_admin', SUBMANAGER);
         })
-        ->where('user_id', Auth::id())
-        ->count();
+            ->where('user_id', Auth::id())
+            ->count();
 
         $active = User::where(function ($query) {
-                $query->where('is_admin', USER)
-                    ->orWhere('is_admin', SUBMANAGER);
-            })
+            $query->where('is_admin', USER)
+                ->orWhere('is_admin', SUBMANAGER);
+        })
             ->where('user_id', Auth::id())
-            ->where('is_active',1)
+            ->where('is_active', 1)
             ->count();
 
         $deactive = User::where(function ($query) {
             $query->where('is_admin', USER)
                 ->orWhere('is_admin', SUBMANAGER);
         })
-        ->where('user_id', Auth::id())
-        ->where('is_active',2)
-        ->count();
+            ->where('user_id', Auth::id())
+            ->where('is_active', 2)
+            ->count();
 
 
-        return view('employee.manageremployeeindex', compact('employees', 'permissions', 'active', 'deactive','total'));
+        return view('employee.manageremployeeindex', compact('employees', 'permissions', 'active', 'deactive', 'total'));
     }
 
     public function createmanageremployees()
@@ -356,21 +356,21 @@ class EmployeeController extends Controller
     public function manageremployeedata(Request $request)
     {
         if ($request->ajax()) {
-            if($request->status_filter == 'total'){
-                $status = [1,2];
-            }elseif($request->status_filter == 'active'){
+            if ($request->status_filter == 'total') {
+                $status = [1, 2];
+            } elseif ($request->status_filter == 'active') {
                 $status = [1];
-            }else{
+            } else {
                 $status = [2];
             }
             $managers = User::where(function ($query) {
                 $query->where('is_admin', USER)
                     ->orWhere('is_admin', SUBMANAGER);
             })
-            ->where('user_id', Auth::id())
-            ->whereIn('is_active',$status)
-            ->orderBy('created_at', 'desc')
-            ->get();
+                ->where('user_id', Auth::id())
+                ->whereIn('is_active', $status)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             return DataTables::of($managers)
                 ->addColumn('disable_login', function ($data) {
@@ -454,7 +454,7 @@ class EmployeeController extends Controller
                     $submanager = '<button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="assignsubmanager(' . $data->id . ')">Assign Role</button>';
                     return $submanager;
                 })
-                ->rawColumns(['actions', 'status', 'disable_login', 'sub_manager','totalcampaigns'])
+                ->rawColumns(['actions', 'status', 'disable_login', 'sub_manager', 'totalcampaigns'])
                 ->toJson();
         }
         return response()->json(['error' => 'Invalid request'], 400);
@@ -1701,36 +1701,55 @@ class EmployeeController extends Controller
 
     public function submanagerlisting(Request $request)
     {
-        $totalsubmanagers = User::where('is_admin', SUBMANAGER)
-            ->where('user_id', Auth::id())
-            ->count();
-        $inactive = User::where('is_admin', SUBMANAGER)
-            ->where('user_id', Auth::id())
-            ->where('is_active', operator: 2)
-            ->count();
-        $active = User::where('is_admin', SUBMANAGER)
-            ->where('user_id', Auth::id())
-            ->where('is_active', 1)
-            ->count();
-        return view('employee.submanagerlisting', compact('inactive', 'active','totalsubmanagers'));
+        if (Auth::user()->is_admin == null) {
+            $totalsubmanagers = User::where('is_admin', SUBMANAGER)
+                ->count();
+            $inactive = User::where('is_admin', SUBMANAGER)
+                ->where('is_active', operator: 2)
+                ->count();
+            $active = User::where('is_admin', SUBMANAGER)
+                ->where('is_active', 1)
+                ->count();
+        } else {
+            $totalsubmanagers = User::where('is_admin', SUBMANAGER)
+                ->where('user_id', Auth::id())
+                ->count();
+            $inactive = User::where('is_admin', SUBMANAGER)
+                ->where('user_id', Auth::id())
+                ->where('is_active', operator: 2)
+                ->count();
+            $active = User::where('is_admin', SUBMANAGER)
+                ->where('user_id', Auth::id())
+                ->where('is_active', 1)
+                ->count();
+        }
+        return view('employee.submanagerlisting', compact('inactive', 'active', 'totalsubmanagers'));
     }
 
     public function submanagerlistingdata(Request $request)
     {
         if ($request->ajax()) {
-            if($request->status_filter == 'total'){
-                $status = [1,2];
-            }elseif($request->status_filter == 'active'){
+            if ($request->status_filter == 'total') {
+                $status = [1, 2];
+            } elseif ($request->status_filter == 'active') {
                 $status = [1];
-            }else{
+            } else {
                 $status = [2];
             }
+            if(Auth::user()->is_admin == null){
             $managers = User::where('is_admin', SUBMANAGER)
-                ->where('user_id', Auth::id())
-                ->whereIn('is_active',$status)
+                ->whereIn('is_active', $status)
                 ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
                 ->orderBy('created_at', 'desc')
                 ->get();
+            }else{
+                $managers = User::where('is_admin', SUBMANAGER)
+                ->where('user_id', Auth::id())
+                ->whereIn('is_active', $status)
+                ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
+                ->orderBy('created_at', 'desc')
+                ->get();
+            }
 
             return DataTables::of($managers)
                 ->addColumn('totalemployees', function ($data) {

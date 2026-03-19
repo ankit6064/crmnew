@@ -25,7 +25,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $totalLeads = Lead::count();
+        $totalLeads = Lead::join('sources', 'sources.id', 'leads.source_id')->count();
         $totalsubmanagers = User::where('is_admin',SUBMANAGER)->count();
         $totalemployees = User::where('is_admin', EMPLOYEE_ROLE)->count();
         $totalmanagers = User::where('is_admin', MANAGER)->count();
