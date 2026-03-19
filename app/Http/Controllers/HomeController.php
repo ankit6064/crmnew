@@ -25,31 +25,23 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $counts = Lead::select([
-            DB::raw('COUNT(*) as total_leads'),
-            DB::raw('SUM(CASE WHEN status = ' . LEAD_STATUS_PENDING . ' THEN 1 ELSE 0 END) as total_pending_leads'),
-            DB::raw('SUM(CASE WHEN status = ' . LEAD_STATUS_FAILED . ' THEN 1 ELSE 0 END) as total_failed_leads'),
-            DB::raw('SUM(CASE WHEN status = ' . LEAD_STATUS_CLOSED . ' THEN 1 ELSE 0 END) as total_closed_leads'),
-            DB::raw('SUM(CASE WHEN status = ' . LEAD_STATUS_INPROGRESS . ' THEN 1 ELSE 0 END) as total_inprogress_leads'),
-            DB::raw('SUM(CASE WHEN status = ' . LEAD_STATUS_COMPLETED . ' THEN 1 ELSE 0 END) as total_completed_leads'),
-
-        ])->first();
-
-        $totalLeads = $counts->total_leads;
-        $totalPendingLeads = $counts->total_pending_leads;
-        $totalFailedLeads = $counts->total_failed_leads;
-        $totalClosedLeads = $counts->total_closed_leads;
-        $totalInprogressLeads = $counts->total_inprogress_leads;
-        $total_completed_leads = $counts->total_completed_leads;
+        $totalLeads = Lead::count();
+        $totalsubmanagers = User::where('is_admin',SUBMANAGER)->count();
+        $totalemployees = User::where('is_admin', EMPLOYEE_ROLE)->count();
+        $totalmanagers = User::where('is_admin', MANAGER)->count();
+        $totalcampaigns = Source::count();
+        $totallhscount = Lead::join('lhs_report', 'leads.id', 'lhs_report.lead_id')->count();
+        $totalmomcount = Lead::join('mom_report', 'leads.id', 'mom_report.lead_id')->count();
 
         // Return view with lead counts
         return view('dashboard', [
             'totalLeads' => $totalLeads,
-            'totalPendingLeads' => $totalPendingLeads,
-            'totalClosedLeads' => $totalClosedLeads,
-            'totalFailedLeads' => $totalFailedLeads,
-            'totalInProgressLeads' => $totalInprogressLeads,
-            'total_completed_leads' => $total_completed_leads
+            'totalsubmanagers'=>$totalsubmanagers,
+            'totalemployees' => $totalemployees,
+            'totalmanagers' => $totalmanagers,
+            'totalcampaigns' => $totalcampaigns,
+            'totallhscount' => $totallhscount,
+            'totalmomcount' => $totalmomcount
         ]);
     }
 

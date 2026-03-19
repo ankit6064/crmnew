@@ -294,7 +294,7 @@
     <!-- Leads -->
     <div class="menu-item dropdown">
         <div class="menu-title">
-            <span><i class="fa fa-check-square-o"></i> Leads</span>
+            <span><i class="fa-solid fa-address-card"></i> Leads</span>
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="submenu">

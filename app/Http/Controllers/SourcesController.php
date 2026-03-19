@@ -108,9 +108,11 @@ class SourcesController extends Controller
         })->get()->toArray();
         // dd($data);
         $externalManagers = DB::table('users')->where('is_admin', 2)->where('deleted_at', NULL)->where('manager_type', 2)->get()->toArray();
+        $totalCampaigns = Source::count();
+
         $active = Source::where('is_active', 1)->count();
         $inactive = Source::where('is_active', 2)->count();
-        return view('sources.list_new')->with(['datas' => $data, 'managers' => $managers, 'externalManagers' => $externalManagers, 'active' => $active, 'inactive' => $inactive]);
+        return view('sources.list_new')->with(['datas' => $data, 'managers' => $managers, 'externalManagers' => $externalManagers, 'active' => $active, 'inactive' => $inactive,'totalCampaigns'=>$totalCampaigns]);
     }
 
 

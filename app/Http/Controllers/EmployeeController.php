@@ -46,6 +46,9 @@ class EmployeeController extends Controller
         if (Auth::user()->is_admin == 2) {
             return redirect()->route('employee.manageremployeeindex');
         }
+        $total = User::where('is_admin', 1)
+        ->count();
+
         $active = User::where('is_admin', 1)
             ->where('is_active', 1)
             ->count();
@@ -54,7 +57,7 @@ class EmployeeController extends Controller
             ->where('is_active', 2)
             ->count();
 
-        return view('employee.index', compact('active', 'deactive'));
+        return view('employee.index', compact('active', 'deactive','total'));
     }
 
     /**
@@ -66,8 +69,16 @@ class EmployeeController extends Controller
     public function getEmployees(Request $request)
     {
         if ($request->ajax()) {
+            if($request->status_filter == 'total'){
+                $status = [1,2];
+            }elseif($request->status_filter == 'active'){
+                $status = [1];
+            }else{
+                $status = [2];
+            }
             $managers = User::where('is_admin', USER)
                 ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
+                ->whereIn('is_active',$status)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -94,13 +105,19 @@ class EmployeeController extends Controller
                     $checked = $data->is_active == 1 ? 'checked' : '';
                     $status = '<input data-sid = "' . $data->source_id . '" class="switchery" type="checkbox" ' . $checked . '>';
 
-                    $editLink = '<a href="' . route('employee.edit', ['employee_id' => $data->id]) . '">
-                    <span class="material-symbols-outlined text-success editEmployee">edit_square</span>
-                </a>';
+                
 
-                    $deleteLink = '<a href="javascript:void(0);" class="" data-id="' . $data->id . '">
-                <span class="material-symbols-outlined text-danger deleteEmployee">delete</span>
+            $editLink = '
+            <a href="' . route('employee.edit', ['employee_id' => $data->id]) . '" style="padding:unset !important">
+                <i class="fa-solid fa-pen-to-square text-success editManager"></i>
             </a>';
+
+        // Delete
+        $deleteLink = '
+            <a href="javascript:void(0);"  class="delete-manager" data-id="' . $data->id . '" style="padding:unset !important">
+                <i class="fa-solid fa-trash text-danger deleteEmployee" data-id="' . $data->id . '"></i>
+            </a>';
+
 
 
                     return $status . ' ' . $editLink . '' . $deleteLink;

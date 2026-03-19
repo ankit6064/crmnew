@@ -22,15 +22,18 @@ class ManagerController extends Controller
      */
     public function index()
     {
+        $total = User::where('is_admin', MANAGER)
+        ->count();
+
         $active = User::where('is_admin', MANAGER)
         ->where('is_active', 1)
         ->count();
 
-        $deactive = User::where('is_admin', MANAGER)
+        $inactive = User::where('is_admin', MANAGER)
         ->where('is_active', 2)
         ->count();
 
-        return view('manager.index',compact('active','deactive'));
+        return view('manager.index',compact('active','inactive','total'));
     }
 
     /**
@@ -42,8 +45,16 @@ class ManagerController extends Controller
     public function getManagers(Request $request)
     {
         if ($request->ajax()) {
+            if($request->status_filter == 'total'){
+                $status = [1,2];
+            }elseif($request->status_filter == 'active'){
+                $status = [1];
+            }else{
+                $status = [2];
+            }
             $managers = User::where('is_admin', MANAGER)
                 ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type','is_active')
+                ->whereIn('is_active',$status)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -63,23 +74,33 @@ class ManagerController extends Controller
                     // Customize the action buttons
 
                     $checked = $data->is_active == 1 ? 'checked' : '';
-                    $status = '<input data-sid = "' . $data->source_id . '" class="switchery" type="checkbox" ' . $checked . '>';
+                    $status = '
+                    <input
+                        type="checkbox"
+                        class="switchery"
+                        data-tooltip="' . ($checked ? 'Deactivate Manager' : 'Activate Manager') . '"
+                        data-id="' . $data->id . '"
+                        ' . $checked . '
+                        onchange="change_status(' . $data->id . ');"
+                    >';
 
-                    $viewLink = '<a href="' . route('manager.employees', ['manager_id' => $data->id]) . '">
-                 <span class="material-symbols-outlined text-secondary viewEmployee">groups</span>
-              </a>';
+            //         $viewLink = '<a href="' . route('manager.employees', ['manager_id' => $data->id]) . '">
+            //      <span class="material-symbols-outlined text-secondary viewEmployee">groups</span>
+            //   </a>';
 
+            $editLink = '
+            <a href="' . route('manager.edit', ['manager_id' => $data->id]) . '" style="padding:unset !important">
+                <i class="fa-solid fa-pen-to-square text-success editManager"></i>
+            </a>';
 
-                    $editLink = '<a href="' . route('manager.edit', ['manager_id' => $data->id]) . '">
-                    <span class="material-symbols-outlined text-success editManager">edit_square</span>
-                </a>';
-
-                    $deleteLink = '<a href="javascript:void(0);" class="delete-manager" data-id="' . $data->id . '">
-                <span class="material-symbols-outlined text-danger deleteManager">delete</span>
+        // Delete
+        $deleteLink = '
+            <a href="javascript:void(0);"  class="delete-manager" data-id="' . $data->id . '" style="padding:unset !important">
+                <i class="fa-solid fa-trash text-danger deleteManager" data-id="' . $data->id . '"></i>
             </a>';
 
 
-                    return $status.' '.$viewLink . ' ' . $editLink . '' . $deleteLink;
+                    return $status.''. $editLink . '' . $deleteLink;
                 })
                 ->rawColumns(['actions', 'status'])
                 ->toJson();
