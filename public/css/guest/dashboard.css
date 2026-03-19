@@ -1840,6 +1840,22 @@ cursor: inherit !important;
     font-weight: 700;
 }
 
+/*-14-03-2026-*/
+button.btn.return-btn {
+    background: #0d3a6b;
+    color: #fff;
+    margin-top: 38px;
+    margin-right: 0px !important;
+}
+.main-right.managersubmanagerclass th.sorting_disabled {
+    text-align: center;
+}
+.main-right.managersubmanagerclass td:last-child {
+    justify-content: center;
+}
+/*-14-03-2026-*/
+
+
 /*-assignleads-*/
 
 /*-MOM-*/
