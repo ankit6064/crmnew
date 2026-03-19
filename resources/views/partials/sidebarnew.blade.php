@@ -237,11 +237,7 @@
         <i class="fa-solid fa-gauge"></i> Home
     </a>
 
-    <!-- Analysis -->
-    <a href="{{ url('analysis') }}"
-       class="{{ request()->is('analysis') ? 'active' : '' }} menu-link">
-        <i class="fa fa-line-chart"></i> Analysis
-    </a>
+  
 
     <!-- Manager -->
     <div class="menu-item dropdown">
