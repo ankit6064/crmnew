@@ -136,7 +136,7 @@
                 </div>
             </div>
 
-            <div class="graph campaignslist">
+            <div class="graph campaignslist campaignlistingnew">
 
                 <div class="table">
                     <div class="table-container">

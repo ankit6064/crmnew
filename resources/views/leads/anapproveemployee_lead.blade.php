@@ -52,7 +52,7 @@
         <div class="right-side submanager completed-leads closed-leads unaproved-leads">
             <h2>Unapproved Leads</h2>
 
-            <div class="graph campaignslist">
+            <div class="graph campaignslist unapprovedlisting">
                 <div class="table">
                     <div class="table-container">
                         <table id="employee-table" class="display nowrap" style="width:100% !important">

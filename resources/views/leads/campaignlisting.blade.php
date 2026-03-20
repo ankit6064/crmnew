@@ -68,7 +68,7 @@
 
             </div>
 
-            <div class="graph campaignslist">
+            <div class="graph campaignslist campaignleadlisting">
 
                 <!-- Filters -->
                 <!-- <div class="row">
