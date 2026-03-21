@@ -65,7 +65,7 @@
                 </div>
 
             </div>
-            <div class="graph campaignslist logstable lead-listing">
+            <div class="graph campaignslist logstable lead-listing fresh-leads">
                 <div class="table">
                     <div class="table-container">
                         <table class="table table-striped table-hover" id="employee-table">

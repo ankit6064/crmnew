@@ -17,7 +17,7 @@
         <div class="right-side submanager">
             <h2>Reminder Listing</h2>
 
-            <div class="graph campaignslist logstable lead-listing">
+            <div class="graph campaignslist logstable lead-listing Reminder-listing">
                 <div class="table">
                     <div class="table-container">
                         <table class="table table-striped table-hover" id="employee-table">
