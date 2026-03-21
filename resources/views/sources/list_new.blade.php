@@ -93,7 +93,7 @@
         <div class="row">
                 <div class="row align-items-center mb-3">
                     <div class="col-md-8">
-                        <h2 class="mb-0">Campaign Listingd</h2>
+                        <h2 class="mb-0">Campaign Listing</h2>
                     </div>
 
                     <div class="col-md-4 text-end">

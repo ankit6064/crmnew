@@ -255,6 +255,12 @@
         </div>
     </div>
 
+     <!-- Submanagers -->
+     <a href="{{ route('employee.submanagerlisting') }}"
+       class="{{ request()->is('employee/submanagerlisting') ? 'active' : '' }} menu-link">
+        <i class="fa fa-users"></i> Submanagers
+    </a>
+
     <!-- Employee -->
     <div class="menu-item dropdown">
         <div class="menu-title">
