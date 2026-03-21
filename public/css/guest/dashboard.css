@@ -2056,6 +2056,102 @@ div#RevertModel select.form-control.ReassignedCustomer {
 }
 
 
+/*-leadlisting-*/
+.graph.campaignslist.campaignleadlisting .filter-row {
+    justify-content: normal !important;
+}
+.graph.campaignslist.campaignleadlisting td:nth-child(2) {
+    display: flex;
+    gap: 10px;
+}
+.graph.campaignslist.campaignleadlisting td:nth-child(2) a {
+    padding: 0;
+    color: #212529;
+    font-size: 14px;
+    margin-bottom: 0;
+}
+.graph.campaignslist.campaignleadlisting td:nth-child(4) {
+    text-align: left;
+}
+.graph.campaignslist.campaignleadlisting span.badge {
+    padding: 10px;
+    font-weight: 500;
+    background-color: #5fbc01 !important;
+}
+.graph.campaignslist.campaignleadlisting td:nth-child(2) a i {
+    font-size: 20px;
+    color: #0A66C2;
+}
+div#largeModal td.wraping.notes_comment p {
+    margin-bottom: 0px !important;
+}
+div#status-modal-quicknote .form-group {
+    margin-bottom: 20px;
+}
+div#status-modal-quicknote .modal-body {
+    padding: 30px !important;
+    font-family: "Poppins", sans-serif;
+}
+div#status-modal-quicknote .modal-body label {
+    margin-bottom: 7px;
+}
+div#status-modal-quicknote input#min-date, input#reminder_time, select#reminder_for, textarea#feedback {
+    padding: 13px;
+    box-shadow: 2px 2px 20px #ddd;
+    font-size: 14px;
+}
+div#status-modal-quicknote label {
+    margin-top: 15px;
+}
+div#status-modal-quicknote .form-group {
+    margin-bottom: 0px !important;
+}
+div#status-modal-quicknote button.close.modal-close {
+    font-size: 30px;
+}
+div#status-modal-quicknote .modal-footer {
+    padding-right: 30px;
+}
+div#status-modal-quicknote .modal-footer
+{
+ font-family: "Poppins", sans-serif;
+}
+div#status-modal select#status {
+    padding: 13px;
+}
+div#status-modal select#status
+{
+    box-shadow: 2px 2px 20px #ddd;
+    font-size: 14px;
+}
+div#status-modal label {
+    margin-bottom: 10px;
+}
+div#status-modal .modal-body
+{
+    font-family: "Poppins", sans-serif;
+}
+div#status-modal .modal-footer
+{
+ padding-right: 30px;
+padding-bottom: 30px;
+}
+div#status-modal .modal-body {
+    font-family: "Poppins", sans-serif;
+    padding: 30px;
+}
+div#status-modal button.close.close-status-modal {
+    font-size: 30px;
+}
+/*-leadlisting-*/
+
+
+
+
+
+
+
+
 /*-mediaquery-*/
 @media screen and (max-width: 1366px) and (min-width: 1200px) {
   .main-right .card-header h4 {
