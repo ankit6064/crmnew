@@ -698,6 +698,7 @@ div#employeelisting button.btn.btn-info {
     gap: 11px;
     align-items: center;
 }
+
 .graph a {
     margin-right: 0px !important;
 }
@@ -2017,7 +2018,6 @@ div#RevertModel select.form-control.ReassignedCustomer {
 }
 .graph.campaignslist.logstable.lead-listing tr td:nth-child(3) {
     text-align: center;
-    display: flex;
     gap: 10px;
 }
 .graph.campaignslist.logstable.lead-listing div#employee-table_wrapper table#employee-table {
@@ -2095,7 +2095,7 @@ div#status-modal-quicknote .modal-body {
 div#status-modal-quicknote .modal-body label {
     margin-bottom: 7px;
 }
-div#status-modal-quicknote input#min-date, input#reminder_time, select#reminder_for, textarea#feedback {
+div#status-modal-quicknote input#min-date, input#reminder_time, select#reminder_for, textarea#feedback, input#phone_number {
     padding: 13px;
     box-shadow: 2px 2px 20px #ddd;
     font-size: 14px;
@@ -2142,6 +2142,69 @@ div#status-modal .modal-body {
 }
 div#status-modal button.close.close-status-modal {
     font-size: 30px;
+}
+.graph.campaignslist.logstable.lead-listing.total-leads tr td:nth-child(3) {
+    display: revert !important;
+}
+.graph.campaignslist.logstable.lead-listing.total-leads tr td:nth-child(6) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.total-leads tr th:nth-child(6) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.total-leads td:nth-child(7) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.fresh-leads tr td:nth-child(3)
+{
+  display: revert !important;
+}
+.graph.campaignslist.logstable.lead-listing.fresh-leads td:nth-child(6) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.fresh-leads tr td th:nth-child(6) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.fresh-leads tr th:nth-child(6) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.fresh-leads tr td th:nth-child(7) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.fresh-leads tr td:nth-child(7) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.inprogress-leads tr td:nth-child(3) {
+    display: revert !important;
+}
+.graph.campaignslist.logstable.lead-listing.inprogress-leads .label-new {
+    padding: 0;
+}
+.graph.campaignslist.logstable.lead-listing.closed-leads tr td:nth-child(7) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.closed-leads tr td:nth-child(6) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.closed-leads tr th:nth-child(6) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.closed-leads tr td:nth-child(7) span.badge {
+    padding: 10px;
+    background: #5fbc01 !important;
+    font-weight: 500;
+}
+.graph.campaignslist.logstable.lead-listing.closed-leads tr td:nth-child(3) {
+    display: revert;
+}
+.graph.campaignslist.logstable.lead-listing.failed-leads tr td:nth-child(7) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.failed-leads tr td:nth-child(6) {
+    text-align: left;
+}
+.graph.campaignslist.logstable.lead-listing.closed-leads td:last-child a {
+    padding: 3px !important;
 }
 /*-leadlisting-*/
 
@@ -2286,7 +2349,6 @@ div#status-modal button.close.close-status-modal {
     margin-right: 3px;
     font-size: 16px;
 }
-
 
 }
 /*-mediaquery-*/
