@@ -112,7 +112,7 @@ class SourcesController extends Controller
 
         $active = Source::where('is_active', 1)->count();
         $inactive = Source::where('is_active', 2)->count();
-        return view('sources.list_new')->with(['datas' => $data, 'managers' => $managers, 'externalManagers' => $externalManagers, 'active' => $active, 'inactive' => $inactive,'totalCampaigns'=>$totalCampaigns]);
+        return view('sources.list_new')->with(['datas' => $data, 'managers' => $managers, 'externalManagers' => $externalManagers, 'active' => $active, 'inactive' => $inactive, 'totalCampaigns' => $totalCampaigns]);
     }
 
 
@@ -129,41 +129,41 @@ class SourcesController extends Controller
 
     public function store(Request $request)
     {
-    
+
         $validator = Validator::make($request->all(), [
             'source_name' => 'required',
             'description' => 'required',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'error' => $validator->errors()->all()
             ]);
         }
-    
+
         // Create Campaign
         $data = [
             'user_id' => auth()->id(),
             'source_name' => $request->source_name,
             'description' => $request->description
         ];
-    
+
         $source = Source::create($data);
-    
+
         // File Upload
         if ($request->hasFile('lead_file') && $request->file('lead_file')->isValid()) {
-    
+
             $file = $request->file('lead_file');
-    
+
             $importService = new CampaignImport($source->id);
-    
+
             $importService->importLeads(
                 $file,
                 $request->import_duplicate ?? 0,
                 $request->source_name ?? null
             );
         }
-    
+
         // Logs
         $logs = new Logs();
         $logs->user_id = Auth::id();
@@ -171,7 +171,7 @@ class SourcesController extends Controller
         $logs->type = 14;
         $logs->source_id = $source->id;
         $logs->save();
-    
+
         return redirect()->route('sources.create')->with('success', 'Campaign added successfully');
     }
 
@@ -374,8 +374,18 @@ class SourcesController extends Controller
                 })
 
                 ->addColumn('manager_name', function ($row) {
-                    $manager = User::where(['id' => $row->assign_to_manager, 'is_admin' => '2'])->first();
-                    return $manager->name ?? 'N/A';
+                    $manager = User::where(['id' => $row->assign_to_manager])->first();
+
+                    if (!empty($row->assign_to_manager)) {
+                        return $manager->name;
+                    } else {
+                        $assignmanager = '<a href="#" onclick="assignmanager(' . $row->id . ');" style="background-color:black;color:white">
+                                    <span class="label label-warning" data-tippy-content="Assign to Manager">
+                                        Assign
+                                    </span>
+                                  </a>';
+                        return $assignmanager;
+                    }
                 })
 
                 ->addColumn('status', function ($row) {
@@ -447,23 +457,8 @@ class SourcesController extends Controller
                     //         </span>
                     //     </a>';
                     // }
-
+    
                     if (Auth::user()->is_admin == null) {
-
-                        if (!empty($row->assign_to_manager)) {
-                            $html .= '<a href="javascript:void(0);">
-                                        <span class="label label-warning" data-tippy-content="Manager Assigned">
-                                            Assigned
-                                        </span>
-                                      </a>';
-                        } else {
-                            $html .= '<a href="#" onclick="assignmanager(' . $row->id . ');">
-                                        <span class="label label-warning" data-tippy-content="Assign to Manager">
-                                            Assign to Manager
-                                        </span>
-                                      </a>';
-                        }
-
                         $html .= '
                             <a href="' . url('sources/delete', ['id' => $row->id]) . '" onclick="return confirm(\'Are you sure?\')">
                                 <span class="label" data-tippy-content="Delete Source" style="color:#dc3545;font-size:15px;">
@@ -489,7 +484,7 @@ class SourcesController extends Controller
                             </button>';
                 })
 
-                ->rawColumns(['total_leads_new', 'action', 'status', 'source_name_new', 'transfer'])
+                ->rawColumns(['total_leads_new', 'action', 'status', 'source_name_new', 'transfer','manager_name'])
                 ->toJson();
         }
     }
@@ -881,24 +876,24 @@ class SourcesController extends Controller
                     $notedetails = Note::where('lead_id', $row->id)->orderByDesc('id')->first();
 
                     $notesButton = '';
-                    
+
                     if ($notedetails) {
-                    
+
                         $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
-                    
+
                         // check if note created within last 24 hours
                         if ($createdAt->diffInHours(now()) <= 24) {
-                    
+
                             $notesButton = '<a class="viewnotes shake-note" onclick="shownoteslist(' . $row->id . ')" data-toggle="modal" data-target="#largeModal">
                                 <i class="fas fa-eye label-new" style="color:#8B8000 !important"></i>
                             </a>';
-                    
+
                         } else {
-                    
+
                             $notesButton = '<a class="viewnotes" onclick="shownoteslist(' . $row->id . ')" data-toggle="modal" data-target="#largeModal">
                                 <i class="fas fa-eye label-new"></i>
                             </a>';
-                    
+
                         }
                     }
                     $quickNoteButton = '<a class="addnotes" onclick="showaddmodal(' . $row->id . ')" data-toggle="modal">
@@ -985,9 +980,9 @@ class SourcesController extends Controller
 
         $comapnyName = Lead::with('source')->where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('company_name', 'asc')->groupBy('company_name')->get();
         $timeZone = Lead::with('source')->where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('timezone', 'asc')->groupBy('timezone')->get();
-        $source = Source::where('id',$id)->first();
+        $source = Source::where('id', $id)->first();
 
-        return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone','source'));
+        return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone', 'source'));
 
     }
     public function employeeclosedleads(Request $request)
@@ -1139,7 +1134,7 @@ class SourcesController extends Controller
                   + show more
             </span>";
                 })
-              
+
                 ->addColumn('action', function ($row) {
 
                     $notesButton = '';
@@ -1252,7 +1247,7 @@ class SourcesController extends Controller
                     $employeedetails = User::where('id', $row->asign_to)->first();
                     return $employeedetails->first_name . ' ' . $employeedetails->last_name;
                 })
-                ->rawColumns(['action', 'prospect_first_name_new','contact_number_1']) // To render HTML in the actions column
+                ->rawColumns(['action', 'prospect_first_name_new', 'contact_number_1']) // To render HTML in the actions column
                 ->make(true);
         }
         $id = '';
@@ -1913,20 +1908,20 @@ class SourcesController extends Controller
         $source_id = $request->source_name;
         $import_duplicate = $request->import_duplicate ?? 0;
         $source = $request->source;
-    
+
         if ($request->hasFile('file') && $request->file('file')->isValid()) {
-    
+
             $file = $request->file('file');
-    
+
             $importService = new CampaignImport($source_id);
-    
+
             $importService->importLeads(
                 $file,
                 $import_duplicate,
                 $source
             );
         }
-    
+
         return redirect('leads/assign_lead_emp/' . $source_id)
             ->with('success', 'Lead Imported Successfully.');
     }
@@ -2010,22 +2005,22 @@ class SourcesController extends Controller
             })->count();
 
 
-        return view('employeecampaigns',compact('totalCampaign','activeCampaign','inactiveCampaign'));
+        return view('employeecampaigns', compact('totalCampaign', 'activeCampaign', 'inactiveCampaign'));
     }
 
     public function checkCampaignExists(Request $request)
     {
         $campaignName = strtolower($request->source_name);
 
-        if(isset($request->source_id) && !empty($request->source_id)){
-            $checkSourceName = Source::whereRaw('LOWER(source_name) = ?', [$campaignName])->where('id','!=',$request->source_id)->first();
+        if (isset($request->source_id) && !empty($request->source_id)) {
+            $checkSourceName = Source::whereRaw('LOWER(source_name) = ?', [$campaignName])->where('id', '!=', $request->source_id)->first();
 
-        }else{
+        } else {
             $checkSourceName = Source::whereRaw('LOWER(source_name) = ?', [$campaignName])->first();
 
         }
-    
-    
+
+
         if ($checkSourceName) {
             return response()->json([
                 'status' => 400,

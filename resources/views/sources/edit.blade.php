@@ -1,105 +1,196 @@
 @extends('layouts.admin')
 
- 
 @section('content')
 
+<style>
+    .error-input {
+        border: 1px solid red !important;
+    }
+</style>
 
+<div class="main-right addsubmanager">
+    <div class="right-side add-sub">
+        <div class="graph">
+            <h2>Edit Campaign</h2>
 
-<div class="row page-titles">
-                <div class="col-md-5 align-self-center">
-                    <h3 class="text-themecolor">Dashboard</h3>
-                </div>
-                <div class="col-md-7 align-self-center">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ url('sources') }}">Campaigns</a></li>
-                        <li class="breadcrumb-item active">Edit Campaign</li>
-                    </ol>
-                </div>
-                <div>
-                    <!--<button class="right-side-toggle waves-effect waves-light btn-inverse btn btn-circle btn-sm pull-right m-l-10"><i class="ti-settings text-white"></i></button>--->
-                </div>
-            </div>
+            <form id="campaignForm" action="{{ route('sources.update', [$data->id]) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PATCH')
 
+                <input type="hidden" name="import_duplicate" id="import_duplicate" value="0">
 
-    <div class="container-fluid">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Campaign Name</label>
+                        <input type="text" name="source_name" id="campaign"
+                            value="{{ $data->source_name }}"
+                            placeholder="Enter Campaign">
+                    </div>
 
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="card card-outline-info">
-                            <div class="card-header">
-                                <h4 class="m-b-0 text-white">Edit Campaign</h4>
-                            </div>
-                            <div class="card-body">
-                                  <form method='post' action="{{route('sources.update', [$data->id])}}" enctype="multipart/form-data">
-                                    @csrf
-                                    {{ method_field('PATCH') }}
-                                    
-                                    <div class="form-body add_custom_table">
-                                        <!--<h3 class="card-title">Edit Lead Details</h3>
-                                        <hr>-->
-
-                                        <div class="alert alert-danger print-error-msg" style="display:none">
-                                            <ul></ul>
-                                        </div>
-                                        <div class="row p-t-20">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">Campaign</label>
-                                                    <input type="text" id="source_name" name='source_name' class="form-control" placeholder="Enter Campaign" value="{{ $data->source_name }}">
-                                                    @if($errors->has('source_name'))
-                                                        <div class="alert alert-danger">{{ $errors->first('source_name') }}</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">Sub-campaign</label>
-                                                    <input type="text" id="description" name='description' class="form-control" placeholder="Enter Sub-campaign" value="{{ $data->description }}">
-                                                    @if($errors->has('description'))
-                                                        <div class="alert alert-danger">{{ $errors->first('description') }}</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">Start Date</label>
-                                                    <input type="date" name="start_date" class="form-control" value="{{ $data->start_date }}">
-                                                    @if($errors->has('start_date'))
-                                                        <div class="alert alert-danger">{{ $errors->first('start_date') }}</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <!--/span-->
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label">End Date</label>
-                                                    <input type="date" name="end_date" class="form-control" value="{{ $data->end_date }}">
-                                                    @if($errors->has('end_date'))
-                                                        <div class="alert alert-danger">{{ $errors->first('end_date') }}</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <!--/span-->
-                                        </div>
-                                        <!--/row-->
-                                        
-                                
-                                    </div>
-                                    <div class="form-actions">
-                                        <button type="submit" class="btn btn-success save-data"> <i class="fa fa-check"></i> Save</button>
-                                        <!-- <input type="reset" class="btn btn-inverse" value="Cancel" /> -->
-                                        <a href="{{ url('sources') }}"><button type="button" class="btn btn-info">Back</button></a>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label>Sub Campaign</label>
+                        <input type="text" name="description" id="sub_campaign"
+                            value="{{ $data->description }}"
+                            placeholder="Enter Sub Campaign">
                     </div>
                 </div>
-                <!-- Row -->
-     
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" name="start_date"
+                            value="{{ $data->start_date }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" name="end_date"
+                            value="{{ $data->end_date }}">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-save">Update</button>
+                    <button type="button" class="btn btn-cancel"
+                        onclick="window.location.href='{{ route('sources.getMangerSource') }}'">
+                        Cancel
+                    </button>
+                </div>
+
+            </form>
+        </div>
     </div>
-	
-    
-  
+</div>
+
+{{-- Duplicate Modal --}}
+<div class="popupcenter" id="duplicateModal" style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh;
+background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+
+    <div class="popupp" style="background:#fff; padding:30px; border-radius:8px; text-align:center; width:350px;">
+        <h4>Campaign Already Exists</h4>
+
+        <p style="margin:20px 0;">
+            Do you still want to update it?
+        </p>
+
+        <div style="display:flex; justify-content:center; gap:15px;">
+            <button id="confirmUpdateBtn" class="btn btn-save">
+                Yes, Update
+            </button>
+
+            <button id="cancelUpdateBtn" class="btn btn-cancel">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- Success Modal --}}
+<div class="popupcenter" id="successModal" style="display:none;">
+    <div class="popupp">
+        <div class="success-icon">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <p>Campaign updated successfully.</p>
+    </div>
+</div>
+
+{{-- Scripts --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
+
+<script>
+$(document).ready(function () {
+
+    let skipCheck = false;
+
+    $('#campaignForm').validate({
+
+        rules: {
+            source_name: { required: true, minlength: 2 },
+            description: { required: true, minlength: 2 }
+        },
+
+        messages: {
+            source_name: {
+                required: "Please enter campaign name",
+                minlength: "Minimum 2 characters"
+            },
+            description: {
+                required: "Please enter sub campaign",
+                minlength: "Minimum 2 characters"
+            }
+        },
+
+        errorElement: 'span',
+
+        errorPlacement: function (error, element) {
+            error.addClass('text-danger');
+            error.insertAfter(element);
+        },
+
+        highlight: function (el) {
+            $(el).addClass('error-input');
+        },
+
+        unhighlight: function (el) {
+            $(el).removeClass('error-input');
+        },
+
+        submitHandler: function (form) {
+
+            if (skipCheck) {
+                form.submit();
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('sources.checkCampaignExists') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    source_name: $('#campaign').val(),
+                    id: "{{ $data->id }}" // important for edit
+                },
+
+                success: function (res) {
+                    if (res.status == 400) {
+                        $('#duplicateModal').css('display', 'flex');
+                    } else {
+                        skipCheck = true;
+                        form.submit();
+                    }
+                }
+            });
+        }
+    });
+
+    $('#confirmUpdateBtn').click(function () {
+        skipCheck = true;
+        $('#duplicateModal').hide();
+        $('#campaignForm').submit();
+    });
+
+    $('#cancelUpdateBtn').click(function () {
+        $('#duplicateModal').hide();
+    });
+
+});
+</script>
+
+{{-- Success popup --}}
+<script>
+@if(session('success'))
+    $(document).ready(function () {
+        $('#successModal').show();
+
+        setTimeout(function () {
+            $('#successModal').fadeOut(function () {
+                window.location.href = "{{ route('sources.getMangerSource') }}";
+            });
+        }, 2000);
+    });
+@endif
+</script>
+
 @endsection

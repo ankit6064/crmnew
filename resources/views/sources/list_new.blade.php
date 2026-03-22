@@ -1,85 +1,85 @@
 @extends('layouts.admin')
 {{-- @push('head-style') --}}
 <style>
-        .message-box {
-            padding: 15px 20px;
-            margin: 15px 0;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 500;
-            color: #fff;
-            background-color: red;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-        }
+    .message-box {
+        padding: 15px 20px;
+        margin: 15px 0;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 500;
+        color: #fff;
+        background-color: red;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+    }
 
-        /* --- New Card Button Styles --- */
-        .stat-card {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
+    /* --- New Card Button Styles --- */
+    .stat-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
 
-        .stat-card.active-card {
-            border-color: #192e62 !important;
-            background-color: #f8f9ff !important;
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(25, 46, 98, 0.2);
-        }
+    .stat-card.active-card {
+        border-color: #192e62 !important;
+        background-color: #f8f9ff !important;
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(25, 46, 98, 0.2);
+    }
 
-        /* ------------------------------ */
+    /* ------------------------------ */
 
-        table.employee-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-family: Arial, sans-serif;
-        }
+    table.employee-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        font-family: Arial, sans-serif;
+    }
 
-        .employee-table th,
-        .employee-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
+    .employee-table th,
+    .employee-table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-        .employee-table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
+    .employee-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
 
-        .employee-table tr:nth-child(even) {
-            background-color: #fafafa;
-        }
+    .employee-table tr:nth-child(even) {
+        background-color: #fafafa;
+    }
 
-        .employee-table tr:hover {
-            background-color: #f1f1f1;
-        }
+    .employee-table tr:hover {
+        background-color: #f1f1f1;
+    }
 
-        .employee-table input[type="checkbox"] {
-            transform: scale(1.2);
-            cursor: pointer;
-        }
+    .employee-table input[type="checkbox"] {
+        transform: scale(1.2);
+        cursor: pointer;
+    }
 
-        .view_emp {
-            cursor: pointer;
-            color: blue;
-        }
+    .view_emp {
+        cursor: pointer;
+        color: blue;
+    }
 
-        .menu-title.active {
-            background-color: transparent;
-            font-weight: bold;
-        }
+    .menu-title.active {
+        background-color: transparent;
+        font-weight: bold;
+    }
 
-        .graph tbody tr.odd td:last-child {
-            display: flex;
-        }
-    </style>
+    .graph tbody tr.odd td:last-child {
+        display: flex;
+    }
+</style>
 {{-- @endpush --}}
 
 @section('content')
@@ -90,7 +90,7 @@
 
     <div class="main-right">
         <div class="right-side submanager">
-        <div class="row">
+            <div class="row">
                 <div class="row align-items-center mb-3">
                     <div class="col-md-8">
                         <h2 class="mb-0">Campaign Listing</h2>
@@ -98,21 +98,22 @@
 
                     <div class="col-md-4 text-end">
                         @if(Auth::user()->is_admin == null)
-                        <button type="button" class="btn return-btn"
-                            onclick="window.history.back() || (window.location.href='/dashboard');">
-                            <i class="fas fa-arrow-left me-2"></i> Back
-                        </button>
+                            <button type="button" class="btn return-btn"
+                                onclick="window.history.back() || (window.location.href='/dashboard');">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </button>
                         @else
-                        <button type="button" class="btn return-btn"
-                            onclick="window.history.back() || (window.location.href='/managerdashboard');">
-                            <i class="fas fa-arrow-left me-2"></i> Back
-                        </button>
+                            <button type="button" class="btn return-btn"
+                                onclick="window.history.back() || (window.location.href='/managerdashboard');">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </button>
                         @endif
-                      
+
                     </div>
                 </div>
 
-            </div>            <div class="row">
+            </div>
+            <div class="row">
                 <div class="col-md-3">
                     <div class="stat-card filter-card active-card" data-filter="total">
                         <div class="card-header">
@@ -355,18 +356,15 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="campaign_id_new">
-                    <select id="manager">
-                        <option value="0">Choose Manager</option>
-                        <?php 
-                                                                             if (isset($managers) && !empty($managers[0])) {
-        foreach ($managers as $manager) { 
-                                                                                ?>
-                        <option value="<?php        echo $manager->id; ?>">
-                            <?php        echo $manager->name; ?>
-                        </option>
+                    <select id="manager" style="width: 100%;max-width:100% !important">
 
-                        <?php    }
-    } ?>
+                        @if(isset($managers) && !empty($managers))
+                            @foreach($managers as $manager)
+                                <option value="{{ $manager->id }}">
+                                    {{ $manager->name }}
+                                </option>
+                            @endforeach
+                        @endif
                     </select>
                 </div>
                 <div class="modal-footer">
@@ -428,19 +426,19 @@
                         .attr('placeholder', 'Search Name,SubCampaign')
                         .css('width', '250px'); // optional styling
 
-                          // --- Card Click Handler ---
-            $('.filter-card').on('click', function () {
-                // 1. UI Update
-                $('.filter-card').removeClass('active-card');
-                $(this).addClass('active-card');
+                    // --- Card Click Handler ---
+                    $('.filter-card').on('click', function () {
+                        // 1. UI Update
+                        $('.filter-card').removeClass('active-card');
+                        $(this).addClass('active-card');
 
-                // 2. Update status and reload Table
-                currentStatus = $(this).data('filter');
-                table.draw();
-            });
+                        // 2. Update status and reload Table
+                        currentStatus = $(this).data('filter');
+                        table.draw();
+                    });
 
-            // Trigger "Total" card by default on load (though it's visually marked in HTML)
-            // $('.filter-card[data-filter="total"]').trigger('click');
+                    // Trigger "Total" card by default on load (though it's visually marked in HTML)
+                    // $('.filter-card[data-filter="total"]').trigger('click');
                 },
 
                 drawCallback: function () {
@@ -494,7 +492,7 @@
                 clickmodal(id);
             });
 
-  
+
 
             $('#employee-table').on('preXhr.dt', function () {
                 $('#spinner-overlay').show();
