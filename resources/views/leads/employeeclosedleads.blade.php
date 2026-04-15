@@ -18,17 +18,17 @@
 
                 <!-- Filters -->
                 <!-- <div class="row">
-                                <div class="add-submanager">
-                                    <input type="search" id="global_filter" name="search" placeholder="search...">
-                                </div>
+                                    <div class="add-submanager">
+                                        <input type="search" id="global_filter" name="search" placeholder="search...">
+                                    </div>
 
-                            </div> -->
+                                </div> -->
                 <div class="filter-row" style="
-                            display: flex;
-                            gap: 10px;
-                            align-items: center;
-                            flex-wrap: wrap;
-                        ">
+                                display: flex;
+                                gap: 10px;
+                                align-items: center;
+                                flex-wrap: wrap;
+                            ">
 
                     <!-- Campaign Filter -->
                     <select id="campaign_name" class="filter-select">
@@ -85,6 +85,9 @@
                                     <th>Email Id</th>
                                     <th>Phone Number</th>
                                     <th>Closed On</th>
+                                    <th>Confirmation Status</th>
+                                    <th>Reminder Status</th>
+                                    <th>Invitation Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -240,6 +243,45 @@
 
 
 
+    <!-- =================================================================== -->
+    <!--                        QUICK NOTE MODAL                             -->
+    <!-- =================================================================== -->
+    <div id="reminder-modal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <meta name="csrf-token" content="{{ csrf_token() }}" />
+                <input type="hidden" name="lead_id" id="reminder_lead_id">
+
+                <div class="modal-header">
+                    <h4 class="modal-title">Reminder Status</h4>
+                    <button type="button" class="close modal-close" data-dismiss="modal">×</button>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- Reminder Fields -->
+                    <div class="form-group">
+                        <label>Note(optional)</label>
+                        <textarea id="reminder_note" class="form-control" style="min-height:130px;"></textarea>
+
+                        <div class="alert alert-danger print-error-msg" style="display:none">
+                            <ul></ul>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <input type="hidden" id="lead_id_quick_note">
+                    <button class="btn btn-default modal-close" data-dismiss="modal">Close</button>
+                    <button class="btn btn-info" id="update-reminder-status">Send Reminder</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
 @endsection
 
@@ -285,6 +327,10 @@
                     { data: 'prospect_email' },
                     { data: 'contact_number_1' },
                     { data: 'updated_at_new' },
+                    { data: 'confirmation_status' },
+                    { data: 'reminder_status' },
+                    { data: 'invitation_date' },
+
                     { data: 'action', orderable: false, searchable: false }
                 ],
                 initComplete: function () {
@@ -453,21 +499,53 @@
         }
 
         function showAllNumbers(numbers) {
-    let rowHtml = '';
+            let rowHtml = '';
 
-        rowHtml += '<p>' + numbers + '</p>';
-    
-
-    $('#numberRow').html(rowHtml);
-    $('#numberModal').modal('show');
-}
+            rowHtml += '<p>' + numbers + '</p>';
 
 
+            $('#numberRow').html(rowHtml);
+            $('#numberModal').modal('show');
+        }
 
-function closemodal(){
-    $('#numberModal').modal('hide');
 
-}
+
+        function closemodal() {
+            $('#numberModal').modal('hide');
+
+        }
+
+
+        $(document).on('click', '.send-reminder', function () {
+            let id = $(this).data('id');
+            $('#reminder_lead_id').val(id);
+            $('#reminder-modal').modal('show');
+        });
+
+
+        // ======================================================
+        //  UPDATE REMINDER STATUS
+        // ======================================================
+        $('#update-reminder-status').click(function () {
+
+            let lead_id = $('#reminder_lead_id').val();
+            let reminder_note = $('#reminder_note').val();
+            let _token = $('meta[name="csrf-token"]').attr('content');
+
+            $.post("{{ url('leads/update_reminder_status') }}", {
+                lead_id, reminder_note, _token
+            }, function (res) {
+
+                if (res.success) {
+                    toastr.success(res.success);
+                    $('#reminder-modal').modal('hide');
+                } else {
+                    toastr.error("Something went wrong");
+                }
+
+            });
+
+        });
 
     </script>
 

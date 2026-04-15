@@ -196,6 +196,10 @@ Route::prefix('leads')->group(function (): void {
 
     Route::get('in_progress', [LeadsController::class, 'in_progress'])->name('in_progress');
     Route::post('add_note', [LeadsController::class,'add_note'])->name('add_note');
+    Route::post('update_reminder_status', [LeadsController::class,'update_reminder_status'])->name('update_reminder_status');
+    Route::post('update_invitation_date', [LeadsController::class,'update_invitation_date'])->name('update_invitation_date');
+
+
     Route::get('notes_view/{id}', [LeadsController::class,'notes_view'])->name('notes_view');
     Route::get('delete/{id}', [LeadsController::class,'delete'])->name('delete');
     Route::get('assign', [LeadsController::class,'assign'])->name('assign');

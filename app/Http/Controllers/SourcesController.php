@@ -1247,7 +1247,33 @@ class SourcesController extends Controller
                     $employeedetails = User::where('id', $row->asign_to)->first();
                     return $employeedetails->first_name . ' ' . $employeedetails->last_name;
                 })
-                ->rawColumns(['action', 'prospect_first_name_new', 'contact_number_1']) // To render HTML in the actions column
+                ->addColumn('confirmation_status', function ($row) {
+                    if ($row->confirmation_status == 1) {
+                        return '<span class="badge bg-success">Confirmed</span>';
+                    } else {
+                        return '<span class="badge bg-warning text-dark">Waiting for Confirmation</span>';
+                    }
+                })
+                ->addColumn('reminder_status', function ($row) {
+                    if ($row->reminder_status == 0) {
+                        return '<button class="btn btn-sm btn-primary send-reminder" data-id="'.$row->id.'">
+                                    Send Reminder
+                                </button>';
+                    } else {
+                        return '<span class="badge bg-success">Reminder Sent</span>';
+                    }
+                })
+                ->addColumn('invitation_date', function ($row) {
+                    if(isset($row->invitation_date) && !empty($row->invitation_date)){
+                        return $row->invitation_date;
+                    }else{
+                        return 'N/A';
+                    }
+                   
+                })
+
+
+                ->rawColumns(['action', 'prospect_first_name_new', 'contact_number_1','reminder_status','confirmation_status']) // To render HTML in the actions column
                 ->make(true);
         }
         $id = '';

@@ -44,15 +44,15 @@
         }
 
         .form-control {
-    min-width: 100%;
- 
-}
+            min-width: 100%;
+
+        }
     </style>
     <?php date_default_timezone_set('Asia/Kolkata'); ?>
 
     <div class="main-right">
         <div class="right-side submanager">
-        <div class="row">
+            <div class="row">
                 <div class="row align-items-center mb-3">
                     <div class="col-md-8">
                         <h2 class="mb-0">Closed Leads Listing</h2>
@@ -84,6 +84,8 @@
                                     <th>Last Updated Note</th>
                                     <th>Meeting Status</th>
                                     <th>Dropped Note</th>
+                                    <th>Reminder Status</th>
+                                    <th>Invitation Date</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -284,6 +286,27 @@
         </div>
     </div>
 
+
+    <div class="modal fade" id="invitationDateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Invitation Date</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="date" id="invitation_date_input" class="form-control">
+                    <input type="hidden" id="row_id">
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary save-date">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
         <script src="{{url('vendor/moment/moment.js')}}"></script>
 
@@ -311,6 +334,9 @@
                         { data: 'pending_for_approvalnew', name: 'pending_for_approvalnew', orderable: false, searchable: false },
 
                         { data: 'decline_note', name: 'decline_note', orderable: false, searchable: false },
+                        { data: 'reminder_status', name: 'reminder_status' },
+                        { data: 'invitation_date', name: 'invitation_date' },
+
 
                         { data: 'options', name: 'options', orderable: false }
                     ],
@@ -612,6 +638,41 @@
 
             }
         </script>
+
+        <script>
+            $(document).on('click', '.open-date-modal', function () {
+                let id = $(this).data('id');
+                let date = $(this).data('date');
+
+                $('#row_id').val(id);
+                $('#invitation_date_input').val(date);
+
+                $('#invitationDateModal').modal('show');
+            });
+
+
+        </script>
+            <script>
+                $(document).on('click', '.save-date', function () {
+
+                    let id = $('#row_id').val();
+                    let date = $('#invitation_date_input').val();
+
+                    $.ajax({
+                        url: '{{url("leads/update_invitation_date")}}',
+                        method: 'POST',
+                        data: {
+                            id: id,
+                            invitation_date: date,
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (res) {
+                            $('#invitationDateModal').modal('hide');
+                            location.reload(); // or redraw datatable
+                        }
+                    });
+                });
+            </script>
     @endpush
 
 @endsection
