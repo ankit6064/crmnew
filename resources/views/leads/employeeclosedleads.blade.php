@@ -539,6 +539,7 @@
                 if (res.success) {
                     toastr.success(res.success);
                     $('#reminder-modal').modal('hide');
+                    location.reload(true);
                 } else {
                     toastr.error("Something went wrong");
                 }
