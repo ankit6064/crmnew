@@ -18,17 +18,38 @@
 
                 <!-- Filters -->
                 <!-- <div class="row">
-                                    <div class="add-submanager">
-                                        <input type="search" id="global_filter" name="search" placeholder="search...">
-                                    </div>
+                                            <div class="add-submanager">
+                                                <input type="search" id="global_filter" name="search" placeholder="search...">
+                                            </div>
 
-                                </div> -->
-                <div class="filter-row" style="
-                                display: flex;
-                                gap: 10px;
-                                align-items: center;
-                                flex-wrap: wrap;
-                            ">
+                                        </div> -->
+                <style>
+                    .filter-row {
+                        display: flex;
+                        gap: 15px;
+                        flex-wrap: wrap;
+                        margin-bottom: 20px;
+                    }
+
+                    .filter-select {
+                        flex: 1 1 45%; /* Two per row approx */
+                        min-width: 250px;
+                        height: 45px;
+                        border-radius: 8px;
+                        border: 1px solid #ddd;
+                        padding: 0 15px;
+                        font-size: 14px;
+                        color: #333;
+                        background-color: #fff;
+                    }
+
+                    .filter-select:focus {
+                        border-color: #192e62;
+                        outline: none;
+                        box-shadow: 0 0 5px rgba(25, 46, 98, 0.2);
+                    }
+                </style>
+                <div class="filter-row">
 
                     <!-- Campaign Filter -->
                     <select id="campaign_name" class="filter-select">
@@ -62,7 +83,15 @@
                         @endforeach
                     </select>
 
+                    <!-- Invitation Date Filter -->
+                    <input type="date" id="filter_invitation_date" class="filter-select" placeholder="Invitation Date">
 
+                    <!-- Confirmation Status Filter -->
+                    <select id="filter_confirmation_status" class="filter-select">
+                        <option value="">Confirmation Status</option>
+                        <option value="sent">Confirmation Sent</option>
+                        <option value="waiting">Waiting for Confirmation</option>
+                    </select>
 
                 </div>
 
@@ -85,6 +114,7 @@
                                     <th>Email Id</th>
                                     <th>Phone Number</th>
                                     <th>Closed On</th>
+                                    <th>Send LHS</th>
                                     <th>Confirmation Status</th>
                                     <th>Reminder Status</th>
                                     <th>Invitation Date</th>
@@ -283,6 +313,33 @@
     </div>
 
 
+    <!-- =================================================================== -->
+    <!--                        INVITATION DATE MODAL                           -->
+    <!-- =================================================================== -->
+    <div id="invitation-date-modal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <meta name="csrf-token" content="{{ csrf_token() }}" />
+                <input type="hidden" id="invitation_lead_id">
+                <div class="modal-header">
+                    <h4 class="modal-title">Add Invitation Date</h4>
+                    <button type="button" class="close modal-close" data-dismiss="modal" data-bs-dismiss="modal"
+                        onclick="closeInvitationModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Invitation Date</label>
+                        <input type="date" id="invitation_date_input" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default modal-close" data-dismiss="modal" data-bs-dismiss="modal"
+                        onclick="closeInvitationModal()">Close</button>
+                    <button class="btn btn-info" id="save-invitation-date">Save Date</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 
@@ -313,6 +370,8 @@
                         d.cName = $('#company_s').val();
                         d.timeZone = $('#company_time').val();
                         d.closedon = $('#closedon').val();
+                        d.invitation_date = $('#filter_invitation_date').val();
+                        d.confirmation_status = $('#filter_confirmation_status').val();
                     }
                 },
                 columns: [
@@ -327,6 +386,7 @@
                     { data: 'prospect_email' },
                     { data: 'contact_number_1' },
                     { data: 'updated_at_new' },
+                    { data: 'send_lhs' },
                     { data: 'confirmation_status' },
                     { data: 'reminder_status' },
                     { data: 'invitation_date' },
@@ -358,7 +418,7 @@
             });
 
             // Filters trigger reload + loader
-            $('#campaign_name, #company_s, #company_time, #closedon')
+            $('#campaign_name, #company_s, #company_time, #closedon, #filter_invitation_date, #filter_confirmation_status')
                 .on('keyup change', function () {
                     $('#spinner-overlay').show();
                     table.ajax.reload();
@@ -429,7 +489,7 @@
                 if (res.success) {
                     toastr.success(res.success);
                     $('#status-modal').modal('hide');
-                    location.reload();
+                    $('#employee-table').DataTable().ajax.reload(null, false);
                 } else {
                     toastr.error(res.error);
                 }
@@ -482,8 +542,7 @@
                             );
 
                             // Redraw the DataTable to reflect the changes
-                            $('#employee-table').DataTable()
-                                .draw(); // Redraw the DataTable
+                            $('#employee-table').DataTable().ajax.reload(null, false);
                         },
                         error: function (xhr, status, error) {
                             // Handle error (e.g., show an error message)
@@ -523,30 +582,84 @@
         });
 
 
-        // ======================================================
-        //  UPDATE REMINDER STATUS
-        // ======================================================
-        $('#update-reminder-status').click(function () {
-
-            let lead_id = $('#reminder_lead_id').val();
-            let reminder_note = $('#reminder_note').val();
+        $(document).on('click', '.send-lhs', function () {
+            let id = $(this).data('id');
             let _token = $('meta[name="csrf-token"]').attr('content');
 
-            $.post("{{ url('leads/update_reminder_status') }}", {
-                lead_id, reminder_note, _token
-            }, function (res) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Mark LHS as sent?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Send!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post("{{ url('leads/send_lhs') }}", { id, _token }, function (res) {
+                        if (res.success) {
+                            toastr.success(res.success);
+                            $('#employee-table').DataTable().ajax.reload(null, false);
+                        } else {
+                            toastr.error("Something went wrong");
+                        }
+                    });
+                }
+            });
+        });
 
+        $(document).on('click', '.send-lhs-reminder', function () {
+            let id = $(this).data('id');
+            let _token = $('meta[name="csrf-token"]').attr('content');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Send LHS Reminder?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Send Reminder!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post("{{ url('leads/update_lhs_reminder_status') }}", { id, _token }, function (res) {
+                        if (res.success) {
+                            toastr.success(res.success);
+                            $('#employee-table').DataTable().ajax.reload(null, false);
+                        } else {
+                            toastr.error("Something went wrong");
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '.add-invitation-date', function () {
+            let id = $(this).data('id');
+            $('#invitation_lead_id').val(id);
+            $('#invitation-date-modal').modal('show');
+        });
+
+        $('#save-invitation-date').click(function () {
+            let id = $('#invitation_lead_id').val();
+            let invitation_date = $('#invitation_date_input').val();
+            let _token = $('meta[name="csrf-token"]').attr('content');
+
+            if (!invitation_date) {
+                toastr.error("Please select a date");
+                return;
+            }
+
+            $.post("{{ url('leads/update_invitation_date') }}", { id, invitation_date, _token }, function (res) {
                 if (res.success) {
                     toastr.success(res.success);
-                    $('#reminder-modal').modal('hide');
-                    location.reload(true);
+                    closeInvitationModal();
+                    $('#employee-table').DataTable().ajax.reload(null, false);
                 } else {
                     toastr.error("Something went wrong");
                 }
-
             });
-
         });
+
+        function closeInvitationModal() {
+            $('#invitation-date-modal').modal('hide');
+        }
 
     </script>
 

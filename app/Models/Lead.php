@@ -35,7 +35,11 @@ class Lead extends Model
         'assign_to_external_manager',
         'approval_status',
         'status',
-        'asign_to'
+        'asign_to',
+        'lhs_sent_at',
+        'lhs_reminder_sent_at',
+        'invitation_date',
+        'confirmation_status'
     ];
 
     public function source()

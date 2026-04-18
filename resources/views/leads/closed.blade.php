@@ -84,7 +84,6 @@
                                     <th>Last Updated Note</th>
                                     <th>Meeting Status</th>
                                     <th>Dropped Note</th>
-                                    <th>Reminder Status</th>
                                     <th>Invitation Date</th>
                                     <th>Action</th>
                                 </tr>
@@ -334,7 +333,6 @@
                         { data: 'pending_for_approvalnew', name: 'pending_for_approvalnew', orderable: false, searchable: false },
 
                         { data: 'decline_note', name: 'decline_note', orderable: false, searchable: false },
-                        { data: 'reminder_status', name: 'reminder_status' },
                         { data: 'invitation_date', name: 'invitation_date' },
 
 
@@ -652,27 +650,27 @@
 
 
         </script>
-            <script>
-                $(document).on('click', '.save-date', function () {
+        <script>
+            $(document).on('click', '.save-date', function () {
 
-                    let id = $('#row_id').val();
-                    let date = $('#invitation_date_input').val();
+                let id = $('#row_id').val();
+                let date = $('#invitation_date_input').val();
 
-                    $.ajax({
-                        url: '{{url("leads/update_invitation_date")}}',
-                        method: 'POST',
-                        data: {
-                            id: id,
-                            invitation_date: date,
-                            _token: $('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function (res) {
-                            $('#invitationDateModal').modal('hide');
-                            location.reload(); // or redraw datatable
-                        }
-                    });
+                $.ajax({
+                    url: '{{url("leads/update_invitation_date")}}',
+                    method: 'POST',
+                    data: {
+                        id: id,
+                        invitation_date: date,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (res) {
+                        $('#invitationDateModal').modal('hide');
+                        location.reload(); // or redraw datatable
+                    }
                 });
-            </script>
+            });
+        </script>
     @endpush
 
 @endsection

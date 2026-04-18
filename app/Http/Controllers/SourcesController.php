@@ -13,6 +13,7 @@ use App\Models\Relation;
 use App\Models\Logs;
 use App\Models\LhsReport;
 use App\Models\SubmanagerPermissions;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Auth;
@@ -484,7 +485,7 @@ class SourcesController extends Controller
                             </button>';
                 })
 
-                ->rawColumns(['total_leads_new', 'action', 'status', 'source_name_new', 'transfer','manager_name'])
+                ->rawColumns(['total_leads_new', 'action', 'status', 'source_name_new', 'transfer', 'manager_name'])
                 ->toJson();
         }
     }
@@ -1058,6 +1059,18 @@ class SourcesController extends Controller
 
 
             }
+
+            if (!empty(request('invitation_date'))) {
+                $query->whereDate('invitation_date', request('invitation_date'));
+            }
+
+            if (!empty(request('confirmation_status'))) {
+                if (request('confirmation_status') == 'sent') {
+                    $query->whereNotNull('invitation_date');
+                } elseif (request('confirmation_status') == 'waiting') {
+                    $query->whereNull('invitation_date');
+                }
+            }
             $columnIndex = $request->input('order.0.column'); // this will be 10
             $direction = $request->input('order.0.dir');      // this will be 'desc'
 
@@ -1248,32 +1261,67 @@ class SourcesController extends Controller
                     return $employeedetails->first_name . ' ' . $employeedetails->last_name;
                 })
                 ->addColumn('confirmation_status', function ($row) {
-                    if ($row->confirmation_status == 1) {
-                        return '<span class="badge bg-success">Confirmed</span>';
+                    if (!empty($row->invitation_date)) {
+                        return '<span class="badge bg-success">Confirmation Sent</span>';
                     } else {
-                        return '<span class="badge bg-warning text-dark">Waiting for Confirmation</span>';
+                        $colorClass = 'bg-warning text-dark';
+                        if ($row->lhs_sent_at) {
+                            $lhsSentAt = \Carbon\Carbon::parse($row->lhs_sent_at);
+                            if ($lhsSentAt->diffInHours(now()) >= 48) {
+                                $colorClass = 'bg-danger text-white';
+                            }
+                        }
+                        return '<span class="badge ' . $colorClass . '">Waiting for Confirmation</span>';
                     }
                 })
                 ->addColumn('reminder_status', function ($row) {
-                    if ($row->reminder_status == 0) {
-                        return '<button class="btn btn-sm btn-primary send-reminder" data-id="'.$row->id.'">
-                                    Send Reminder
-                                </button>';
+                    if (!empty($row->invitation_date)) {
+                        return 'N/A';
+                    }
+
+                    if ($row->lhs_sent_at) {
+                        $showButton = true;
+                        if ($row->lhs_reminder_sent_at) {
+                            $reminderSentAt = \Carbon\Carbon::parse($row->lhs_reminder_sent_at);
+                            if ($reminderSentAt->diffInHours(now()) < 24) {
+                                $showButton = false;
+                            }
+                        }
+
+                        if ($showButton) {
+                            return '<button class="btn btn-sm btn-primary send-lhs-reminder" data-id="' . $row->id . '">
+                                        Send Reminder
+                                    </button>';
+                        } else {
+                            return '<span class="badge bg-success">Reminder Sent on ' . \Carbon\Carbon::parse($row->lhs_reminder_sent_at)->format('d/m/Y H:i') . '</span>';
+                        }
                     } else {
-                        return '<span class="badge bg-success">Reminder Sent</span>';
+                        return 'N/A';
+                    }
+                })
+                ->addColumn('send_lhs', function ($row) {
+                    if ($row->lhs_sent_at) {
+                        return \Carbon\Carbon::parse($row->lhs_sent_at)->format('d/m/Y H:i');
+                    } else {
+                        return '<button class="btn btn-sm btn-info send-lhs" data-id="' . $row->id . '">
+                                    Send LHS
+                                </button>';
                     }
                 })
                 ->addColumn('invitation_date', function ($row) {
-                    if(isset($row->invitation_date) && !empty($row->invitation_date)){
+                    if (isset($row->invitation_date) && !empty($row->invitation_date)) {
                         return $row->invitation_date;
-                    }else{
-                        return 'N/A';
+                    } else {
+                        $disabled = $row->lhs_sent_at ? '' : 'disabled';
+                        return '<button class="btn btn-sm btn-secondary add-invitation-date" data-id="' . $row->id . '" ' . $disabled . '>
+                                    Add Invitation Date
+                                </button>';
                     }
-                   
+
                 })
 
 
-                ->rawColumns(['action', 'prospect_first_name_new', 'contact_number_1','reminder_status','confirmation_status']) // To render HTML in the actions column
+                ->rawColumns(['action', 'prospect_first_name_new', 'contact_number_1', 'reminder_status', 'confirmation_status', 'send_lhs', 'invitation_date']) // To render HTML in the actions column
                 ->make(true);
         }
         $id = '';

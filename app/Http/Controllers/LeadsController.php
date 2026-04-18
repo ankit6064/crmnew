@@ -1317,6 +1317,31 @@ class LeadsController extends Controller
                     return $actionHtml;
                 })
 
+                ->editColumn('contact_number_1', function ($row) {
+                    if (empty($row->contact_number_1)) {
+                        return 'N/A';
+                    }
+
+                    // Split by comma, semicolon, or space
+                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    $numbers = array_filter($numbers); // Remove empty strings
+                    $count = count($numbers);
+
+                    if ($count <= 1) {
+                        return $row->contact_number_1;
+                    }
+
+                    $firstNumber = $numbers[0];
+                    $contact = json_encode($row->contact_number_1);
+                    // Pass the rest of the numbers as a JSON array to the JS function
+    
+                    return "{$firstNumber} 
+            <span class='badge' 
+                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+                  onclick='showAllNumbers({$contact})'>
+                  + show more
+            </span>";
+                })
                 ->addColumn('pending_for_approvalnew', function ($data) {
 
 
@@ -1386,62 +1411,19 @@ class LeadsController extends Controller
                         }
                     }
                 })
-                ->editColumn('contact_number_1', function ($row) {
-                    if (empty($row->contact_number_1)) {
-                        return 'N/A';
-                    }
 
-                    // Split by comma, semicolon, or space
-                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
-                    $numbers = array_filter($numbers); // Remove empty strings
-                    $count = count($numbers);
-
-                    if ($count <= 1) {
-                        return $row->contact_number_1;
-                    }
-
-                    $firstNumber = $numbers[0];
-                    $contact = json_encode($row->contact_number_1);
-                    // Pass the rest of the numbers as a JSON array to the JS function
-    
-                    return "{$firstNumber} 
-            <span class='badge' 
-                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
-                  onclick='showAllNumbers({$contact})'>
-                  + show more
-            </span>";
-                })
-
-                ->addColumn('reminder_status', function ($row) {
-                    return $row->reminder_status == 1
-                        ? '<span class="badge bg-success">Reminder Sent</span>'
-                        : '<span class="badge bg-warning text-dark">Reminder Pending</span>';
-                })
 
                 ->addColumn('invitation_date', function ($row) {
 
-                    // Case 1: Reminder not sent → disabled
-                    if ($row->reminder_status != 1) {
-                        return '<button class="btn btn-sm btn-secondary" disabled>
-                                    Add Invitation Date
-                                </button>';
-                    }
-                
                     // Case 2: Reminder sent but date already exists → disabled with date
                     if (!empty($row->invitation_date)) {
-                        return '<button class="btn btn-sm btn-success" disabled>
-                                    '.$row->invitation_date.'
-                                </button>';
+                        return '<span class="label label-success">' . $row->invitation_date . '</span>';
+                    } else {
+                        return 'N/A';
                     }
-                
-                    // Case 3: Reminder sent & no date → clickable
-                    return '<button class="btn btn-sm btn-primary open-date-modal" 
-                                    data-id="'.$row->id.'" 
-                                    data-date="">
-                                Add Invitation Date
-                            </button>';
-                })
 
+
+                })
 
                 ->rawColumns(['action', 'last_updated_note', 'options', 'pending_for_approvalnew', 'decline_note', 'contact_number_1', 'reminder_status', 'invitation_date'])
                 ->make(true);
@@ -1466,7 +1448,43 @@ class LeadsController extends Controller
         $logs->description = 'Invitation Date added for lead -' . $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
         $logs->save();
 
-        return response()->json(['success' => 'Reminder Sent Successfully']);
+        return response()->json(['success' => 'Invitation Date added Successfully']);
+    }
+
+    public function send_lhs(Request $request)
+    {
+        $leadId = $request->id;
+        $leadDetails = Lead::where('id', $leadId)->first();
+        $leadDetails->lhs_sent_at = now();
+        $leadDetails->save();
+
+        // Create log
+        $logs = new Logs();
+        $logs->user_id = Auth::id();
+        $logs->type = 8;
+        $logs->reference_id = $leadId;
+        $logs->description = 'LHS sent for lead -' . $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
+        $logs->save();
+
+        return response()->json(['success' => 'LHS Sent Successfully']);
+    }
+
+    public function update_lhs_reminder_status(Request $request)
+    {
+        $leadId = $request->id;
+        $leadDetails = Lead::where('id', $leadId)->first();
+        $leadDetails->lhs_reminder_sent_at = now();
+        $leadDetails->save();
+
+        // Create log
+        $logs = new Logs();
+        $logs->user_id = Auth::id();
+        $logs->type = 9;
+        $logs->reference_id = $leadId;
+        $logs->description = 'LHS Reminder sent for lead -' . $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
+        $logs->save();
+
+        return response()->json(['success' => 'LHS Reminder Sent Successfully']);
     }
 
 
