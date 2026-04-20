@@ -1262,7 +1262,7 @@ class SourcesController extends Controller
                 })
                 ->addColumn('confirmation_status', function ($row) {
                     if (!empty($row->invitation_date)) {
-                        return '<span class="badge bg-success">Confirmation Sent</span>';
+                        return '<span class="badge bg-success">Confirmed</span>';
                     } else {
                         $colorClass = 'bg-warning text-dark';
                         if ($row->lhs_sent_at) {

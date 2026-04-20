@@ -1443,9 +1443,10 @@ class LeadsController extends Controller
         // Create log (single query)
         $logs = new Logs();
         $logs->user_id = Auth::id();
-        $logs->type = 7;
+        $logs->type = 19;
         $logs->reference_id = $request->id;
-        $logs->description = 'Invitation Date added for lead -' . $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
+        $logs->source_id = $leadDetails->source_id;
+        $logs->description = 'Lead Confirmed and Invitation Date added for lead -' . $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
         $logs->save();
 
         return response()->json(['success' => 'Invitation Date added Successfully']);
@@ -1461,8 +1462,9 @@ class LeadsController extends Controller
         // Create log
         $logs = new Logs();
         $logs->user_id = Auth::id();
-        $logs->type = 8;
+        $logs->type = 17;
         $logs->reference_id = $leadId;
+        $logs->source_id = $leadDetails->source_id;
         $logs->description = 'LHS sent for lead -' . $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
         $logs->save();
 
@@ -1479,8 +1481,9 @@ class LeadsController extends Controller
         // Create log
         $logs = new Logs();
         $logs->user_id = Auth::id();
-        $logs->type = 9;
+        $logs->type = 18;
         $logs->reference_id = $leadId;
+        $logs->source_id = $leadDetails->source_id;
         $logs->description = 'LHS Reminder sent for lead -' . $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
         $logs->save();
 
@@ -1647,6 +1650,7 @@ class LeadsController extends Controller
         $logs->user_id = Auth::id();
         $logs->type = 1;
         $logs->reference_id = $request->lead_id;
+        $logs->source_id = Lead::where('id', $request->lead_id)->value('source_id');
         $logs->note_id = $note->id;
         $logs->description = 'New note is added on lead -' . $request->reminder_for;
         $logs->save();
@@ -1695,6 +1699,7 @@ class LeadsController extends Controller
         $logs->user_id = Auth::id();
         $logs->type = 6;
         $logs->reference_id = $leadId;
+        $logs->source_id = $leadDetails->source_id;
         $logs->description = 'Reminder sent for lead -' . $leadDetails->prospect_first_name . ' ' . $leadDetails->prospect_last_name;
         $logs->save();
 
@@ -2470,6 +2475,7 @@ class LeadsController extends Controller
             $logs->user_id = Auth::id();
             $logs->type = 2;
             $logs->reference_id = $request->lead_id;
+            $logs->source_id = Lead::where('id', $request->lead_id)->value('source_id');
             $logs->save();
             $notification_count = Lead::where('is_notify', '!=', 0)->count();
             if ($request->status == 2) {

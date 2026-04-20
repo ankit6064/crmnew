@@ -153,6 +153,13 @@
     </a>
 
 
+    <!-- Notifications -->
+    <a href="{{ route('notifications.index') }}"
+       class="{{ request()->routeIs('notifications.index') ? 'active' : '' }} menu-link">
+        <i class="fa-solid fa-bell"></i> Notifications
+    </a>
+
+
     <!-- Logs -->
     @php
         $isLogsActive = request()->routeIs('employeelogs') || request()->routeIs('managerlogs');
@@ -221,6 +228,12 @@
     <a href="{{ url('man_daily_report') }}" 
        class="{{ request()->is('man_daily_report*') ? 'active' : '' }} menu-link">
         <i class="fa-solid fa-file-lines"></i> Daily Report
+    </a>
+
+    <!-- Notifications -->
+    <a href="{{ route('notifications.index') }}"
+       class="{{ request()->routeIs('notifications.index') ? 'active' : '' }} menu-link">
+        <i class="fa-solid fa-bell"></i> Notifications
     </a>
 
 </div>
@@ -313,6 +326,12 @@
     <a href="{{ url('man_daily_report') }}"
        class="{{ request()->is('man_daily_report') ? 'active' : '' }} menu-link">
         <i class="fa-solid fa-file-lines"></i> Daily Report
+    </a>
+
+    <!-- Notifications -->
+    <a href="{{ route('notifications.index') }}"
+       class="{{ request()->routeIs('notifications.index') ? 'active' : '' }} menu-link">
+        <i class="fa-solid fa-bell"></i> Notifications
     </a>
 
 </div>

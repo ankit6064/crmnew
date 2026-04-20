@@ -39,6 +39,9 @@
 					<option value="6">LHS Report Updated</option>
 					<option value="4">MOM Report Generated</option>
 					<option value="5">New Lead Added</option>
+					<option value="17">LHS Sent</option>
+					<option value="18">LHS Reminder Sent</option>
+					<option value="19">Lead Confirmed</option>
 				</select>
 
 				<input type="text" id="daterange" class="filter-date" placeholder="Select Date Range">

@@ -209,6 +209,10 @@ Route::prefix('leads')->group(function (): void {
     Route::get('employeeclosedleads', [SourcesController::class,'employeeclosedleads'])->name('employeeclosedleads');
     Route::get('employeecompletedleads', [SourcesController::class,'employeecompletedleads'])->name('employeecompletedleads');
 
+    // Notifications
+    Route::get('notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+
 
 });
 
