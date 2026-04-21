@@ -22,4 +22,13 @@ class NotificationController extends Controller
         Notification::where('id', $id)->where('user_id', Auth::id())->update(['is_read' => true]);
         return back()->with('success', 'Notification marked as read');
     }
+
+    public function getUnreadCount()
+    {
+        $count = Notification::where('user_id', Auth::id())
+            ->where('is_read', false)
+            ->count();
+
+        return response()->json(['count' => $count]);
+    }
 }
