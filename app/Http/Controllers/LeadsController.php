@@ -1413,11 +1413,48 @@ class LeadsController extends Controller
                 })
 
 
+                ->addColumn('reminder_status', function ($row) {
+                    if (!empty($row->invitation_date)) {
+                        return 'N/A';
+                    }
+
+                    if ($row->lhs_sent_at) {
+                        $lhsSentAt = \Carbon\Carbon::parse($row->lhs_sent_at);
+                        
+                        // If LHS sent less than 24 hours ago and no reminder sent yet
+                        if (!$row->lhs_reminder_sent_at && $lhsSentAt->diffInHours(now()) < 24) {
+                            return '<span class="badge bg-secondary">LHS Sent (Wait 24h)</span>';
+                        }
+
+                        if ($row->lhs_reminder_sent_at) {
+                            $reminderSentAt = \Carbon\Carbon::parse($row->lhs_reminder_sent_at);
+                            
+                            // If reminder sent more than 24 hours ago, show RED button
+                            if ($reminderSentAt->diffInHours(now()) >= 24) {
+                                return '<button class="btn btn-sm btn-danger send-lhs-reminder" data-id="' . $row->id . '">
+                                            Send Reminder
+                                        </button>
+                                        <br><small class="text-muted">Last sent: ' . $reminderSentAt->format('d/m/Y H:i') . '</small>';
+                            } else {
+                                // Show last sent time
+                                return '<span class="badge bg-success">Reminder Sent on ' . $reminderSentAt->format('d/m/Y H:i') . '</span>';
+                            }
+                        }
+
+                        // Default: Show Blue button (LHS sent > 24h and no reminder sent yet)
+                        return '<button class="btn btn-sm btn-primary send-lhs-reminder" data-id="' . $row->id . '">
+                                    Send Reminder
+                                </button>';
+                    } else {
+                        return 'N/A';
+                    }
+                })
+
                 ->addColumn('invitation_date', function ($row) {
 
                     // Case 2: Reminder sent but date already exists → disabled with date
                     if (!empty($row->invitation_date)) {
-                        return '<span class="label label-success">' . $row->invitation_date . '</span>';
+                        return '<span class="label label-success">' . \Carbon\Carbon::parse($row->invitation_date)->format('d M, Y h:i A') . '</span>';
                     } else {
                         return 'N/A';
                     }
@@ -1436,7 +1473,7 @@ class LeadsController extends Controller
     {
         $leadDetails = Lead::where('id', $request->id)->first();
         $leadDetails->confirmation_status = 1;
-        $leadDetails->invitation_date = $request->invitation_date;
+        $leadDetails->invitation_date = $request->invitation_date . ' ' . $request->invitation_time;
         $leadDetails->save();
 
 

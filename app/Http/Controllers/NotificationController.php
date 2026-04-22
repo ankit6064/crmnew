@@ -8,11 +8,21 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $notifications = Notification::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = Notification::where('user_id', Auth::id());
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $notifications = $query->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->appends($request->all());
 
         return view('notifications.index', compact('notifications'));
     }

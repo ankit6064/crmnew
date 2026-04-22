@@ -671,6 +671,31 @@
                 });
             });
         </script>
+        <script>
+            $(document).on('click', '.send-lhs-reminder', function () {
+                let id = $(this).data('id');
+                let _token = $('meta[name="csrf-token"]').attr('content');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'Send LHS Reminder?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Send Reminder!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post("{{ url('leads/update_lhs_reminder_status') }}", { id, _token }, function (res) {
+                            if (res.success) {
+                                toastr.success(res.success);
+                                $('#employee-table').DataTable().ajax.reload(null, false);
+                            } else {
+                                toastr.error("Something went wrong");
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
     @endpush
 
 @endsection

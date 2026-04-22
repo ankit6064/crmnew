@@ -322,20 +322,24 @@
                 <meta name="csrf-token" content="{{ csrf_token() }}" />
                 <input type="hidden" id="invitation_lead_id">
                 <div class="modal-header">
-                    <h4 class="modal-title">Add Invitation Date</h4>
+                    <h4 class="modal-title">Add Invitation Date & Time</h4>
                     <button type="button" class="close modal-close" data-dismiss="modal" data-bs-dismiss="modal"
                         onclick="closeInvitationModal()">×</button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
+                    <div class="form-group mb-3">
                         <label>Invitation Date</label>
                         <input type="date" id="invitation_date_input" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Invitation Time</label>
+                        <input type="time" id="invitation_time_input" class="form-control">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-default modal-close" data-dismiss="modal" data-bs-dismiss="modal"
                         onclick="closeInvitationModal()">Close</button>
-                    <button class="btn btn-info" id="save-invitation-date">Save Date</button>
+                    <button class="btn btn-info" id="save-invitation-date">Save Date & Time</button>
                 </div>
             </div>
         </div>
@@ -639,14 +643,15 @@
         $('#save-invitation-date').click(function () {
             let id = $('#invitation_lead_id').val();
             let invitation_date = $('#invitation_date_input').val();
+            let invitation_time = $('#invitation_time_input').val();
             let _token = $('meta[name="csrf-token"]').attr('content');
 
-            if (!invitation_date) {
-                toastr.error("Please select a date");
+            if (!invitation_date || !invitation_time) {
+                toastr.error("Please select both date and time");
                 return;
             }
 
-            $.post("{{ url('leads/update_invitation_date') }}", { id, invitation_date, _token }, function (res) {
+            $.post("{{ url('leads/update_invitation_date') }}", { id, invitation_date, invitation_time, _token }, function (res) {
                 if (res.success) {
                     toastr.success(res.success);
                     closeInvitationModal();
@@ -659,6 +664,8 @@
 
         function closeInvitationModal() {
             $('#invitation-date-modal').modal('hide');
+            $('#invitation_date_input').val('');
+            $('#invitation_time_input').val('');
         }
 
     </script>

@@ -1280,21 +1280,32 @@ class SourcesController extends Controller
                     }
 
                     if ($row->lhs_sent_at) {
-                        $showButton = true;
+                        $lhsSentAt = \Carbon\Carbon::parse($row->lhs_sent_at);
+                        
+                        // If LHS sent less than 24 hours ago and no reminder sent yet
+                        if (!$row->lhs_reminder_sent_at && $lhsSentAt->diffInHours(now()) < 24) {
+                            return '<span class="badge bg-secondary">LHS Sent (Wait 24h)</span>';
+                        }
+
                         if ($row->lhs_reminder_sent_at) {
                             $reminderSentAt = \Carbon\Carbon::parse($row->lhs_reminder_sent_at);
-                            if ($reminderSentAt->diffInHours(now()) < 24) {
-                                $showButton = false;
+                            
+                            // If reminder sent more than 24 hours ago, show RED button
+                            if ($reminderSentAt->diffInHours(now()) >= 24) {
+                                return '<button class="btn btn-sm btn-danger send-lhs-reminder" data-id="' . $row->id . '">
+                                            Send Reminder
+                                        </button>
+                                        <br><small class="text-muted">Last sent: ' . $reminderSentAt->format('d/m/Y H:i') . '</small>';
+                            } else {
+                                // Show last sent time
+                                return '<span class="badge bg-success">Reminder Sent on ' . $reminderSentAt->format('d/m/Y H:i') . '</span>';
                             }
                         }
 
-                        if ($showButton) {
-                            return '<button class="btn btn-sm btn-primary send-lhs-reminder" data-id="' . $row->id . '">
-                                        Send Reminder
-                                    </button>';
-                        } else {
-                            return '<span class="badge bg-success">Reminder Sent on ' . \Carbon\Carbon::parse($row->lhs_reminder_sent_at)->format('d/m/Y H:i') . '</span>';
-                        }
+                        // Default: Show Blue button (LHS sent > 24h and no reminder sent yet)
+                        return '<button class="btn btn-sm btn-primary send-lhs-reminder" data-id="' . $row->id . '">
+                                    Send Reminder
+                                </button>';
                     } else {
                         return 'N/A';
                     }
@@ -1310,7 +1321,7 @@ class SourcesController extends Controller
                 })
                 ->addColumn('invitation_date', function ($row) {
                     if (isset($row->invitation_date) && !empty($row->invitation_date)) {
-                        return $row->invitation_date;
+                        return '<span class="badge bg-success">' . \Carbon\Carbon::parse($row->invitation_date)->format('d M, Y h:i A') . '</span>';
                     } else {
                         $disabled = $row->lhs_sent_at ? '' : 'disabled';
                         return '<button class="btn btn-sm btn-secondary add-invitation-date" data-id="' . $row->id . '" ' . $disabled . '>

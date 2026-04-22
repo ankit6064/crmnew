@@ -9,6 +9,33 @@
                 </div>
             </div>
 
+            <!-- Filters -->
+            <div class="graph campaignslist logstable mb-3">
+                <form action="{{ route('notifications.index') }}" method="GET" class="p-3">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Notification Type</label>
+                            <select name="type" class="form-control">
+                                <option value="">All Types</option>
+                                <option value="confirmation_overdue" {{ request('type') == 'confirmation_overdue' ? 'selected' : '' }}>LHS Overdue</option>
+                                <option value="callback_overdue" {{ request('type') == 'callback_overdue' ? 'selected' : '' }}>Callback Overdue</option>
+                                <!-- <option value="reminder_overdue" {{ request('type') == 'reminder_overdue' ? 'selected' : '' }}>Reminder Overdue</option> -->
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Date</label>
+                            <input type="date" name="date" class="form-control" value="{{ request('date') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-info flex-grow-1">Filter</button>
+                                <a href="{{ route('notifications.index') }}" class="btn btn-secondary flex-grow-1">Reset</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             <div class="graph campaignslist logstable">
                 <div class="table">
                     <div class="table-container">

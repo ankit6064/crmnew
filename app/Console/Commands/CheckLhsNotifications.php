@@ -75,7 +75,7 @@ class CheckLhsNotifications extends Command
             if (!$exists) {
                 \App\Models\Notification::create([
                     'lead_id' => $cb->lead_id,
-                    'user_id' => $cb->asign_to_manager ?? $cb->asign_to, 
+                    'user_id' => $cb->asign_to_manager ?? $cb->asign_to,
                     'type' => 'callback_overdue',
                     'message' => "Callback is overdue for lead: {$cb->prospect_first_name} {$cb->prospect_last_name} (Scheduled: {$cb->callback_date} {$cb->callback_time})",
                 ]);
