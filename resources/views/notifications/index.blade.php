@@ -17,9 +17,9 @@
                             <label class="form-label fw-bold">Notification Type</label>
                             <select name="type" class="form-control">
                                 <option value="">All Types</option>
+                                <option value="meeting_status_overdue" {{ request('type') == 'meeting_status_overdue' ? 'selected' : '' }}>Meeting Status Overdue</option>
                                 <option value="confirmation_overdue" {{ request('type') == 'confirmation_overdue' ? 'selected' : '' }}>LHS Overdue</option>
                                 <option value="callback_overdue" {{ request('type') == 'callback_overdue' ? 'selected' : '' }}>Callback Overdue</option>
-                                <!-- <option value="reminder_overdue" {{ request('type') == 'reminder_overdue' ? 'selected' : '' }}>Reminder Overdue</option> -->
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -54,12 +54,14 @@
                                                         <tr class="{{ $notification->is_read ? '' : 'fw-bold bg-light' }}">
                                                             <td>{{ $notification->created_at->format('d M, Y H:i') }}</td>
                                                             <td>
-                                                                @if($notification->type == 'confirmation_overdue')
+                                                                @if($notification->type == 'meeting_status_overdue')
+                                                                    <span class="badge bg-warning text-dark">Meeting Overdue</span>
+                                                                @elseif($notification->type == 'confirmation_overdue')
                                                                     <span class="badge bg-danger">LHS Overdue</span>
                                                                 @elseif($notification->type == 'callback_overdue')
                                                                     <span class="badge bg-primary">Callback Overdue</span>
                                                                 @else
-                                                                    <span class="badge bg-warning text-dark">Reminder Overdue</span>
+                                                                    <span class="badge bg-secondary">Reminder Overdue</span>
                                                                 @endif
                                                             </td>
                                                             <td>{{ $notification->message }}</td>

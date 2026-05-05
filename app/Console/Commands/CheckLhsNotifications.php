@@ -82,6 +82,31 @@ class CheckLhsNotifications extends Command
             }
         }
 
+        // 4. Meeting status overdue
+        $overdueMeetings = \App\Models\Lead::whereNotNull('invitation_date')
+            ->where('invitation_date', '<=', $now)
+            ->where(function ($q) {
+                $q->whereNull('meeting_status')
+                    ->orWhere('meeting_status', '')
+                    ->orWhere('meeting_status', 'Pending');
+            })
+            ->get();
+
+        foreach ($overdueMeetings as $lead) {
+            $exists = \App\Models\Notification::where('lead_id', $lead->id)
+                ->where('type', 'meeting_status_overdue')
+                ->exists();
+
+            if (!$exists) {
+                \App\Models\Notification::create([
+                    'lead_id' => $lead->id,
+                    'user_id' => $lead->asign_to_manager,
+                    'type' => 'meeting_status_overdue',
+                    'message' => "Meeting status update is overdue for lead: {$lead->prospect_first_name} {$lead->prospect_last_name} (Meeting was: " . \Carbon\Carbon::parse($lead->invitation_date)->format('d M, Y h:i A') . ")",
+                ]);
+            }
+        }
+
         $this->info('LHS Notifications checked and updated.');
     }
 }

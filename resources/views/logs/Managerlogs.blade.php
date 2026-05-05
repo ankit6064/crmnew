@@ -38,6 +38,7 @@
                         <option value="17">LHS Sent</option>
                         <option value="18">LHS Reminder Sent</option>
                         <option value="19">Lead Confirmed</option>
+                        <option value="20">Meeting Status Updated</option>
                     </select>
 
                     <input type="text" id="daterange" class="filter-date" placeholder="Select Date Range">

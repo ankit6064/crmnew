@@ -116,6 +116,7 @@ class LogsController extends Controller
             17 => 'LHS Sent',
             18 => 'LHS Reminder Sent',
             19 => 'Lead Confirmed',
+            20 => 'Meeting Status Updated',
             default => 'Unknown',
         };
     }
@@ -181,7 +182,8 @@ class LogsController extends Controller
                         16 => 'Employee Assigned',
                         17 => 'LHS Sent',
                         18 => 'LHS Reminder Sent',
-                        19 => 'Lead Confirmed'
+                        19 => 'Lead Confirmed',
+                        20 => 'Meeting Status Updated'
                     ];
 
                     return $types[$row->type] ?? 'N/A';
@@ -342,6 +344,7 @@ class LogsController extends Controller
                     17 => 'LHS Sent',
                     18 => 'LHS Reminder Sent',
                     19 => 'Lead Confirmed',
+                    20 => 'Meeting Status Updated',
                     default => '',
                 };
             })

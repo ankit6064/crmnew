@@ -208,6 +208,8 @@ Route::prefix('leads')->group(function (): void {
     Route::post('assignLeadsManager', [LeadsController::class,'assignLeadsManager'])->name('assignLeadsManager');
     Route::get('employeeclosedleads', [SourcesController::class,'employeeclosedleads'])->name('employeeclosedleads');
     Route::get('employeecompletedleads', [SourcesController::class,'employeecompletedleads'])->name('employeecompletedleads');
+    Route::get('meeting_scheduled', [SourcesController::class,'meeting_scheduled'])->name('meeting_scheduled');
+    Route::post('update_meeting_status', [SourcesController::class,'update_meeting_status'])->name('update_meeting_status');
 
     Route::get('notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');

@@ -39,7 +39,9 @@ class Lead extends Model
         'lhs_sent_at',
         'lhs_reminder_sent_at',
         'invitation_date',
-        'confirmation_status'
+        'confirmation_status',
+        'meeting_status',
+        'meeting_failed_reason'
     ];
 
     public function source()

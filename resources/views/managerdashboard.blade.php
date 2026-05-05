@@ -32,175 +32,177 @@
             width: 100% !important;
             height: 400px !important;
         }
+
         .stat-card {
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 2px solid transparent;
-    }
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
 
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
     </style>
     <div class="main-right managersubmanagerclass">
         <div class="right-side">
             <h2>Dashboard</h2>
             <div class="row first-card">
-            <div class="col-md-3">
-    <a href="{{ route('employee.submanagerlisting') }}"     class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Submanagers</h4>
-                <div class="card-icon">
-                    <i class="fa-regular fa-user"></i>
+                <div class="col-md-3">
+                    <a href="{{ route('employee.submanagerlisting') }}" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
+                        <div class="stat-card">
+                            <div class="card-header">
+                                <h4>Total Submanagers</h4>
+                                <div class="card-icon">
+                                    <i class="fa-regular fa-user"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h2>{{ $submangercount }}</h2>
+                                <div class="arrow-icon">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            <div class="card-body">
-                <h2>{{ $submangercount }}</h2>
-                <div class="arrow-icon">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
 
-<div class="col-md-3">
-    <a href="{{ route('employee.manageremployeeindex') }}"    
- class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Employees</h4>
-                <div class="card-icon icon2">
-                    <i class="fa-solid fa-user-tie"></i>
+                <div class="col-md-3">
+                    <a href="{{ route('employee.manageremployeeindex') }}" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
+                        <div class="stat-card">
+                            <div class="card-header">
+                                <h4>Total Employees</h4>
+                                <div class="card-icon icon2">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h2>{{ $employeecount }}</h2>
+                                <div class="arrow-icon">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            <div class="card-body">
-                <h2>{{ $employeecount }}</h2>
-                <div class="arrow-icon">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
 
-<div class="col-md-3">
-    <a href="{{ route('sources.getMangerSource') }}"     
-class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Campaigns</h4>
-                <div class="card-icon icon3">
-                    <i class="fa-regular fa-calendar-check"></i>
+                <div class="col-md-3">
+                    <a href="{{ route('sources.getMangerSource') }}" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
+                        <div class="stat-card">
+                            <div class="card-header">
+                                <h4>Total Campaigns</h4>
+                                <div class="card-icon icon3">
+                                    <i class="fa-regular fa-calendar-check"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h2>{{ $campaigncount }}</h2>
+                                <div class="arrow-icon">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            <div class="card-body">
-                <h2>{{ $campaigncount }}</h2>
-                <div class="arrow-icon">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
 
-<div class="col-md-3">
-    <a href="{{ route('allleadview') }}"    
- class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Leads</h4>
-                <div class="card-icon icon4">
-                    <i class="fa-regular fa-address-card"></i>
+                <div class="col-md-3">
+                    <a href="{{ route('allleadview') }}" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
+                        <div class="stat-card">
+                            <div class="card-header">
+                                <h4>Total Leads</h4>
+                                <div class="card-icon icon4">
+                                    <i class="fa-regular fa-address-card"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h2>{{ $totalleads }}</h2>
+                                <div class="arrow-icon">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            <div class="card-body">
-                <h2>{{ $totalleads }}</h2>
-                <div class="arrow-icon">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
 
             </div>
             <div class="row second-card">
 
 
 
-<div class="col-md-3">
-    <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Meeting Setup</h4>
-                <div class="card-icon icon6">
-                    <i class="fas fa-users"></i>
+                <div class="col-md-3">
+                    <a href="{{ route('meeting_scheduled') }}" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                        <div class="stat-card">
+                            <div class="card-header">
+                                <h4>Total Meeting Setup</h4>
+                                <div class="card-icon icon6">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h2>{{ $totallhscount }}</h2>
+                                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            <div class="card-body">
-                <h2>{{ $totallhscount }}</h2>
-                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
-            </div>
-        </div>
-    </a>
-</div>
 
-<div class="col-md-3">
-    <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Meeting Complete</h4>
-                <div class="card-icon icon7">
-                    <i class="fas fa-clipboard-check"></i>
+                <div class="col-md-3">
+                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Done" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                        <div class="stat-card">
+                            <div class="card-header">
+                                <h4>Total Meeting Complete</h4>
+                                <div class="card-icon icon7">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h2>{{ $totalmomcount }}</h2>
+                                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            <div class="card-body">
-                <h2>{{ $totalmomcount }}</h2>
-                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
-            </div>
-        </div>
-    </a>
-</div>
 
-<div class="col-md-3">
-    <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Meeting Failed</h4>
-                <div class="card-icon icon8">
-                    <i class="fas fa-calendar-times"></i>
+                <div class="col-md-3">
+                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Failed" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                        <div class="stat-card">
+                            <div class="card-header">
+                                <h4>Total Meeting Failed</h4>
+                                <div class="card-icon icon8">
+                                    <i class="fas fa-calendar-times"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h2>{{ $totalfailedcount }}</h2>
+                                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            <div class="card-body">
-                <h2>20</h2>
-                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
-            </div>
-        </div>
-    </a>
-</div>
 
-<div class="col-md-3">
-    <a href="{{ route('managercallbackleads') }}" class="stat-card-link" style="text-decoration:none; color:inherit;">
-        <div class="stat-card">
-            <div class="card-header">
-                <h4>Total Callbacks</h4>
-                <div class="card-icon icon5">
-                    <i class="fa-solid fa-phone-volume"></i>
+                <div class="col-md-3">
+                    <a href="{{ route('managercallbackleads') }}" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
+                        <div class="stat-card">
+                            <div class="card-header">
+                                <h4>Total Callbacks</h4>
+                                <div class="card-icon icon5">
+                                    <i class="fa-solid fa-phone-volume"></i>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h2>{{$callbackleads}}</h2>
+                                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </div>
-            <div class="card-body">
-                <h2>{{$callbackleads}}</h2>
-                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
-            </div>
-        </div>
-    </a>
-</div>
 
-</div>
+            </div>
 
             <div class="graph">
                 <div class="filter-container">
@@ -239,13 +241,13 @@ class="stat-card-link" style="text-decoration:none; color:inherit;">
 
                     <input type="text" name="daterange" id="daterange" class="filter-date" style="width:300px" />
                     <button type="button" id="filterLogs" style="padding:10px 20px; font-size:15px; font-weight:600; border:none; border-radius:8px; 
-                           cursor:pointer; background-color: #0d3d72; color:#fff; 
-                           box-shadow:0px 3px 6px rgba(0,0,0,0.1); transition:all 0.3s ease;">
+                                       cursor:pointer; background-color: #0d3d72; color:#fff; 
+                                       box-shadow:0px 3px 6px rgba(0,0,0,0.1); transition:all 0.3s ease;">
                         Filter
                     </button>
                     <button type="button" id="reset" style="padding:10px 20px; font-size:15px; font-weight:600; border:none; border-radius:8px; 
-                           cursor:pointer; background:#e74a3b; color:#fff; 
-                           box-shadow:0px 3px 6px rgba(0,0,0,0.1); transition:all 0.3s ease;">
+                                       cursor:pointer; background:#e74a3b; color:#fff; 
+                                       box-shadow:0px 3px 6px rgba(0,0,0,0.1); transition:all 0.3s ease;">
                         Reset
                     </button>
                 </div>

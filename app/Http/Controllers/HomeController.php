@@ -26,7 +26,7 @@ class HomeController extends Controller
     public function index()
     {
         $totalLeads = Lead::join('sources', 'sources.id', 'leads.source_id')->count();
-        $totalsubmanagers = User::where('is_admin',SUBMANAGER)->count();
+        $totalsubmanagers = User::where('is_admin', SUBMANAGER)->count();
         $totalemployees = User::where('is_admin', EMPLOYEE_ROLE)->count();
         $totalmanagers = User::where('is_admin', MANAGER)->count();
         $totalcampaigns = Source::count();
@@ -36,7 +36,7 @@ class HomeController extends Controller
         // Return view with lead counts
         return view('dashboard', [
             'totalLeads' => $totalLeads,
-            'totalsubmanagers'=>$totalsubmanagers,
+            'totalsubmanagers' => $totalsubmanagers,
             'totalemployees' => $totalemployees,
             'totalmanagers' => $totalmanagers,
             'totalcampaigns' => $totalcampaigns,
@@ -146,8 +146,9 @@ class HomeController extends Controller
         })
             ->count();
         $totalleads = Lead::where('asign_to_manager', Auth::id())->count();
-        $totallhscount = Lead::join('lhs_report', 'leads.id', 'lhs_report.lead_id')->where('leads.asign_to_manager', Auth::id())->count();
-        $totalmomcount = Lead::join('mom_report', 'leads.id', 'mom_report.lead_id')->where('leads.asign_to_manager', Auth::id())->count();
+        $totallhscount = Lead::where('asign_to_manager', Auth::id())->whereNotNull('invitation_date')->count();
+        $totalmomcount = Lead::where('asign_to_manager', Auth::id())->where('meeting_status', 'Done')->count();
+        $totalfailedcount = Lead::where('asign_to_manager', Auth::id())->where('meeting_status', 'Failed')->count();
 
         $employee = User::select('id', 'first_name', 'last_name')->where('user_id', Auth::id())->orderby('first_name')->get();
         $sources = Source::select('id', 'source_name', 'description')->where('assign_to_manager', Auth::id())->orderby('source_name')->get();
@@ -172,7 +173,7 @@ class HomeController extends Controller
             ->whereIn('callback_leads.employee_id', $employeeids)
             ->whereDate('callback_leads.callback_date', $currentDate)->count();
 
-        return view('managerdashboard', compact('submangercount', 'employeecount', 'campaigncount', 'totalleads', 'totallhscount', 'totalmomcount', 'employee', 'sources', 'callbackleads'));
+        return view('managerdashboard', compact('submangercount', 'employeecount', 'campaigncount', 'totalleads', 'totallhscount', 'totalmomcount', 'totalfailedcount', 'employee', 'sources', 'callbackleads'));
     }
 
     public function getmanagergraph(Request $request)

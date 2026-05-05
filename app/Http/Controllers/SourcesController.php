@@ -1281,7 +1281,7 @@ class SourcesController extends Controller
 
                     if ($row->lhs_sent_at) {
                         $lhsSentAt = \Carbon\Carbon::parse($row->lhs_sent_at);
-                        
+
                         // If LHS sent less than 24 hours ago and no reminder sent yet
                         if (!$row->lhs_reminder_sent_at && $lhsSentAt->diffInHours(now()) < 24) {
                             return '<span class="badge bg-secondary">LHS Sent (Wait 24h)</span>';
@@ -1289,7 +1289,7 @@ class SourcesController extends Controller
 
                         if ($row->lhs_reminder_sent_at) {
                             $reminderSentAt = \Carbon\Carbon::parse($row->lhs_reminder_sent_at);
-                            
+
                             // If reminder sent more than 24 hours ago, show RED button
                             if ($reminderSentAt->diffInHours(now()) >= 24) {
                                 return '<button class="btn btn-sm btn-danger send-lhs-reminder" data-id="' . $row->id . '">
@@ -1501,6 +1501,165 @@ class SourcesController extends Controller
     //         'closedon'
     //     ));
     // }
+    public function meeting_scheduled(Request $request)
+    {
+        $employee_ids = User::where(function ($query) {
+            $query->where('user_id', auth()->id())
+                ->whereIn('is_admin', ['1', '3']);
+        })
+            ->orWhereIn('user_id', function ($subquery) {
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', auth()->id())
+                    ->where('is_admin', '3');
+            })
+            ->where('is_active', 1)
+            ->pluck('id');
+
+        $comapnyName = Lead::with('source')
+            ->whereNotNull('invitation_date')
+            ->whereIn('asign_to', $employee_ids)
+            ->groupBy('company_name')
+            ->orderBy('company_name', 'asc')
+            ->get();
+
+        $sourceNames = Source::select('sources.source_name', 'sources.description')
+            ->join('leads', 'leads.source_id', '=', 'sources.id')
+            ->whereNotNull('leads.invitation_date')
+            ->whereIn('leads.asign_to', $employee_ids)
+            ->groupBy('sources.source_name')
+            ->orderBy('sources.source_name')
+            ->get();
+
+        if (request()->ajax()) {
+            $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')
+                ->join('sources', 'leads.source_id', '=', 'sources.id')
+                ->whereNotNull('invitation_date')
+                ->whereIn('asign_to', $employee_ids);
+
+            if (!empty(request('cName'))) {
+                $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
+            }
+
+            if (!empty(request('campaign_name'))) {
+                $query->whereHas('source', function ($q) use ($request) {
+                    $q->where('source_name', 'LIKE', '%' . request('campaign_name') . '%');
+                });
+            }
+
+            if (!empty(request('invitation_from'))) {
+                $query->whereDate('invitation_date', '>=', request('invitation_from'));
+            }
+
+            if (!empty(request('invitation_to'))) {
+                $query->whereDate('invitation_date', '<=', request('invitation_to'));
+            }
+
+            if (!empty(request('meeting_status'))) {
+                $query->where('meeting_status', request('meeting_status'));
+            }
+
+            $search = $request->input('search.value');
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('company_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('prospect_first_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('prospect_last_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere(DB::raw('CONCAT(prospect_first_name, " ", prospect_last_name)'), 'LIKE', '%' . $search . '%')
+                        ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%')
+                        ->orWhere('prospect_email', 'LIKE', '%' . $search . '%');
+                });
+            }
+
+            return datatables()->of($query)
+                ->editColumn('prospect_first_name_new', function ($row) {
+                    $leadName = '<a href="' . url('/leads', [$row->id]) . '" target="_blank">' . $row->prospect_first_name . ' ' . $row->prospect_last_name . '</a>';
+                    $linkedinAddress = $row->linkedin_address ?? ''; // Ensure the variable exists
+                    $linkedinIcon = '';
+
+                    if (strpos($linkedinAddress, 'linkedin') === false) {
+                        $linkedinIcon = '<a href="javascript:void(0)"><i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>';
+                    } else {
+                        $linkedinUrl = strpos($linkedinAddress, 'http://') !== 0 && strpos($linkedinAddress, 'https://') !== 0
+                            ? 'https://' . $linkedinAddress
+                            : $linkedinAddress;
+                        $linkedinIcon = '<a href="' . $linkedinUrl . '" target="_blank"><i alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>';
+                    }
+
+                    return $leadName . '  ' . $linkedinIcon;
+                })
+                ->editColumn('invitation_date', function ($row) {
+                    return \Carbon\Carbon::parse($row->invitation_date)->format('d M, Y h:i A');
+                })
+                ->editColumn('meeting_status', function ($row) {
+                    if (empty($row->meeting_status) || $row->meeting_status == 'Pending') {
+                        return '<button class="btn btn-sm btn-primary" onclick="updateMeeting(' . $row->id . ')">Update Meeting</button>';
+                    }
+                    if ($row->meeting_status == 'Done')
+                        return '<span class="badge bg-success">Meeting Happened</span>';
+                    if ($row->meeting_status == 'Failed')
+                        return '<span class="badge bg-danger">Meeting Not Happened</span>';
+                    if ($row->meeting_status == 'Rescheduled')
+                        return '<span class="badge bg-warning">Meeting Rescheduled</span>';
+
+                    return '<button class="btn btn-sm btn-primary" onclick="updateMeeting(' . $row->id . ')">Update Meeting</button>';
+                })
+                ->addColumn('comments', function ($row) {
+                    if (empty($row->meeting_status) || $row->meeting_status == 'Pending')
+                        return 'N/A';
+                    return $row->meeting_failed_reason ? htmlspecialchars($row->meeting_failed_reason) : 'N/A';
+                })
+                ->rawColumns(['prospect_first_name_new', 'meeting_status'])
+                ->make(true);
+        }
+        $pendingLeads = [];
+        if (!request()->ajax()) {
+            $pendingLeads = Lead::whereIn('asign_to', $employee_ids)
+                ->whereNotNull('invitation_date')
+                ->where('invitation_date', '<=', now())
+                ->where(function ($q) {
+                    $q->whereNull('meeting_status')
+                        ->orWhere('meeting_status', '')
+                        ->orWhere('meeting_status', 'Pending');
+                })
+                ->get();
+        }
+
+        $id = '';
+        return view('leads.meeting_scheduled', compact('id', 'comapnyName', 'sourceNames', 'pendingLeads'));
+    }
+
+    public function update_meeting_status(Request $request)
+    {
+        $lead = Lead::find($request->id);
+        if (!$lead)
+            return response()->json(['error' => 'Lead not found']);
+
+        $lead->meeting_status = $request->status;
+        if ($request->status == 'Failed') {
+            $lead->meeting_failed_reason = $request->reason;
+        } else if ($request->status == 'Rescheduled') {
+            $datetime = $request->reschedule_date . ' ' . $request->reschedule_time;
+            $previous_date = $lead->invitation_date;
+            $lead->invitation_date = \Carbon\Carbon::parse($datetime)->format('Y-m-d H:i:s');
+            $lead->meeting_failed_reason = 'Meeting is rescheduled. Previous invitation date time: ' . \Carbon\Carbon::parse($previous_date)->format('d M, Y h:i A');
+        } else if ($request->status == 'Done') {
+            $lead->meeting_failed_reason = 'N/A';
+        }
+
+        $lead->save();
+
+        $logs = new Logs();
+        $logs->user_id = Auth::id();
+        $logs->type = 20;
+        $logs->reference_id = $lead->id;
+        $logs->source_id = $lead->source_id;
+        $logs->description = 'Meeting status updated to ' . $request->status . ' for lead - ' . $lead->prospect_first_name . ' ' . $lead->prospect_last_name;
+        $logs->save();
+
+        return response()->json(['success' => 'Meeting status updated successfully']);
+    }
+
     public function employeecompletedleads(Request $request)
     {
         // $employee_ids = User::where('user_id', Auth::id())->pluck('id');
