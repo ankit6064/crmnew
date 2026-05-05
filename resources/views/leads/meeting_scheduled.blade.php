@@ -12,7 +12,15 @@
     <div class="main-right">
         <div class="right-side meeting-scheduled-leads">
 
-            <h2>Active Meetings</h2>
+            @php
+                $status = request('meeting_status');
+                $pageTitle = 'Active Meetings';
+                if ($status == 'Done') $pageTitle = 'Meeting Happened';
+                elseif ($status == 'Failed') $pageTitle = 'Meeting Not Happened';
+                elseif ($status == 'Rescheduled') $pageTitle = 'Meeting Rescheduled';
+                elseif ($status == 'Pending') $pageTitle = 'Pending Meetings';
+            @endphp
+            <h2 id="page-title">{{ $pageTitle }}</h2>
 
             <div class="graph campaignslist">
 
@@ -344,12 +352,22 @@
             });
 
             $('#campaign_name, #company_s, #meeting_status_filter').on('change', function () {
+                if ($(this).attr('id') === 'meeting_status_filter') {
+                    var val = $(this).val();
+                    var title = 'Active Meetings';
+                    if (val == 'Done') title = 'Meeting Happened';
+                    else if (val == 'Failed') title = 'Meeting Not Happened';
+                    else if (val == 'Rescheduled') title = 'Meeting Rescheduled';
+                    else if (val == 'Pending') title = 'Pending Meetings';
+                    $('#page-title').text(title);
+                }
                 $('#spinner-overlay').show();
                 table.ajax.reload();
             });
 
             $('#reset_filters').on('click', function () {
                 $('#campaign_name, #company_s, #meeting_status_filter, #invitation_daterange').val('');
+                $('#page-title').text('Active Meetings');
                 $('#spinner-overlay').show();
                 table.ajax.reload();
             });
