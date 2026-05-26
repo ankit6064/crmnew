@@ -197,7 +197,7 @@
                     <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
-                                <h4>Total Meeting Failed</h4>
+                                <h4>Total Meeting Dropped</h4>
                                 <div class="card-icon icon8">
                                     <i class="fa-solid fa-circle-xmark"></i>
                                 </div>

@@ -25,16 +25,58 @@ class CheckLhsNotifications extends Command
             ->get();
 
         foreach ($leads48 as $lead) {
-            $exists = \App\Models\Notification::where('lead_id', $lead->id)
-                ->where('type', 'confirmation_overdue')
-                ->exists();
+            // 1. Delete associated LhsReport
+            \App\Models\LhsReport::where('lead_id', $lead->id)->delete();
 
-            if (!$exists) {
+            // 2. Delete associated LhsFiles records (and physical files)
+            $lhsFiles = \App\Models\LhsFiles::where('lead_id', $lead->id)->get();
+            foreach ($lhsFiles as $file) {
+                $filePath = storage_path('app/public/' . $file->file_path);
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                }
+                $file->delete();
+            }
+
+            // 3. Reset lead columns to make it a fresh lead
+            $lead->status = 1; // 1 is Fresh Lead
+            $lead->lhs_sent_at = null;
+            $lead->lhs_reminder_sent_at = null;
+            $lead->invitation_date = null;
+            $lead->confirmation_status = null;
+            $lead->meeting_status = null;
+            $lead->meeting_failed_reason = null;
+            $lead->save();
+
+            // 4. Create log entry (auto reverted by system)
+            $logs = new \App\Models\Logs();
+            $logs->user_id = 0; // 0 for system-automated action
+            $logs->type = 21; // unique log type for reverting to fresh
+            $logs->reference_id = $lead->id;
+            $logs->source_id = $lead->source_id;
+            $logs->description = 'Lead automatically reverted to fresh lead (LHS deleted due to 48 hours without confirmation) for lead - ' . $lead->prospect_first_name . ' ' . $lead->prospect_last_name;
+            $logs->save();
+
+            // 5. Create notifications for the BDM and Manager
+            $message = "Lead: {$lead->prospect_first_name} {$lead->prospect_last_name} has been automatically reverted to a Fresh Lead because it remained pending confirmation for over 48 hours.";
+            
+            // Notify manager
+            if ($lead->asign_to_manager) {
                 \App\Models\Notification::create([
                     'lead_id' => $lead->id,
                     'user_id' => $lead->asign_to_manager,
                     'type' => 'confirmation_overdue',
-                    'message' => "Confirmation is overdue (48h+) for lead: {$lead->prospect_first_name} {$lead->prospect_last_name}",
+                    'message' => $message,
+                ]);
+            }
+            
+            // Notify assigned employee
+            if ($lead->asign_to) {
+                \App\Models\Notification::create([
+                    'lead_id' => $lead->id,
+                    'user_id' => $lead->asign_to,
+                    'type' => 'confirmation_overdue',
+                    'message' => $message,
                 ]);
             }
         }

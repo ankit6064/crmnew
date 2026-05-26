@@ -134,7 +134,8 @@
 
 
                 <div class="col-md-3">
-                    <a href="{{ route('meeting_scheduled') }}" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                    <a href="{{ route('meeting_scheduled') }}" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
                                 <h4>Total Meeting Setup</h4>
@@ -151,7 +152,8 @@
                 </div>
 
                 <div class="col-md-3">
-                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Done" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Done" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
                                 <h4>Total Meeting Complete</h4>
@@ -168,10 +170,11 @@
                 </div>
 
                 <div class="col-md-3">
-                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Failed" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Failed" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
-                                <h4>Total Meeting Failed</h4>
+                                <h4>Total Meeting Dropped</h4>
                                 <div class="card-icon icon8">
                                     <i class="fas fa-calendar-times"></i>
                                 </div>
@@ -241,13 +244,13 @@
 
                     <input type="text" name="daterange" id="daterange" class="filter-date" style="width:300px" />
                     <button type="button" id="filterLogs" style="padding:10px 20px; font-size:15px; font-weight:600; border:none; border-radius:8px; 
-                                       cursor:pointer; background-color: #0d3d72; color:#fff; 
-                                       box-shadow:0px 3px 6px rgba(0,0,0,0.1); transition:all 0.3s ease;">
+                                           cursor:pointer; background-color: #0d3d72; color:#fff; 
+                                           box-shadow:0px 3px 6px rgba(0,0,0,0.1); transition:all 0.3s ease;">
                         Filter
                     </button>
                     <button type="button" id="reset" style="padding:10px 20px; font-size:15px; font-weight:600; border:none; border-radius:8px; 
-                                       cursor:pointer; background:#e74a3b; color:#fff; 
-                                       box-shadow:0px 3px 6px rgba(0,0,0,0.1); transition:all 0.3s ease;">
+                                           cursor:pointer; background:#e74a3b; color:#fff; 
+                                           box-shadow:0px 3px 6px rgba(0,0,0,0.1); transition:all 0.3s ease;">
                         Reset
                     </button>
                 </div>
