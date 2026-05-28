@@ -1736,19 +1736,19 @@ class EmployeeController extends Controller
             } else {
                 $status = [2];
             }
-            if(Auth::user()->is_admin == null){
-            $managers = User::where('is_admin', SUBMANAGER)
-                ->whereIn('is_active', $status)
-                ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
-                ->orderBy('created_at', 'desc')
-                ->get();
-            }else{
+            if (Auth::user()->is_admin == null) {
                 $managers = User::where('is_admin', SUBMANAGER)
-                ->where('user_id', Auth::id())
-                ->whereIn('is_active', $status)
-                ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
-                ->orderBy('created_at', 'desc')
-                ->get();
+                    ->whereIn('is_active', $status)
+                    ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            } else {
+                $managers = User::where('is_admin', SUBMANAGER)
+                    ->where('user_id', Auth::id())
+                    ->whereIn('is_active', $status)
+                    ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
             }
 
             return DataTables::of($managers)
@@ -1832,7 +1832,7 @@ class EmployeeController extends Controller
     {
         $employee = User::where('id', $request->employee_id)->first();
         $employees = User::where('user_id', $request->employee_id)->where('is_admin', 1)->get();
-        $unassignedemployees = User::where('user_id', Auth::id())->get();
+        $unassignedemployees = User::where('user_id', Auth::id())->where('id', '!=', $request->employee_id)->where('is_admin', 1)->get();
         return view('employee.submanageredit', compact('employee', 'employees', 'unassignedemployees'));
     }
 

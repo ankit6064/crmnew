@@ -632,6 +632,7 @@
                     });
                 }
             });
+        });
         $(document).on('click', '.add-invitation-date', function () {
             let id = $(this).data('id');
             $('#invitation_lead_id').val(id);
