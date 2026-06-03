@@ -29,24 +29,27 @@ class LogsController extends Controller
             ? [$request->employeeid]
             : User::where('user_id', Auth::id())->pluck('id')->toArray();
     
-        // 1. Optimized Select & Eager-loaded Note relation to eliminate the N+1 loop issue
+        // 1. Core SELECT logic - select ONLY the necessary relational fields
         $logsQuery = Logs::select([
-                'logs.*',
+                'logs.id', // Crucial: Explicitly identify the primary key to assist index scanning
+                'logs.type',
+                'logs.note_id',
+                'logs.created_at',
                 'users.first_name',
                 'users.last_name',
                 'leads.prospect_first_name',
                 'leads.prospect_last_name',
                 'sources.source_name',
-                'sources.description as source_description'
+                'sources.description as source_description',
+                'notes.reminder_for' // Select this directly from the left-joined notes table
             ])
-            ->leftJoin('users', 'users.id', '=', 'logs.user_id')
+            ->join('users', 'users.id', '=', 'logs.user_id') // Swapped to strict INNER JOIN for speed
             ->leftJoin('leads', 'leads.id', '=', 'logs.reference_id')
             ->leftJoin('sources', 'sources.id', '=', 'leads.source_id')
-            // Left join notes directly if note_id relates to notes.id
             ->leftJoin('notes', 'notes.id', '=', 'logs.note_id') 
             ->whereIn('logs.user_id', $employeeids);
     
-        // 2. Optimized Date Range parsing (Handles 'to' / ' - ' consistently)
+        // 2. Optimized Date Range parsing
         if (!empty($request->date)) {
             $delimiters = [' to ', ' - '];
             $cleanedDate = str_replace($delimiters, '|', $request->date);
@@ -67,6 +70,7 @@ class LogsController extends Controller
             $logsQuery->where('logs.type', $request->type);
         }
     
+        // 3. Fire optimized DataTables rendering pipeline
         return DataTables::of($logsQuery)
             ->addColumn('employeename', fn($log) => trim($log->first_name . ' ' . $log->last_name))
             ->addColumn('campaign_name', function ($log) {
@@ -80,7 +84,6 @@ class LogsController extends Controller
                     : '';
             })
             ->addColumn('description', function ($log) {
-                // Replaced the standalone database subquery with the eager-joined notes table field
                 return match ((int) $log->type) {
                     1 => $log->reminder_for ?? '', 
                     2 => 'Lead status updated',
@@ -99,10 +102,13 @@ class LogsController extends Controller
             
             // Optimized Filtering using standard columns
             ->filterColumn('employeename', function ($query, $keyword) {
-                $query->whereRaw("CONCAT(users.first_name, ' ', COALESCE(users.last_name, '')) LIKE ?", ["%{$keyword}%"]);
+                $query->where(function($q) use ($keyword) {
+                    $q->where('users.first_name', 'LIKE', "%{$keyword}%")
+                      ->orWhere('users.last_name', 'LIKE', "%{$keyword}%");
+                });
             })
             ->filterColumn('campaign_name', function ($query, $keyword) {
-                $query->whereRaw("CONCAT(sources.source_name, ' ', COALESCE(sources.description, '')) LIKE ?", ["%{$keyword}%"]);
+                $query->where('sources.source_name', 'LIKE', "%{$keyword}%");
             })
             
             // Sorting Improvements
@@ -116,6 +122,24 @@ class LogsController extends Controller
                 $query->orderBy('logs.created_at', $direction);
             })
             ->rawColumns(['description'])
+    
+            /* |--------------------------------------------------------------------------
+             | ADVANCED PERFORMANCE TUNING FOR LARGE DATASETS
+             |--------------------------------------------------------------------------
+            */
+            // Bypass internal DataTables query-wrapping for counts
+            ->skipPaging() 
+            
+            // Manually override total count with an isolated query (strips all 4 joins completely)
+            ->with('recordsTotal', function() use ($employeeids) {
+                return Logs::whereIn('user_id', $employeeids)->count();
+            })
+            
+            // Manually compute filtered pagination totals safely and quickly
+            ->with('recordsFiltered', function() use ($logsQuery) {
+                return $logsQuery->count('logs.id');
+            })
+            
             ->make(true);
     }
 
