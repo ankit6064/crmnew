@@ -21,7 +21,6 @@ class LogsController extends Controller
         $sources = Source::select('id', 'source_name', 'description')->where('assign_to_manager', Auth::id())->orderby('source_name')->get();
         return view('logs.employeelogs', compact('employee', 'sources'));
     }
-
     public function filteremployeelogs(Request $request)
     {
         // Fetch employee IDs upfront cleanly
@@ -29,27 +28,15 @@ class LogsController extends Controller
             ? [$request->employeeid]
             : User::where('user_id', Auth::id())->pluck('id')->toArray();
     
-        // 1. Core SELECT logic - select ONLY the necessary relational fields
-        $logsQuery = Logs::select([
-                'logs.id', // Crucial: Explicitly identify the primary key to assist index scanning
-                'logs.type',
-                'logs.note_id',
-                'logs.created_at',
-                'users.first_name',
-                'users.last_name',
-                'leads.prospect_first_name',
-                'leads.prospect_last_name',
-                'sources.source_name',
-                'sources.description as source_description',
-                'notes.reminder_for' // Select this directly from the left-joined notes table
-            ])
-            ->join('users', 'users.id', '=', 'logs.user_id') // Swapped to strict INNER JOIN for speed
+        // 1. Core Query Builder (Do NOT execute with ->get() or ->count() yet)
+        $logsQuery = Logs::query()
+            ->join('users', 'users.id', '=', 'logs.user_id')
             ->leftJoin('leads', 'leads.id', '=', 'logs.reference_id')
             ->leftJoin('sources', 'sources.id', '=', 'leads.source_id')
             ->leftJoin('notes', 'notes.id', '=', 'logs.note_id') 
             ->whereIn('logs.user_id', $employeeids);
     
-        // 2. Optimized Date Range parsing
+        // 2. Apply Filters
         if (!empty($request->date)) {
             $delimiters = [' to ', ' - '];
             $cleanedDate = str_replace($delimiters, '|', $request->date);
@@ -62,7 +49,6 @@ class LogsController extends Controller
             }
         }
     
-        // Input-specific filtration clauses
         if (!empty($request->sourceid)) {
             $logsQuery->where('sources.id', $request->sourceid);
         }
@@ -70,8 +56,15 @@ class LogsController extends Controller
             $logsQuery->where('logs.type', $request->type);
         }
     
-        // 3. Fire optimized DataTables rendering pipeline
+        // 3. Process with DataTables correctly
         return DataTables::of($logsQuery)
+            // CRITICAL SPEED FIXES: Tell DataTables to optimize column counting
+            ->only([
+                'id', 'type', 'created_at', 'employeename', 
+                'campaign_name', 'lead_name', 'description'
+            ])
+            
+            // Custom column mutations
             ->addColumn('employeename', fn($log) => trim($log->first_name . ' ' . $log->last_name))
             ->addColumn('campaign_name', function ($log) {
                 return $log->source_name 
@@ -98,9 +91,9 @@ class LogsController extends Controller
                 };
             })
             ->addColumn('type', fn($log) => $this->getTypeText($log->type))
-            ->editColumn('created_at', fn($log) => $log->created_at ? $log->created_at->format('d-m-Y H:i') : '')
+            ->editColumn('created_at', fn($log) => $log->created_at ? \Carbon\Carbon::parse($log->created_at)->format('d-m-Y H:i') : '')
             
-            // Optimized Filtering using standard columns
+            // Index-friendly filtering matching column names
             ->filterColumn('employeename', function ($query, $keyword) {
                 $query->where(function($q) use ($keyword) {
                     $q->where('users.first_name', 'LIKE', "%{$keyword}%")
@@ -111,35 +104,20 @@ class LogsController extends Controller
                 $query->where('sources.source_name', 'LIKE', "%{$keyword}%");
             })
             
-            // Sorting Improvements
+            // Sorting
             ->orderColumn('employeename', function ($query, $direction) {
                 $query->orderBy('users.first_name', $direction)->orderBy('users.last_name', $direction);
             })
             ->orderColumn('campaign_name', function ($query, $direction) {
                 $query->orderBy('sources.source_name', $direction);
             })
-            ->orderColumn('created_at', function ($query, $direction) {
-                $query->orderBy('logs.created_at', $direction);
-            })
-            ->rawColumns(['description'])
-    
-            /* |--------------------------------------------------------------------------
-             | ADVANCED PERFORMANCE TUNING FOR LARGE DATASETS
-             |--------------------------------------------------------------------------
-            */
-            // Bypass internal DataTables query-wrapping for counts
-            ->skipPaging() 
             
-            // Manually override total count with an isolated query (strips all 4 joins completely)
+            // This overrides the internal DataTables total record count with an isolated quick query
             ->with('recordsTotal', function() use ($employeeids) {
                 return Logs::whereIn('user_id', $employeeids)->count();
             })
             
-            // Manually compute filtered pagination totals safely and quickly
-            ->with('recordsFiltered', function() use ($logsQuery) {
-                return $logsQuery->count('logs.id');
-            })
-            
+            ->rawColumns(['description'])
             ->make(true);
     }
 
