@@ -89,96 +89,104 @@
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
     <script>
-        $(document).ready(function () {
-            var table = $('#employee-table').DataTable({
-                processing: true,
-                serverSide: true,
-                searching: false,
-                ordering: true,
-                ajax: {
-                    url: "{{ route('managerlogs') }}",
-                    data: function (d) {
-                        d.sourceid = $('#source_id').val();
-                        d.date = $('#daterange').val();
-                        d.type = $('#type').val();
+    $(document).ready(function () {
+        var table = $('#employee-table').DataTable({
+            processing: false,
+            serverSide: true,
+            searching: false,
+            ordering: true,
+            ajax: {
+                url: "{{ route('managerlogs') }}",
+                data: function (d) {
+                    d.sourceid = $('#source_id').val();
+                    d.date = $('#daterange').val();
+                    d.type = $('#type').val();
+                }
+            },
+            columns: [
+                { data: null, name: 'sno', orderable: false, searchable: false },
+                { data: 'campaign', name: 'sources.source_name', orderable: false, searchable: false },
+                {
+                    data: 'description',
+                    name: 'description',
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row) {
+                        if (!data) return '--';
+                        const cleanText = $('<div>').html(data).text();
+                        if (cleanText.length > 80) {
+                            return `
+                            <span class="short-text">${cleanText.slice(0, 80)}...</span>
+                            <a href="javascript:void(0);" class="read-more">Read more</a>
+                            <span class="full-text d-none">${data}</span>
+                        `;
+                        }
+                        return data;
                     }
                 },
-                columns: [
-                    { data: null, name: 'sno', orderable: false, searchable: false },
-                    { data: 'campaign', name: 'sources.source_name', orderable: false, searchable: false },
-                    {
-                        data: 'description',
-                        name: 'description',
-                        orderable: false,
-                        searchable: false,
-                        render: function (data, type, row) {
-                            if (!data) return '--';
-                            const cleanText = $('<div>').html(data).text();
-                            if (cleanText.length > 80) {
-                                return `
-                                <span class="short-text">${cleanText.slice(0, 80)}...</span>
-                                <a href="javascript:void(0);" class="read-more">Read more</a>
-                                <span class="full-text d-none">${data}</span>
-                            `;
-                            }
-                            return data;
-                        }
-                    },
-                    { data: 'type', name: 'type', orderable: false },
-                    { data: 'created_at', name: 'created_at', orderable: true },
-                ],
-                order: [[4, 'desc']],
-                drawCallback: function (settings) {
-                    var api = this.api();
-                    api.column(0, { page: 'current' }).nodes().each(function (cell, i) {
-                        cell.innerHTML = api.page.info().start + i + 1;
-                    });
-                }
-            });
+                { data: 'type', name: 'type', orderable: false },
+                { data: 'created_at', name: 'created_at', orderable: true },
+            ],
+            order: [[4, 'desc']],
+            preDrawCallback: function () {
+                // Show loader overlay before fetching data
+                $('#spinner-overlay').show();
+            },
+            drawCallback: function (settings) {
+                // 1. Hide the loader overlay now that data is loaded/drawn
+                $('#spinner-overlay').hide();
 
-            $('#filterLogs').on('click', function () {
-                table.ajax.reload();
-            });
-
-            $('#reset').on('click', function () {
-                $('#source_id, #type, #daterange').val('');
-                table.ajax.reload();
-            });
-
-            // Read more / less toggle
-            $('#employeelogs').on('click', '.read-more', function () {
-                const $cell = $(this).closest('td');
-                const fullText = $cell.find('.full-text').html();
-                $cell.html(`${fullText} <a href="javascript:void(0);" class="read-less">Show less</a>`);
-            });
-            $('#employeelogs').on('click', '.read-less', function () {
-                const $cell = $(this).closest('td');
-                const fullText = $cell.text();
-                const shortText = fullText.slice(0, 80);
-                $cell.html(`
-                <span class="short-text">${shortText}...</span>
-                <a href="javascript:void(0);" class="read-more">Read more</a>
-                <span class="full-text d-none">${fullText}</span>
-            `);
-            });
+                // 2. Generate Serial Numbers for the current page
+                var api = this.api();
+                api.column(0, { page: 'current' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = api.page.info().start + i + 1;
+                });
+            }
         });
 
-        // Daterange Picker
-        $(function () {
-            $('#daterange').daterangepicker({
-                autoUpdateInput: false,
-                opens: 'left',
-                locale: {
-                    format: 'YYYY-MM-DD',
-                    cancelLabel: 'Clear'
-                }
-            });
-            $('#daterange').on('apply.daterangepicker', function (ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
-            });
-            $('#daterange').on('cancel.daterangepicker', function () {
-                $(this).val('');
-            });
+        $('#filterLogs').on('click', function () {
+            table.ajax.reload();
         });
-    </script>
+
+        $('#reset').on('click', function () {
+            $('#source_id, #type, #daterange').val('');
+            table.ajax.reload();
+        });
+
+        // Read more / less toggle
+        $('#employeelogs').on('click', '.read-more', function () {
+            const $cell = $(this).closest('td');
+            const fullText = $cell.find('.full-text').html();
+            $cell.html(`${fullText} <a href="javascript:void(0);" class="read-less">Show less</a>`);
+        });
+        $('#employeelogs').on('click', '.read-less', function () {
+            const $cell = $(this).closest('td');
+            const fullText = $cell.text();
+            const shortText = fullText.slice(0, 80);
+            $cell.html(`
+            <span class="short-text">${shortText}...</span>
+            <a href="javascript:void(0);" class="read-more">Read more</a>
+            <span class="full-text d-none">${fullText}</span>
+        `);
+        });
+    });
+
+    // Daterange Picker
+    $(function () {
+        $('#daterange').daterangepicker({
+            autoUpdateInput: false,
+            opens: 'left',
+            locale: {
+                format: 'YYYY-MM-DD',
+                cancelLabel: 'Clear'
+            }
+        });
+        $('#daterange').on('apply.daterangepicker', function (ev, picker) {
+            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
+        });
+        $('#daterange').on('cancel.daterangepicker', function () {
+            $(this).val('');
+        });
+    });
+</script>
 @endpush

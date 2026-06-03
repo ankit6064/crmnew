@@ -24,53 +24,65 @@ class LogsController extends Controller
 
     public function filteremployeelogs(Request $request)
     {
+        // Fetch employee IDs upfront cleanly
         $employeeids = !empty($request->employeeid)
             ? [$request->employeeid]
-            : User::where('user_id', Auth::id())->pluck('id');
-
-        // Join users, leads, and sources to make sorting work
-        $logsQuery = Logs::select(
-            'logs.*',
-            'users.first_name',
-            'users.last_name',
-            'leads.prospect_first_name',
-            'leads.prospect_last_name',
-            'sources.source_name',
-            'sources.description as source_description'
-        )
+            : User::where('user_id', Auth::id())->pluck('id')->toArray();
+    
+        // 1. Optimized Select & Eager-loaded Note relation to eliminate the N+1 loop issue
+        $logsQuery = Logs::select([
+                'logs.*',
+                'users.first_name',
+                'users.last_name',
+                'leads.prospect_first_name',
+                'leads.prospect_last_name',
+                'sources.source_name',
+                'sources.description as source_description'
+            ])
             ->leftJoin('users', 'users.id', '=', 'logs.user_id')
             ->leftJoin('leads', 'leads.id', '=', 'logs.reference_id')
             ->leftJoin('sources', 'sources.id', '=', 'leads.source_id')
+            // Left join notes directly if note_id relates to notes.id
+            ->leftJoin('notes', 'notes.id', '=', 'logs.note_id') 
             ->whereIn('logs.user_id', $employeeids);
-
+    
+        // 2. Optimized Date Range parsing (Handles 'to' / ' - ' consistently)
         if (!empty($request->date)) {
-            [$start, $end] = array_map('trim', explode(' - ', $request->date));
-            $logsQuery->whereBetween('logs.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
+            $delimiters = [' to ', ' - '];
+            $cleanedDate = str_replace($delimiters, '|', $request->date);
+            $parts = explode('|', $cleanedDate);
+            
+            if (count($parts) === 2) {
+                $start = trim($parts[0]) . ' 00:00:00';
+                $end = trim($parts[1]) . ' 23:59:59';
+                $logsQuery->whereBetween('logs.created_at', [$start, $end]);
+            }
         }
-
-
+    
+        // Input-specific filtration clauses
         if (!empty($request->sourceid)) {
             $logsQuery->where('sources.id', $request->sourceid);
         }
         if (!empty($request->type)) {
             $logsQuery->where('logs.type', $request->type);
         }
-
+    
         return DataTables::of($logsQuery)
-            ->addColumn('employeename', fn($log) => $log->first_name . ' ' . $log->last_name)
+            ->addColumn('employeename', fn($log) => trim($log->first_name . ' ' . $log->last_name))
             ->addColumn('campaign_name', function ($log) {
-                return $log->source_name && $log->source_description
-                    ? $log->source_name . ' - ' . $log->source_description
+                return $log->source_name 
+                    ? trim($log->source_name . ($log->source_description ? ' - ' . $log->source_description : ''))
                     : '';
             })
             ->addColumn('lead_name', function ($log) {
-                return $log->prospect_first_name && $log->prospect_last_name
-                    ? $log->prospect_first_name . ' ' . $log->prospect_last_name
+                return $log->prospect_first_name 
+                    ? trim($log->prospect_first_name . ' ' . $log->prospect_last_name)
                     : '';
             })
             ->addColumn('description', function ($log) {
+                // Replaced the standalone database subquery with the eager-joined notes table field
                 return match ((int) $log->type) {
-                    1 => Note::where('id', $log->note_id)->value('reminder_for') ?? '',
+                    1 => $log->reminder_for ?? '', 
                     2 => 'Lead status updated',
                     3 => 'LHS created',
                     4 => 'MOM report generated',
@@ -84,14 +96,18 @@ class LogsController extends Controller
             })
             ->addColumn('type', fn($log) => $this->getTypeText($log->type))
             ->editColumn('created_at', fn($log) => $log->created_at ? $log->created_at->format('d-m-Y H:i') : '')
+            
+            // Optimized Filtering using standard columns
             ->filterColumn('employeename', function ($query, $keyword) {
-                $query->whereRaw("CONCAT(users.first_name, ' ', users.last_name) LIKE ?", ["%{$keyword}%"]);
+                $query->whereRaw("CONCAT(users.first_name, ' ', COALESCE(users.last_name, '')) LIKE ?", ["%{$keyword}%"]);
             })
             ->filterColumn('campaign_name', function ($query, $keyword) {
-                $query->whereRaw("CONCAT(sources.source_name, ' ', sources.description) LIKE ?", ["%{$keyword}%"]);
+                $query->whereRaw("CONCAT(sources.source_name, ' ', COALESCE(sources.description, '')) LIKE ?", ["%{$keyword}%"]);
             })
+            
+            // Sorting Improvements
             ->orderColumn('employeename', function ($query, $direction) {
-                $query->orderByRaw("CONCAT(users.first_name, ' ', users.last_name) {$direction}");
+                $query->orderBy('users.first_name', $direction)->orderBy('users.last_name', $direction);
             })
             ->orderColumn('campaign_name', function ($query, $direction) {
                 $query->orderBy('sources.source_name', $direction);
