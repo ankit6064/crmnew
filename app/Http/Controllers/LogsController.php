@@ -21,64 +21,85 @@ class LogsController extends Controller
         $sources = Source::select('id', 'source_name', 'description')->where('assign_to_manager', Auth::id())->orderby('source_name')->get();
         return view('logs.employeelogs', compact('employee', 'sources'));
     }
+
     public function filteremployeelogs(Request $request)
     {
-        // Fetch employee IDs upfront cleanly
+        // Optimize: Get employee IDs efficiently
         $employeeids = !empty($request->employeeid)
             ? [$request->employeeid]
             : User::where('user_id', Auth::id())->pluck('id')->toArray();
     
-        // 1. Core Query Builder (Do NOT execute with ->get() or ->count() yet)
-        $logsQuery = Logs::query()
-            ->join('users', 'users.id', '=', 'logs.user_id')
-            ->leftJoin('leads', 'leads.id', '=', 'logs.reference_id')
-            ->leftJoin('sources', 'sources.id', '=', 'leads.source_id')
-            ->leftJoin('notes', 'notes.id', '=', 'logs.note_id') 
-            ->whereIn('logs.user_id', $employeeids);
-    
-        // 2. Apply Filters
-        if (!empty($request->date)) {
-            $delimiters = [' to ', ' - '];
-            $cleanedDate = str_replace($delimiters, '|', $request->date);
-            $parts = explode('|', $cleanedDate);
-            
-            if (count($parts) === 2) {
-                $start = trim($parts[0]) . ' 00:00:00';
-                $end = trim($parts[1]) . ' 23:59:59';
-                $logsQuery->whereBetween('logs.created_at', [$start, $end]);
-            }
+        // Early return if no employees found
+        if (empty($employeeids)) {
+            return DataTables::of(collect())->make(true);
         }
     
+        // Optimize: Select only needed columns and use indexes
+        $logsQuery = Logs::select(
+            'logs.id',
+            'logs.user_id',
+            'logs.type',
+            'logs.note_id',
+            'logs.reference_id',
+            'logs.created_at',
+            'users.first_name',
+            'users.last_name',
+            'leads.prospect_first_name',
+            'leads.prospect_last_name',
+            'sources.source_name',
+            'sources.description as source_description'
+        )
+            ->leftJoin('users', 'users.id', '=', 'logs.user_id')
+            ->leftJoin('leads', 'leads.id', '=', 'logs.reference_id')
+            ->leftJoin('sources', 'sources.id', '=', 'leads.source_id')
+            ->whereIn('logs.user_id', $employeeids);
+    
+        // Optimize: Apply date filter with proper indexing
+        if (!empty($request->date)) {
+            [$start, $end] = array_map('trim', explode(' - ', $request->date));
+            $startDate = $start . ' 00:00:00';
+            $endDate = $end . ' 23:59:59';
+            
+            // Use whereBetween for better index usage
+            $logsQuery->whereBetween('logs.created_at', [$startDate, $endDate]);
+        }
+    
+        // Apply other filters
         if (!empty($request->sourceid)) {
             $logsQuery->where('sources.id', $request->sourceid);
         }
+        
         if (!empty($request->type)) {
             $logsQuery->where('logs.type', $request->type);
         }
     
-        // 3. Process with DataTables correctly
+        // Optimize: Batch load notes data to avoid N+1 queries
+        $logsQuery->addSelect([
+            'note_reminder_for' => Note::select('reminder_for')
+                ->whereColumn('notes.id', 'logs.note_id')
+                ->limit(1)
+        ]);
+    
         return DataTables::of($logsQuery)
-            // CRITICAL SPEED FIXES: Tell DataTables to optimize column counting
-            ->only([
-                'id', 'type', 'created_at', 'employeename', 
-                'campaign_name', 'lead_name', 'description'
-            ])
-            
-            // Custom column mutations
-            ->addColumn('employeename', fn($log) => trim($log->first_name . ' ' . $log->last_name))
+            ->addColumn('employeename', function ($log) {
+                return $log->first_name . ' ' . $log->last_name;
+            })
             ->addColumn('campaign_name', function ($log) {
-                return $log->source_name 
-                    ? trim($log->source_name . ($log->source_description ? ' - ' . $log->source_description : ''))
+                return $log->source_name && $log->source_description
+                    ? $log->source_name . ' - ' . $log->source_description
                     : '';
             })
             ->addColumn('lead_name', function ($log) {
-                return $log->prospect_first_name 
-                    ? trim($log->prospect_first_name . ' ' . $log->prospect_last_name)
+                return $log->prospect_first_name && $log->prospect_last_name
+                    ? $log->prospect_first_name . ' ' . $log->prospect_last_name
                     : '';
             })
             ->addColumn('description', function ($log) {
-                return match ((int) $log->type) {
-                    1 => $log->reminder_for ?? '', 
+                // Use pre-fetched note data when possible
+                $type = (int) $log->type;
+                
+                return match ($type) {
+                    1 => $log->note_reminder_for ?? '',
                     2 => 'Lead status updated',
                     3 => 'LHS created',
                     4 => 'MOM report generated',
@@ -91,32 +112,22 @@ class LogsController extends Controller
                 };
             })
             ->addColumn('type', fn($log) => $this->getTypeText($log->type))
-            ->editColumn('created_at', fn($log) => $log->created_at ? \Carbon\Carbon::parse($log->created_at)->format('d-m-Y H:i') : '')
-            
-            // Index-friendly filtering matching column names
+            ->editColumn('created_at', fn($log) => $log->created_at?->format('d-m-Y H:i') ?? '')
             ->filterColumn('employeename', function ($query, $keyword) {
-                $query->where(function($q) use ($keyword) {
-                    $q->where('users.first_name', 'LIKE', "%{$keyword}%")
-                      ->orWhere('users.last_name', 'LIKE', "%{$keyword}%");
-                });
+                $query->whereRaw("CONCAT(users.first_name, ' ', users.last_name) LIKE ?", ["%{$keyword}%"]);
             })
             ->filterColumn('campaign_name', function ($query, $keyword) {
-                $query->where('sources.source_name', 'LIKE', "%{$keyword}%");
+                $query->whereRaw("CONCAT(sources.source_name, ' - ', sources.description) LIKE ?", ["%{$keyword}%"]);
             })
-            
-            // Sorting
             ->orderColumn('employeename', function ($query, $direction) {
-                $query->orderBy('users.first_name', $direction)->orderBy('users.last_name', $direction);
+                $query->orderByRaw("CONCAT(users.first_name, ' ', users.last_name) {$direction}");
             })
             ->orderColumn('campaign_name', function ($query, $direction) {
-                $query->orderBy('sources.source_name', $direction);
+                $query->orderBy('sources.source_name', $direction)->orderBy('sources.description', $direction);
             })
-            
-            // This overrides the internal DataTables total record count with an isolated quick query
-            ->with('recordsTotal', function() use ($employeeids) {
-                return Logs::whereIn('user_id', $employeeids)->count();
+            ->orderColumn('created_at', function ($query, $direction) {
+                $query->orderBy('logs.created_at', $direction);
             })
-            
             ->rawColumns(['description'])
             ->make(true);
     }
