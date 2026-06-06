@@ -1503,34 +1503,66 @@ class SourcesController extends Controller
     // }
     public function meeting_scheduled(Request $request)
     {
-        $employee_ids = User::where(function ($query) {
-            $query->where('user_id', auth()->id())
-                ->whereIn('is_admin', ['1', '3']);
-        })
-            ->orWhereIn('user_id', function ($subquery) {
-                $subquery->select('id')
-                    ->from('users')
-                    ->where('user_id', auth()->id())
-                    ->where('is_admin', '3');
+        if(auth::user()->is_admin == null){
+            $employee_ids = User::where(function ($query) {
+                $query->whereIn('is_admin', ['1', '3']);
             })
-            ->where('is_active', 1)
-            ->pluck('id');
+                ->orWhereIn('user_id', function ($subquery) {
+                    $subquery->select('id')
+                        ->from('users')
+                        ->where('user_id', auth()->id())
+                        ->where('is_admin', '3');
+                })
+                ->where('is_active', 1)
+                ->pluck('id');
+    
+            $comapnyName = Lead::with('source')
+                ->whereNotNull('invitation_date')
+                ->whereIn('asign_to', $employee_ids)
+                ->groupBy('company_name')
+                ->orderBy('company_name', 'asc')
+                ->get();
+    
+            $sourceNames = Source::select('sources.source_name', 'sources.description')
+                ->join('leads', 'leads.source_id', '=', 'sources.id')
+                ->whereNotNull('leads.invitation_date')
+                ->whereIn('leads.asign_to', $employee_ids)
+                ->groupBy('sources.source_name')
+                ->orderBy('sources.source_name')
+                ->get();
+    
+        }else{
 
-        $comapnyName = Lead::with('source')
-            ->whereNotNull('invitation_date')
-            ->whereIn('asign_to', $employee_ids)
-            ->groupBy('company_name')
-            ->orderBy('company_name', 'asc')
-            ->get();
-
-        $sourceNames = Source::select('sources.source_name', 'sources.description')
-            ->join('leads', 'leads.source_id', '=', 'sources.id')
-            ->whereNotNull('leads.invitation_date')
-            ->whereIn('leads.asign_to', $employee_ids)
-            ->groupBy('sources.source_name')
-            ->orderBy('sources.source_name')
-            ->get();
-
+            $employee_ids = User::where(function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->whereIn('is_admin', ['1', '3']);
+            })
+                ->orWhereIn('user_id', function ($subquery) {
+                    $subquery->select('id')
+                        ->from('users')
+                        ->where('user_id', auth()->id())
+                        ->where('is_admin', '3');
+                })
+                ->where('is_active', 1)
+                ->pluck('id');
+    
+            $comapnyName = Lead::with('source')
+                ->whereNotNull('invitation_date')
+                ->whereIn('asign_to', $employee_ids)
+                ->groupBy('company_name')
+                ->orderBy('company_name', 'asc')
+                ->get();
+    
+            $sourceNames = Source::select('sources.source_name', 'sources.description')
+                ->join('leads', 'leads.source_id', '=', 'sources.id')
+                ->whereNotNull('leads.invitation_date')
+                ->whereIn('leads.asign_to', $employee_ids)
+                ->groupBy('sources.source_name')
+                ->orderBy('sources.source_name')
+                ->get();
+    
+        }
+        
         if (request()->ajax()) {
             $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')
                 ->join('sources', 'leads.source_id', '=', 'sources.id')

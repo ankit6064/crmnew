@@ -156,57 +156,54 @@
                 </div>
 
                 <div class="col-md-3">
-                    <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                    <a href="{{ route('meeting_scheduled') }}" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
                                 <h4>Total Meeting Setup</h4>
                                 <div class="card-icon icon6">
-                                    <i class="fa-solid fa-calendar-plus"></i>
+                                    <i class="fas fa-users"></i>
                                 </div>
                             </div>
                             <div class="card-body">
                                 <h2>{{ $totallhscount }}</h2>
-                                <div class="arrow-icon">
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </div>
+                                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
                             </div>
                         </div>
                     </a>
                 </div>
 
                 <div class="col-md-3">
-                    <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Done" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
                                 <h4>Total Meeting Complete</h4>
                                 <div class="card-icon icon7">
-                                    <i class="fa-solid fa-circle-check"></i>
+                                    <i class="fas fa-clipboard-check"></i>
                                 </div>
                             </div>
                             <div class="card-body">
                                 <h2>{{ $totalmomcount }}</h2>
-                                <div class="arrow-icon">
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </div>
+                                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
                             </div>
                         </div>
                     </a>
                 </div>
 
                 <div class="col-md-3">
-                    <a href="#" class="stat-card-link" style="text-decoration:none; color:inherit;">
+                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Failed" class="stat-card-link"
+                        style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
                                 <h4>Total Meeting Dropped</h4>
                                 <div class="card-icon icon8">
-                                    <i class="fa-solid fa-circle-xmark"></i>
+                                    <i class="fas fa-calendar-times"></i>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <h2>20</h2>
-                                <div class="arrow-icon">
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </div>
+                                <h2>{{ $totalfailedcount }}</h2>
+                                <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
                             </div>
                         </div>
                     </a>

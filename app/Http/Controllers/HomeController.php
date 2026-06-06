@@ -33,6 +33,11 @@ class HomeController extends Controller
         $totallhscount = Lead::join('lhs_report', 'leads.id', 'lhs_report.lead_id')->count();
         $totalmomcount = Lead::join('mom_report', 'leads.id', 'mom_report.lead_id')->count();
 
+        
+        $totallhscount = Lead::whereNotNull('invitation_date')->count();
+        $totalmomcount = Lead::where('meeting_status', 'Done')->count();
+        $totalfailedcount = Lead::where('meeting_status', 'Failed')->count();
+
         // Return view with lead counts
         return view('dashboard', [
             'totalLeads' => $totalLeads,
@@ -41,7 +46,8 @@ class HomeController extends Controller
             'totalmanagers' => $totalmanagers,
             'totalcampaigns' => $totalcampaigns,
             'totallhscount' => $totallhscount,
-            'totalmomcount' => $totalmomcount
+            'totalmomcount' => $totalmomcount,
+            'totalfailedcount' => $totalfailedcount
         ]);
     }
 
