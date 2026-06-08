@@ -2,6 +2,105 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Custom styles for daterangepicker to match the premium design exactly */
+        .daterangepicker {
+            font-family: 'Poppins', sans-serif !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+            border-radius: 10px !important;
+            padding: 10px !important;
+            margin-top: 5px !important;
+        }
+
+        .daterangepicker .calendar-table th,
+        .daterangepicker .calendar-table td {
+            font-family: 'Poppins', sans-serif !important;
+            font-size: 13px !important;
+            height: 32px !important;
+            width: 32px !important;
+            line-height: 32px !important;
+            border-radius: 4px !important;
+            color: #475569 !important;
+        }
+
+        .daterangepicker td.off,
+        .daterangepicker td.off.in-range,
+        .daterangepicker td.off.start-date,
+        .daterangepicker td.off.end-date {
+            color: #cbd5e1 !important;
+            background-color: transparent !important;
+        }
+
+        .daterangepicker td.available:hover,
+        .daterangepicker th.available:hover {
+            background-color: #f1f5f9 !important;
+        }
+
+        .daterangepicker td.active,
+        .daterangepicker td.active:hover {
+            background-color: #3b82f6 !important;
+            /* Blue background color from screenshot */
+            color: #ffffff !important;
+            border-radius: 50% !important;
+            /* Circular active day */
+        }
+
+        .daterangepicker td.in-range {
+            background-color: #eff6ff !important;
+            color: #3b82f6 !important;
+        }
+
+        .daterangepicker .drp-buttons {
+            border-top: 1px solid #f1f5f9 !important;
+            padding: 12px 10px 6px 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 15px !important;
+        }
+
+        .daterangepicker .drp-selected {
+            font-size: 13px !important;
+            color: #64748b !important;
+            font-weight: 500 !important;
+            margin-right: auto !important;
+        }
+
+        .daterangepicker .cancelBtn {
+            background: none !important;
+            border: none !important;
+            color: #475569 !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            padding: 0 !important;
+            cursor: pointer !important;
+            box-shadow: none !important;
+        }
+
+        .daterangepicker .cancelBtn:hover {
+            color: #0f172a !important;
+            text-decoration: underline !important;
+        }
+
+        .daterangepicker .applyBtn {
+            background-color: #4b3fb3 !important;
+            /* Dark Purple/Indigo background from screenshot */
+            border: none !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            padding: 8px 18px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .daterangepicker .applyBtn:hover {
+            background-color: #3c3293 !important;
+        }
+    </style>
 @endpush
 
 
@@ -18,22 +117,44 @@
 
                 <!-- Filters -->
                 <!-- <div class="row">
-                                            <div class="add-submanager">
-                                                <input type="search" id="global_filter" name="search" placeholder="search...">
-                                            </div>
+                                                <div class="add-submanager">
+                                                    <input type="search" id="global_filter" name="search" placeholder="search...">
+                                                </div>
 
-                                        </div> -->
+                                            </div> -->
                 <style>
                     .filter-row {
                         display: flex;
                         gap: 15px;
                         flex-wrap: wrap;
+                        align-items: flex-end;
                         margin-bottom: 20px;
                     }
 
-                    .filter-select {
-                        flex: 1 1 45%; /* Two per row approx */
-                        min-width: 250px;
+                    .filter-group {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 5px;
+                        flex: 1 1 15%;
+                        /* Responsive width */
+                        min-width: 150px;
+                    }
+
+                    .filter-group.daterange-group {
+                        flex: 1 1 18%;
+                        min-width: 180px;
+                    }
+
+                    .filter-group label {
+                        font-weight: 600;
+                        font-size: 14px;
+                        color: #333;
+                        margin-bottom: 0px;
+                    }
+
+                    .filter-select,
+                    .filter-input {
+                        width: 100%;
                         height: 45px;
                         border-radius: 8px;
                         border: 1px solid #ddd;
@@ -43,55 +164,110 @@
                         background-color: #fff;
                     }
 
-                    .filter-select:focus {
+                    .filter-select:focus,
+                    .filter-input:focus {
                         border-color: #192e62;
                         outline: none;
                         box-shadow: 0 0 5px rgba(25, 46, 98, 0.2);
                     }
+
+                    .filter-group-btn {
+                        display: flex;
+                        align-items: flex-end;
+                        height: 45px;
+                    }
                 </style>
-                <div class="filter-row">
+
+                <!-- Primary Filters (Matches Screenshot Design) -->
+                <div class="filter-row" style="margin-bottom: 15px;">
+
+                    <!-- Date Range Filter -->
+                    <div class="filter-group daterange-group">
+                        <label for="daterange">Date Range</label>
+                        <input type="text" id="daterange" class="filter-input" placeholder="Select date range" readonly
+                            style="cursor: pointer;">
+                    </div>
 
                     <!-- Campaign Filter -->
-                    <select id="campaign_name" class="filter-select">
-                        <option value="">Campaign</option>
-                        @foreach($sourceNames as $s)
-                            <option value="{{ $s['source_name'] }}">{{ $s['source_name'] }}</option>
-                        @endforeach
-                    </select>
+                    <div class="filter-group">
+                        <label for="campaign_name">Campaign</label>
+                        <select id="campaign_name" class="filter-select">
+                            <option value="">Select Campaign</option>
+                            @foreach($sourceNames as $s)
+                                <option value="{{ $s['source_name'] }}">{{ $s['source_name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- Company Filter -->
-                    <select id="company_s" class="filter-select">
-                        <option value="">Company</option>
-                        @foreach($comapnyName as $c)
-                            <option value="{{ $c['company_name'] }}">{{ $c['company_name'] }}</option>
-                        @endforeach
-                    </select>
+                    <div class="filter-group">
+                        <label for="company_s">Company</label>
+                        <select id="company_s" class="filter-select">
+                            <option value="">Select Company</option>
+                            @foreach($comapnyName as $c)
+                                <option value="{{ $c['company_name'] }}">{{ $c['company_name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- Timezone -->
-                    <select id="company_time" class="filter-select">
-                        <option value="">Time Zone</option>
-                        @foreach($timeZone as $t)
-                            <option value="{{ $t['timezone'] }}">{{ $t['timezone'] }}</option>
-                        @endforeach
-                    </select>
+                    <div class="filter-group">
+                        <label for="company_time">Time Zone</label>
+                        <select id="company_time" class="filter-select">
+                            <option value="">Select Time Zone</option>
+                            @foreach($timeZone as $t)
+                                <option value="{{ $t['timezone'] }}">{{ $t['timezone'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- Closed On -->
-                    <select id="closedon" class="filter-select">
-                        <option value="">Closed On</option>
-                        @foreach($closedon as $d)
-                            <option value="{{ $d['date'] }}">{{ date('d/m/Y', strtotime($d['date'])) }}</option>
-                        @endforeach
-                    </select>
+                    <div class="filter-group">
+                        <label for="closedon">Closed On</label>
+                        <select id="closedon" class="filter-select">
+                            <option value="">Select Date</option>
+                            @foreach($closedon as $d)
+                                <option value="{{ $d['date'] }}">{{ date('d/m/Y', strtotime($d['date'])) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Reset Button -->
+                    <div class="filter-group-btn">
+                        <button id="reset_filters" class="btn btn-success"
+                            style="background-color: #2ecc71; color: white; border: none; padding: 0 25px; border-radius: 8px; font-weight: 500; font-family: 'Poppins', sans-serif; height: 45px;">
+                            Reset
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Secondary Filters and Export CSV -->
+                <div class="filter-row" style="margin-top: -5px; margin-bottom: 25px;">
 
                     <!-- Invitation Date Filter -->
-                    <input type="date" id="filter_invitation_date" class="filter-select" placeholder="Invitation Date">
+                    <div class="filter-group" style="max-width: 220px;">
+                        <label for="filter_invitation_date">Invitation Date</label>
+                        <input type="date" id="filter_invitation_date" class="filter-input" placeholder="Invitation Date">
+                    </div>
 
                     <!-- Confirmation Status Filter -->
-                    <select id="filter_confirmation_status" class="filter-select">
-                        <option value="">Confirmation Status</option>
-                        <option value="sent">Confirmation Sent</option>
-                        <option value="waiting">Waiting for Confirmation</option>
-                    </select>
+                    <div class="filter-group" style="max-width: 220px;">
+                        <label for="filter_confirmation_status">Confirmation Status</label>
+                        <select id="filter_confirmation_status" class="filter-select">
+                            <option value="">Select Status</option>
+                            <option value="sent">Confirmation Sent</option>
+                            <option value="waiting">Waiting for Confirmation</option>
+                        </select>
+                    </div>
+
+                    <!-- Export CSV Button -->
+                    <div class="filter-group-btn">
+                        <button id="export_csv" class="btn btn-primary"
+                            style="background-color: #192e62; color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 500; font-family: 'Poppins', sans-serif; height: 45px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa fa-file-csv"></i> Export CSV
+                        </button>
+                    </div>
 
                 </div>
 
@@ -350,6 +526,10 @@
 
 
 @push('scripts')
+    <!-- Moment.js and DateRangePicker CSS/JS -->
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
@@ -376,6 +556,16 @@
                         d.closedon = $('#closedon').val();
                         d.invitation_date = $('#filter_invitation_date').val();
                         d.confirmation_status = $('#filter_confirmation_status').val();
+
+                        // Parse date range
+                        var drp = $('#daterange').data('daterangepicker');
+                        if (drp && $('#daterange').val() !== '') {
+                            d.date_from = drp.startDate.format('YYYY-MM-DD');
+                            d.date_to = drp.endDate.format('YYYY-MM-DD');
+                        } else {
+                            d.date_from = '';
+                            d.date_to = '';
+                        }
                     }
                 },
                 columns: [
@@ -406,6 +596,27 @@
                 }
             });
 
+            // Initialize DateRangePicker
+            $('#daterange').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: 'DD/MM/YYYY'
+                }
+            });
+
+            $('#daterange').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+                $('#spinner-overlay').show();
+                table.ajax.reload();
+            });
+
+            $('#daterange').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).val('');
+                $('#spinner-overlay').show();
+                table.ajax.reload();
+            });
+
             // 🔥 SHOW loader before every AJAX request
             table.on('preXhr.dt', function () {
                 $('#spinner-overlay').show();
@@ -427,6 +638,60 @@
                     $('#spinner-overlay').show();
                     table.ajax.reload();
                 });
+
+            // Reset filters click handler
+            $('#reset_filters').on('click', function () {
+                $('#campaign_name').val('');
+                $('#company_s').val('');
+                $('#company_time').val('');
+                $('#closedon').val('');
+                $('#filter_invitation_date').val('');
+                $('#filter_confirmation_status').val('');
+                $('#daterange').val('');
+
+                var drp = $('#daterange').data('daterangepicker');
+                if (drp) {
+                    drp.setStartDate(moment());
+                    drp.setEndDate(moment());
+                }
+
+                $('#spinner-overlay').show();
+                table.search('').draw();
+                table.ajax.reload();
+            });
+
+            // Export CSV handler
+            $('#export_csv').on('click', function () {
+                var campaign_name = $('#campaign_name').val() || '';
+                var cName = $('#company_s').val() || '';
+                var timeZone = $('#company_time').val() || '';
+                var closedon = $('#closedon').val() || '';
+                var invitation_date = $('#filter_invitation_date').val() || '';
+                var confirmation_status = $('#filter_confirmation_status').val() || '';
+
+                var date_from = '';
+                var date_to = '';
+                var drp = $('#daterange').data('daterangepicker');
+                if (drp && $('#daterange').val() !== '') {
+                    date_from = drp.startDate.format('YYYY-MM-DD');
+                    date_to = drp.endDate.format('YYYY-MM-DD');
+                }
+
+                var search = table.search() || '';
+
+                var exportUrl = "{{ route('employeeclosedleads.export_csv') }}" +
+                    "?campaign_name=" + encodeURIComponent(campaign_name) +
+                    "&cName=" + encodeURIComponent(cName) +
+                    "&timeZone=" + encodeURIComponent(timeZone) +
+                    "&closedon=" + encodeURIComponent(closedon) +
+                    "&invitation_date=" + encodeURIComponent(invitation_date) +
+                    "&confirmation_status=" + encodeURIComponent(confirmation_status) +
+                    "&date_from=" + encodeURIComponent(date_from) +
+                    "&date_to=" + encodeURIComponent(date_to) +
+                    "&search=" + encodeURIComponent(search);
+
+                window.location.href = exportUrl;
+            });
 
         });
 

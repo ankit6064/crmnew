@@ -1004,7 +1004,7 @@ class SourcesController extends Controller
             ->where('is_active', 1)
             ->pluck('id');
 
-        $comapnyName = Lead::with('source')
+        $comapnyName = Lead::select('company_name')
             ->where('status', 3)
             ->whereIn('asign_to', $employee_ids)
             ->groupBy('company_name')
@@ -1019,10 +1019,10 @@ class SourcesController extends Controller
             ->orderBy('sources.source_name')
             ->get();
 
-        $timeZone = Lead::with('source')->where(['status' => 3])
+        $timeZone = Lead::select('timezone')->where(['status' => 3])
             ->whereIn('asign_to', $employee_ids)
-            ->orderBy('timezone', 'asc')
             ->groupBy('timezone')
+            ->orderBy('timezone', 'asc')
             ->get();
 
         $closedon = Lead::join('lhs_report', 'lhs_report.lead_id', 'leads.id')->where(['leads.status' => 3])
@@ -1034,7 +1034,7 @@ class SourcesController extends Controller
             ->toArray();
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
-            $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
+            $query = Lead::with(['user', 'lhsreport'])->select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
                 ->where('status', 3)->whereIn('asign_to', $employee_ids);
             if (!empty(request('cName'))) {
                 $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
@@ -1070,6 +1070,16 @@ class SourcesController extends Controller
                 } elseif (request('confirmation_status') == 'waiting') {
                     $query->whereNull('invitation_date');
                 }
+            }
+
+            if (!empty(request('date_from')) && !empty(request('date_to'))) {
+                $query->where(function($q) {
+                    $q->whereBetween('leads.closed_on', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59'])
+                      ->orWhere(function($sub) {
+                          $sub->whereNull('leads.closed_on')
+                              ->whereBetween('leads.updated_at', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59']);
+                      });
+                });
             }
             $columnIndex = $request->input('order.0.column'); // this will be 10
             $direction = $request->input('order.0.dir');      // this will be 'desc'
@@ -1108,12 +1118,20 @@ class SourcesController extends Controller
             }
 
 
+            $userPermissions = null;
+            if (Auth::user()->is_admin == SUBMANAGER) {
+                $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
+                if ($permissions) {
+                    $userPermissions = json_decode($permissions->user_permissions);
+                }
+            }
+
             return datatables()->of($query)
                 ->addColumn('updated_at_new', function ($row) {
                     // if (!empty($row->closed_on)) {
                     //     return date('d/m/Y', strtotime($row->closed_on));
                     // } 
-                    $checklhs = LhsReport::where('lead_id', $row->id)->value('created_at');
+                    $checklhs = $row->lhsreport ? $row->lhsreport->created_at : null;
 
                     if ($checklhs) {
                         return \Carbon\Carbon::parse($checklhs)->format('d/m/Y');
@@ -1174,20 +1192,12 @@ class SourcesController extends Controller
 
                     // ✏ Edit permission
                     if (Auth::user()->is_admin == SUBMANAGER) {
-
-                        $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
-
-                        if ($permissions) {
-                            $userPermissions = json_decode($permissions->user_permissions);
-
-                            if (!empty($userPermissions->lead->edit) && $userPermissions->lead->edit == 1) {
-                                $notesButton .= '
-                                    <a href="' . url('editlead', $row->id) . '" class="notes_id">
-                                        <i class="fas fa-edit label-new" data-tippy-content="Edit Lead"></i>
-                                    </a>';
-                            }
+                        if ($userPermissions && !empty($userPermissions->lead->edit) && $userPermissions->lead->edit == 1) {
+                            $notesButton .= '
+                                <a href="' . url('editlead', $row->id) . '" class="notes_id">
+                                    <i class="fas fa-edit label-new" data-tippy-content="Edit Lead"></i>
+                                </a>';
                         }
-
                     } else {
                         $notesButton .= '
                             <a href="' . url('editlead', $row->id) . '" class="notes_id">
@@ -1197,23 +1207,15 @@ class SourcesController extends Controller
 
                     // 🗑 Delete permission
                     if (Auth::user()->is_admin == SUBMANAGER) {
-
-                        $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
-
-                        if ($permissions) {
-                            $userPermissions = json_decode($permissions->user_permissions);
-
-                            if (!empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) {
-                                $notesButton .= '
-                                    <a href="#"
-                                       class="notes_id"
-                                       onclick="deleteLead(' . $row->id . ')">
-                                        <i class="fa fa-trash label-new" style="color:red;font-size:15px"
-                                           data-tippy-content="Delete Lead"></i>
-                                    </a>';
-                            }
+                        if ($userPermissions && !empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) {
+                            $notesButton .= '
+                                <a href="#"
+                                   class="notes_id"
+                                   onclick="deleteLead(' . $row->id . ')">
+                                    <i class="fa fa-trash label-new" style="color:red;font-size:15px"
+                                       data-tippy-content="Delete Lead"></i>
+                                </a>';
                         }
-
                     } else {
                         $notesButton .= '
                             <a href="#"
@@ -1257,8 +1259,8 @@ class SourcesController extends Controller
                     }
                 })
                 ->addColumn('closed_by', function ($row) {
-                    $employeedetails = User::where('id', $row->asign_to)->first();
-                    return $employeedetails->first_name . ' ' . $employeedetails->last_name;
+                    $employeedetails = $row->user;
+                    return $employeedetails ? ($employeedetails->first_name . ' ' . $employeedetails->last_name) : 'N/A';
                 })
                 ->addColumn('confirmation_status', function ($row) {
                     if (!empty($row->invitation_date)) {
@@ -1625,7 +1627,13 @@ class SourcesController extends Controller
                 })
                 ->editColumn('meeting_status', function ($row) {
                     if (empty($row->meeting_status) || $row->meeting_status == 'Pending') {
+                        if(auth::user()->is_admin == null){
+                            return '<span class="badge bg-light text-dark">N/A</span>';
+                        }else{
+
+                        
                         return '<button class="btn btn-sm btn-primary" onclick="updateMeeting(' . $row->id . ')">Update Meeting</button>';
+                        }
                     }
                     if ($row->meeting_status == 'Done')
                         return '<span class="badge bg-success">Meeting Happened</span>';
@@ -1709,7 +1717,7 @@ class SourcesController extends Controller
             })
             ->where('is_active', 1)
             ->pluck('id');
-        $comapnyName = Lead::with('source')
+        $comapnyName = Lead::select('company_name')
             ->where('status', 3)
             ->whereIn('asign_to', $employee_ids)
             ->groupBy('company_name')
@@ -1724,10 +1732,10 @@ class SourcesController extends Controller
             ->orderBy('sources.source_name')
             ->get();
 
-        $timeZone = Lead::with('source')->where(['status' => 5])
+        $timeZone = Lead::select('timezone')->where(['status' => 5])
             ->whereIn('asign_to', $employee_ids)
-            ->orderBy('timezone', 'asc')
             ->groupBy('timezone')
+            ->orderBy('timezone', 'asc')
             ->get();
 
         $closedon = Lead::where(['status' => 5])
@@ -1739,7 +1747,7 @@ class SourcesController extends Controller
             ->toArray();
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
-            $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
+            $query = Lead::with('user')->select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
                 ->where('status', 5)->whereIn('asign_to', $employee_ids);
             if (!empty(request('cName'))) {
                 $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
@@ -1759,6 +1767,16 @@ class SourcesController extends Controller
                 // Ensure 'closedon' is in a valid format (Y-m-d) and match only the date part of updated_at
                 $query->whereRaw('DATE(leads.updated_at) = ?', [request('closedon')]);
 
+            }
+
+            if (!empty(request('date_from')) && !empty(request('date_to'))) {
+                $query->where(function ($q) {
+                    $q->whereBetween('leads.closed_on', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59'])
+                      ->orWhere(function($sub) {
+                          $sub->whereNull('leads.closed_on')
+                              ->whereBetween('leads.updated_at', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59']);
+                      });
+                });
             }
             // $columnIndex = $request->input('order.0.column'); // this will be 10
             // $direction = $request->input('order.0.dir');      // this will be 'desc'
@@ -1798,6 +1816,14 @@ class SourcesController extends Controller
 
 
 
+            $userPermissions = null;
+            if (Auth::user()->is_admin == SUBMANAGER) {
+                $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
+                if ($permissions) {
+                    $userPermissions = json_decode($permissions->user_permissions);
+                }
+            }
+
             return datatables()->of($query)
                 ->addColumn('updated_at_new', function ($row) {
                     if (!empty($row->closed_on)) {
@@ -1807,7 +1833,7 @@ class SourcesController extends Controller
 
                     }
                 })
-                ->addColumn('action', function ($row) {
+                ->addColumn('action', function ($row) use ($userPermissions) {
 
                     $notesButton = '';
 
@@ -1833,20 +1859,12 @@ class SourcesController extends Controller
 
                     // ✏ Edit permission
                     if (Auth::user()->is_admin == SUBMANAGER) {
-
-                        $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
-
-                        if ($permissions) {
-                            $userPermissions = json_decode($permissions->user_permissions);
-
-                            if (!empty($userPermissions->lead->edit) && $userPermissions->lead->edit == 1) {
-                                $notesButton .= '
-                                    <a href="' . url('editlead', $row->id) . '" class="notes_id">
-                                        <i class="fas fa-edit label-new" data-tippy-content="Edit Lead"></i>
-                                    </a>';
-                            }
+                        if ($userPermissions && !empty($userPermissions->lead->edit) && $userPermissions->lead->edit == 1) {
+                            $notesButton .= '
+                                <a href="' . url('editlead', $row->id) . '" class="notes_id">
+                                    <i class="fas fa-edit label-new" data-tippy-content="Edit Lead"></i>
+                                </a>';
                         }
-
                     } else {
                         $notesButton .= '
                             <a href="' . url('editlead', $row->id) . '" class="notes_id">
@@ -1856,23 +1874,15 @@ class SourcesController extends Controller
 
                     // 🗑 Delete permission
                     if (Auth::user()->is_admin == SUBMANAGER) {
-
-                        $permissions = SubmanagerPermissions::where('user_id', Auth::id())->first();
-
-                        if ($permissions) {
-                            $userPermissions = json_decode($permissions->user_permissions);
-
-                            if (!empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) {
-                                $notesButton .= '
-                                <a href="#"
-                                class="notes_id"
-                                onclick="deleteLead(' . $row->id . ')">
-                                <i class="fa fa-trash label-new" style="color:red;font-size:15px"
-                                    data-tippy-content="Delete Lead"></i>
-                             </a>';
-                            }
+                        if ($userPermissions && !empty($userPermissions->lead->delete) && $userPermissions->lead->delete == 1) {
+                            $notesButton .= '
+                            <a href="#"
+                            class="notes_id"
+                            onclick="deleteLead(' . $row->id . ')">
+                            <i class="fa fa-trash label-new" style="color:red;font-size:15px"
+                                data-tippy-content="Delete Lead"></i>
+                         </a>';
                         }
-
                     } else {
                         $notesButton .= '
                         <a href="#"
@@ -1917,8 +1927,8 @@ class SourcesController extends Controller
                     }
                 })
                 ->addColumn('completed_by', function ($row) {
-                    $employeedetails = User::where('id', $row->asign_to)->first();
-                    return $employeedetails->first_name . ' ' . $employeedetails->last_name;
+                    $employeedetails = $row->user;
+                    return $employeedetails ? ($employeedetails->first_name . ' ' . $employeedetails->last_name) : 'N/A';
                 })
                 ->rawColumns(['action', 'prospect_first_name_new']) // To render HTML in the actions column
                 ->make(true);
@@ -2310,4 +2320,281 @@ class SourcesController extends Controller
         }
     }
 
+    public function exportClosedLeadsCsv(Request $request)
+    {
+        $employee_ids = User::where(function ($query) {
+            $query->where('user_id', auth()->id())
+                ->whereIn('is_admin', ['1', '3']);
+        })
+            ->orWhereIn('user_id', function ($subquery) {
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', auth()->id())
+                    ->where('is_admin', '3');
+            })
+            ->where('is_active', 1)
+            ->pluck('id');
+
+        $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')
+            ->join('sources', 'leads.source_id', '=', 'sources.id')
+            ->where('status', 3)
+            ->whereIn('asign_to', $employee_ids);
+
+        if (!empty($request->get('cName'))) {
+            $query->where('company_name', 'LIKE', '%' . $request->get('cName') . '%');
+        }
+
+        if (!empty($request->get('timeZone'))) {
+            $query->where('timezone', 'LIKE', '%' . $request->get('timeZone') . '%');
+        }
+
+        if (!empty($request->get('campaign_name'))) {
+            $query->whereHas('source', function ($q) use ($request) {
+                $q->where('source_name', 'LIKE', '%' . $request->get('campaign_name') . '%');
+            });
+        }
+
+        if (!empty($request->get('closedon'))) {
+            $query->join('lhs_report', 'lhs_report.lead_id', '=', 'leads.id')
+                ->whereDate('lhs_report.created_at', $request->get('closedon'))
+                ->groupBy('leads.id');
+        }
+
+        if (!empty($request->get('invitation_date'))) {
+            $query->whereDate('invitation_date', $request->get('invitation_date'));
+        }
+
+        if (!empty($request->get('confirmation_status'))) {
+            if ($request->get('confirmation_status') == 'sent') {
+                $query->whereNotNull('invitation_date');
+            } elseif ($request->get('confirmation_status') == 'waiting') {
+                $query->whereNull('invitation_date');
+            }
+        }
+
+        if (!empty($request->get('date_from')) && !empty($request->get('date_to'))) {
+            $query->where(function($q) use ($request) {
+                $q->whereBetween('leads.closed_on', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59'])
+                  ->orWhere(function($sub) use ($request) {
+                      $sub->whereNull('leads.closed_on')
+                          ->whereBetween('leads.updated_at', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59']);
+                  });
+            });
+        }
+
+        if (!empty($request->get('search'))) {
+            $search = trim($request->get('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('company_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('prospect_first_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('prospect_last_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere(DB::raw('CONCAT(prospect_first_name, " ", prospect_last_name)'), 'LIKE', '%' . $search . '%')
+                    ->orWhere('timezone', 'LIKE', '%' . $search . '%')
+                    ->orWhere('designation', 'LIKE', '%' . $search . '%')
+                    ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%')
+                    ->orWhere('sources.description', 'LIKE', '%' . $search . '%')
+                    ->orWhere('sources.source_name', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        $leads = $query->get();
+
+        $filename = 'Closed_Leads_' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($leads) {
+            $file = fopen('php://output', 'w');
+            
+            // Add BOM for Excel UTF-8 compatibility
+            fputs($file, "\xEF\xBB\xBF");
+
+            // Header row
+            fputcsv($file, [
+                'Campaign Name',
+                'Sub Campaign Name',
+                'Company Name',
+                'Closed By',
+                'Prospect Name',
+                'Time Zone',
+                'Designation',
+                'Status',
+                'Email Id',
+                'Phone Number',
+                'Closed On',
+                'Invitation Date',
+                'Confirmation Status',
+                'Reminder Status'
+            ]);
+
+            foreach ($leads as $lead) {
+                // Determine Closed On Date
+                $checklhs = LhsReport::where('lead_id', $lead->id)->value('created_at');
+                $closedOnDate = $checklhs ? \Carbon\Carbon::parse($checklhs)->format('d/m/Y') : date('d/m/Y', strtotime($lead->updated_at));
+
+                // Closed By User Name
+                $closedByUser = User::find($lead->asign_to);
+                $closedByName = $closedByUser ? ($closedByUser->first_name . ' ' . $closedByUser->last_name) : 'N/A';
+
+                // Confirmation Status
+                $confStatus = $lead->invitation_date ? 'Confirmation Sent' : 'Waiting for Confirmation';
+
+                // Reminder Status
+                $reminderStatus = $lead->reminder_status == 1 ? 'Sent' : 'Pending';
+
+                fputcsv($file, [
+                    $lead->source_name,
+                    $lead->description,
+                    $lead->company_name,
+                    $closedByName,
+                    $lead->prospect_first_name . ' ' . $lead->prospect_last_name,
+                    $lead->timezone,
+                    $lead->designation,
+                    'Closed',
+                    $lead->prospect_email,
+                    $lead->contact_number_1,
+                    $closedOnDate,
+                    $lead->invitation_date ? date('d/m/Y h:i A', strtotime($lead->invitation_date)) : 'N/A',
+                    $confStatus,
+                    $reminderStatus
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportCompletedLeadsCsv(Request $request)
+    {
+        $employee_ids = User::where(function ($query) {
+            $query->where('user_id', auth()->id())
+                ->whereIn('is_admin', ['1', '3']);
+        })
+            ->orWhereIn('user_id', function ($subquery) {
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', auth()->id())
+                    ->where('is_admin', '3');
+            })
+            ->where('is_active', 1)
+            ->pluck('id');
+
+        $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')
+            ->join('sources', 'leads.source_id', '=', 'sources.id')
+            ->where('status', 5)
+            ->whereIn('asign_to', $employee_ids);
+
+        if (!empty($request->get('cName'))) {
+            $query->where('company_name', 'LIKE', '%' . $request->get('cName') . '%');
+        }
+
+        if (!empty($request->get('timeZone'))) {
+            $query->where('timezone', 'LIKE', '%' . $request->get('timeZone') . '%');
+        }
+
+        if (!empty($request->get('campaign_name'))) {
+            $query->whereHas('source', function ($q) use ($request) {
+                $q->where('source_name', 'LIKE', '%' . $request->get('campaign_name') . '%');
+            });
+        }
+
+        if (!empty($request->get('closedon'))) {
+            $query->whereRaw('DATE(leads.updated_at) = ?', [$request->get('closedon')]);
+        }
+
+        if (!empty($request->get('date_from')) && !empty($request->get('date_to'))) {
+            $query->where(function($q) use ($request) {
+                $q->whereBetween('leads.closed_on', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59'])
+                  ->orWhere(function($sub) use ($request) {
+                      $sub->whereNull('leads.closed_on')
+                          ->whereBetween('leads.updated_at', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59']);
+                  });
+            });
+        }
+
+        if (!empty($request->get('search'))) {
+            $search = trim($request->get('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('company_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('prospect_first_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('prospect_last_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere(DB::raw('CONCAT(prospect_first_name, " ", prospect_last_name)'), 'LIKE', '%' . $search . '%')
+                    ->orWhere('timezone', 'LIKE', '%' . $search . '%')
+                    ->orWhere('designation', 'LIKE', '%' . $search . '%')
+                    ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%')
+                    ->orWhere('sources.description', 'LIKE', '%' . $search . '%')
+                    ->orWhere('sources.source_name', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        $leads = $query->get();
+
+        $filename = 'Completed_Leads_' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($leads) {
+            $file = fopen('php://output', 'w');
+            
+            // Add BOM for Excel UTF-8 compatibility
+            fputs($file, "\xEF\xBB\xBF");
+
+            // Header row
+            fputcsv($file, [
+                'Campaign Name',
+                'Sub Campaign Name',
+                'Company Name',
+                'Completed By',
+                'Prospect Name',
+                'Time Zone',
+                'Designation',
+                'Status',
+                'Email Id',
+                'Phone Number',
+                'Completed On'
+            ]);
+
+            foreach ($leads as $lead) {
+                // Completed On Date
+                $completedOnDate = !empty($lead->closed_on) ? date('d/m/Y', strtotime($lead->closed_on)) : date('d/m/Y', strtotime($lead->updated_at));
+
+                // Completed By User Name
+                $completedByUser = User::find($lead->asign_to);
+                $completedByName = $completedByUser ? ($completedByUser->first_name . ' ' . $completedByUser->last_name) : 'N/A';
+
+                fputcsv($file, [
+                    $lead->source_name,
+                    $lead->description,
+                    $lead->company_name,
+                    $completedByName,
+                    $lead->prospect_first_name . ' ' . $lead->prospect_last_name,
+                    $lead->timezone,
+                    $lead->designation,
+                    'Completed',
+                    $lead->prospect_email,
+                    $lead->contact_number_1,
+                    $completedOnDate
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
+

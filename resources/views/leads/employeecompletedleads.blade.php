@@ -1,5 +1,105 @@
 @extends('layouts.admin')
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+@push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Custom styles for daterangepicker to match the premium design exactly */
+        .daterangepicker {
+            font-family: 'Poppins', sans-serif !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+            border-radius: 10px !important;
+            padding: 10px !important;
+            margin-top: 5px !important;
+        }
+
+        .daterangepicker .calendar-table th, 
+        .daterangepicker .calendar-table td {
+            font-family: 'Poppins', sans-serif !important;
+            font-size: 13px !important;
+            height: 32px !important;
+            width: 32px !important;
+            line-height: 32px !important;
+            border-radius: 4px !important;
+            color: #475569 !important;
+        }
+
+        .daterangepicker td.off, 
+        .daterangepicker td.off.in-range, 
+        .daterangepicker td.off.start-date, 
+        .daterangepicker td.off.end-date {
+            color: #cbd5e1 !important;
+            background-color: transparent !important;
+        }
+
+        .daterangepicker td.available:hover, 
+        .daterangepicker th.available:hover {
+            background-color: #f1f5f9 !important;
+        }
+
+        .daterangepicker td.active, 
+        .daterangepicker td.active:hover {
+            background-color: #3b82f6 !important; /* Blue background color from screenshot */
+            color: #ffffff !important;
+            border-radius: 50% !important; /* Circular active day */
+        }
+
+        .daterangepicker td.in-range {
+            background-color: #eff6ff !important;
+            color: #3b82f6 !important;
+        }
+
+        .daterangepicker .drp-buttons {
+            border-top: 1px solid #f1f5f9 !important;
+            padding: 12px 10px 6px 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 15px !important;
+        }
+
+        .daterangepicker .drp-selected {
+            font-size: 13px !important;
+            color: #64748b !important;
+            font-weight: 500 !important;
+            margin-right: auto !important;
+        }
+
+        .daterangepicker .cancelBtn {
+            background: none !important;
+            border: none !important;
+            color: #475569 !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            padding: 0 !important;
+            cursor: pointer !important;
+            box-shadow: none !important;
+        }
+
+        .daterangepicker .cancelBtn:hover {
+            color: #0f172a !important;
+            text-decoration: underline !important;
+        }
+
+        .daterangepicker .applyBtn {
+            background-color: #4b3fb3 !important; /* Dark Purple/Indigo background from screenshot */
+            border: none !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            padding: 8px 18px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .daterangepicker .applyBtn:hover {
+            background-color: #3c3293 !important;
+        }
+    </style>
+@endpush
+
 @section('content')
 
     <input type="hidden" id="source_id" value="{{ $id }}">
@@ -18,46 +118,164 @@
                     </div>
 
                 </div> -->
-                <div class="filter-row" style="
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-wrap: wrap;
-    ">
+                <style>
+                    .filter-row {
+                        display: flex;
+                        gap: 10px;
+                        flex-wrap: wrap;
+                        align-items: flex-end;
+                        margin-bottom: 25px;
+                    }
+
+                    .filter-group {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 5px;
+                        flex: 1 1 120px; /* Responsive width */
+                        max-width: 170px;
+                    }
+                    
+                    .filter-group.daterange-group {
+                        flex: 1.4 1 160px;
+                        max-width: 210px;
+                    }
+
+                    .filter-group label {
+                        font-weight: 600;
+                        font-size: 13px;
+                        color: #475569;
+                        margin-bottom: 0px;
+                    }
+
+                    .filter-select, .filter-input {
+                        width: 100%;
+                        height: 40px;
+                        border-radius: 6px;
+                        border: 1px solid #ced4da;
+                        padding: 0 12px;
+                        font-size: 13px;
+                        color: #333;
+                        background-color: #fff;
+                        box-sizing: border-box;
+                    }
+
+                    .filter-select:focus, .filter-input:focus {
+                        border-color: #4b3fb3;
+                        outline: none;
+                        box-shadow: 0 0 0 3px rgba(75, 63, 179, 0.15);
+                    }
+
+                    .filter-group-btn {
+                        display: flex;
+                        align-items: flex-end;
+                        height: 40px;
+                    }
+
+                    .btn-reset {
+                        background-color: #2ecc71;
+                        color: white;
+                        border: none;
+                        padding: 0 20px;
+                        border-radius: 6px;
+                        font-weight: 500;
+                        font-family: 'Poppins', sans-serif;
+                        height: 40px;
+                        font-size: 13px;
+                        cursor: pointer;
+                        transition: background-color 0.2s;
+                    }
+
+                    .btn-reset:hover {
+                        background-color: #27ae60;
+                    }
+
+                    .btn-export {
+                        background-color: #192e62;
+                        color: white;
+                        border: none;
+                        padding: 0 20px;
+                        border-radius: 6px;
+                        font-weight: 500;
+                        font-family: 'Poppins', sans-serif;
+                        height: 40px;
+                        font-size: 13px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        cursor: pointer;
+                        transition: background-color 0.2s;
+                    }
+
+                    .btn-export:hover {
+                        background-color: #112045;
+                    }
+                </style>
+                <div class="filter-row">
+
+                    <!-- Date Range Filter -->
+                    <div class="filter-group daterange-group">
+                        <label for="daterange">Date Range</label>
+                        <input type="text" id="daterange" class="filter-input" placeholder="Select date range" readonly style="cursor: pointer;">
+                    </div>
 
                     <!-- Campaign Filter -->
-                    <select id="campaign_name" class="filter-select">
-                        <option value="">Campaign</option>
-                        @foreach($sourceNames as $s)
-                            <option value="{{ $s['source_name'] }}">{{ $s['source_name'] }}</option>
-                        @endforeach
-                    </select>
+                    <div class="filter-group">
+                        <label for="campaign_name">Campaign</label>
+                        <select id="campaign_name" class="filter-select">
+                            <option value="">Select Campaign</option>
+                            @foreach($sourceNames as $s)
+                                <option value="{{ $s['source_name'] }}">{{ $s['source_name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- Company Filter -->
-                    <select id="company_s" class="filter-select">
-                        <option value="">Company</option>
-                        @foreach($comapnyName as $c)
-                            <option value="{{ $c['company_name'] }}">{{ $c['company_name'] }}</option>
-                        @endforeach
-                    </select>
+                    <div class="filter-group">
+                        <label for="company_s">Company</label>
+                        <select id="company_s" class="filter-select">
+                            <option value="">Select Company</option>
+                            @foreach($comapnyName as $c)
+                                <option value="{{ $c['company_name'] }}">{{ $c['company_name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- Timezone -->
-                    <select id="company_time" class="filter-select">
-                        <option value="">Time Zone</option>
-                        @foreach($timeZone as $t)
-                            <option value="{{ $t['timezone'] }}">{{ $t['timezone'] }}</option>
-                        @endforeach
-                    </select>
+                    <div class="filter-group">
+                        <label for="company_time">Time Zone</label>
+                        <select id="company_time" class="filter-select">
+                            <option value="">Select Time Zone</option>
+                            @foreach($timeZone as $t)
+                                <option value="{{ $t['timezone'] }}">{{ $t['timezone'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- Closed On -->
-                    <select id="closedon" class="filter-select">
-                        <option value="">Closed On</option>
-                        @foreach($closedon as $d)
-                            <option value="{{ $d['date'] }}">{{ date('d/m/Y', strtotime($d['date'])) }}</option>
-                        @endforeach
-                    </select>
+                    <div class="filter-group">
+                        <label for="closedon">Closed On</label>
+                        <select id="closedon" class="filter-select">
+                            <option value="">Select Date</option>
+                            @foreach($closedon as $d)
+                                <option value="{{ $d['date'] }}">{{ date('d/m/Y', strtotime($d['date'])) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
+                    <!-- Reset Button -->
+                    <div class="filter-group-btn">
+                        <button id="reset_filters" class="btn btn-success btn-reset">
+                            Reset
+                        </button>
+                    </div>
 
+                    <!-- Export CSV Button -->
+                    <div class="filter-group-btn">
+                        <button id="export_csv" class="btn btn-primary btn-export">
+                            <i class="fa fa-file-csv"></i> Export CSV
+                        </button>
+                    </div>
 
                 </div>
 
@@ -236,156 +454,155 @@
         </div>
     </div>
     @push('scripts')
-        <script src="{{url('vendor/moment/moment.js')}}"></script>
+        <!-- Moment.js and DateRangePicker CSS/JS -->
+        <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+        <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-        <script src="{{url('vendor/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js')}}">
-        </script>
+        <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
         <script>
             $(document).ready(function () {
                 $('#spinner-overlay').show(); // Show full-page spinner
 
                 var sourceId = $('#source_id').val();
-                var url = "{{ url(path: 'leads/employeecompletedleads') }}/";
+                var url = "{{ url('leads/employeecompletedleads') }}/";
 
                 var table = $('#employee-table').DataTable({
                     processing: false,
-                serverSide: true,
-                searching: true,
-                ordering: false,
-                searchDelay: 500, // smoother search
-                //     ajax: {
-                //         url: url,
-                //         data: function (d) {
-                //             d.timeZone = $('#company_time :selected').val();
-                //             d.cName = $('#company_s :selected').val();
-                //             d.orderBy = $('#note_time :selected').val();
-                //             d.search = $('#global_filter').val();
-                //             d.campaign_name = $('#campaign_name').val();
-                //             d.status = $('#status').val();
-                //             d.closedon = $('#closedon').val();
-
-                //         },
-                //         error: function (xhr, error, thrown) {
-                //             console.error("AJAX Error:", xhr.responseText);
-                //         }
-                //     },
-                //     columns: [
-                //         { data: 'source_name' },               // Campaign Name
-                //         { data: 'description' },               // Sub Campaign Name
-                //         { data: 'company_name' },              // Company Name
-                //         { data: 'completed_by' },                 // Closed By
-                //         { data: 'prospect_first_name_new' },   // Prospect Name
-                //         { data: 'timezone' },                  // Time Zone
-                //         { data: 'designation' },               // Designation
-                //         { data: 'status' },                    // Status
-                //         { data: 'prospect_email' },            // Email Id
-                //         { data: 'contact_number_1' },          // Phone Number
-                //         { data: 'updated_at_new' },            // Closed On
-                //         { data: 'action', orderable: false, searchable: false }, // Actions
-                //     ],
-                //     rawColumns: ['action'], // Ensure HTML is rendered in the actions column
-                //     drawCallback: function () {
-
-                //         // 🔥 DESTROY OLD TIPPY (prevents duplicate)
-                //         document.querySelectorAll('[data-tippy-content]').forEach(el => {
-                //             if (el._tippy) {
-                //                 el._tippy.destroy();
-                //             }
-                //         });
-
-                //         // 🔥 INIT TIPPY AGAIN
-                //         tippy('[data-tippy-content]', {
-                //             theme: 'light-border',
-                //             placement: 'top',
-                //             arrow: true,
-                //             animation: 'scale'
-                //         });
-                //     },
-                // });
-
-                // // Show spinner overlay on processing start
-                // table.on('preXhr.dt', function (e, settings, data) {
-                //     $('#spinner-overlay').show(); // Show full-page spinner
-                // });
-
-                // // Hide spinner overlay when data is loaded
-                // table.on('xhr.dt', function (e, settings, json, xhr) {
-                //     $('#spinner-overlay').hide(); // Hide full-page spinner
-                // });
-
-                ajax: {
-                    url: url,
-                    data: function (d) {
-                        d.timeZone = $('#company_time :selected').val();
-                            d.cName = $('#company_s :selected').val();
-                            d.orderBy = $('#note_time :selected').val();
+                    serverSide: true,
+                    searching: true,
+                    ordering: false,
+                    searchDelay: 500, // smoother search
+                    ajax: {
+                        url: url,
+                        data: function (d) {
+                            d.timeZone = $('#company_time').val();
+                            d.cName = $('#company_s').val();
                             d.campaign_name = $('#campaign_name').val();
-                            d.status = $('#status').val();
                             d.closedon = $('#closedon').val();
+
+                            // Parse date range
+                            var drp = $('#daterange').data('daterangepicker');
+                            if (drp && $('#daterange').val() !== '') {
+                                d.date_from = drp.startDate.format('YYYY-MM-DD');
+                                d.date_to = drp.endDate.format('YYYY-MM-DD');
+                            } else {
+                                d.date_from = '';
+                                d.date_to = '';
+                            }
+                        }
+                    },
+                    columns: [
+                        { data: 'source_name', name: 'sources.source_name', searchable: false },
+                        { data: 'description', name: 'sources.description' }, // FIX HERE
+                        { data: 'company_name' },
+                        { data: 'completed_by' },
+                        { data: 'prospect_first_name_new', name: 'prospect_first_name' }, // FIX HERE
+                        { data: 'timezone' },
+                        { data: 'designation' },
+                        { data: 'status' },
+                        { data: 'prospect_email' },
+                        { data: 'contact_number_1' },
+                        { data: 'updated_at_new' },
+                        { data: 'action', orderable: false, searchable: false }
+                    ],
+                    initComplete: function () {
+                        $('div.dataTables_filter input')
+                            .attr('placeholder', 'Search by company, prospect, designation')
+                            .css({ 'width': '250px' });
+
+                        $('#spinner-overlay').hide();
                     }
-                },
-                columns: [
-                    { data: 'source_name', name: 'sources.source_name', searchable: false },
-                    { data: 'description', name: 'sources.description' }, // FIX HERE
-                    { data: 'company_name' },
-                    { data: 'completed_by' },
-                    { data: 'prospect_first_name_new', name: 'prospect_first_name' }, // FIX HERE
-                    { data: 'timezone' },
-                    { data: 'designation' },
-                    { data: 'status' },
-                    { data: 'prospect_email' },
-                    { data: 'contact_number_1' },
-                    { data: 'updated_at_new' },
-                    { data: 'action', orderable: false, searchable: false }
-                ],
-                initComplete: function () {
-                    $('div.dataTables_filter input')
-                        .attr('placeholder', 'Search by company, prospect, designation')
-                        .css({ 'width': '250px' });
+                });
 
+                // Initialize DateRangePicker
+                $('#daterange').daterangepicker({
+                    autoUpdateInput: false,
+                    locale: {
+                        cancelLabel: 'Clear',
+                        format: 'DD/MM/YYYY'
+                    }
+                });
+
+                $('#daterange').on('apply.daterangepicker', function (ev, picker) {
+                    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+                    $('#spinner-overlay').show();
+                    table.ajax.reload();
+                });
+
+                $('#daterange').on('cancel.daterangepicker', function (ev, picker) {
+                    $(this).val('');
+                    $('#spinner-overlay').show();
+                    table.ajax.reload();
+                });
+
+                // 🔥 SHOW loader before every AJAX request
+                table.on('preXhr.dt', function () {
+                    $('#spinner-overlay').show();
+                });
+
+                // 🔥 HIDE loader after AJAX response
+                table.on('xhr.dt', function () {
                     $('#spinner-overlay').hide();
-                }
-            });
-
-            // 🔥 SHOW loader before every AJAX request
-            table.on('preXhr.dt', function () {
-                $('#spinner-overlay').show();
-            });
-
-            // 🔥 HIDE loader after AJAX response
-            table.on('xhr.dt', function () {
-                $('#spinner-overlay').hide();
-            });
-
-            // 🔥 EXTRA: Show loader immediately when typing
-            $(document).on('keyup', 'div.dataTables_filter input', function () {
-                $('#spinner-overlay').show();
-            });
-
-                // Ensure filters work by putting event listener inside $(document).ready()
-                $('#company_time').on('change', function () {
-                    console.log('Filter changed! Reloading table...');
-                    table.ajax.reload(); // Reload DataTable with new filter values
                 });
 
-                $('#company_s').on('change', function () {
-                    console.log('Filter changed! Reloading table...');
-                    table.ajax.reload(); // Reload DataTable with new filter values
+                // 🔥 EXTRA: Show loader immediately when typing
+                $(document).on('keyup', 'div.dataTables_filter input', function () {
+                    $('#spinner-overlay').show();
                 });
 
-                $('#campaign_name').on('change', function () {
-                    console.log('Filter changed! Reloading table...');
-                    table.ajax.reload(); // Reload DataTable with new filter values
+                // Ensure filters work
+                $('#company_time, #company_s, #campaign_name, #closedon').on('change keyup', function () {
+                    $('#spinner-overlay').show();
+                    table.ajax.reload();
                 });
 
-                $('#closedon').on('change', function () {
-                    console.log('Filter changed! Reloading table...');
-                    table.ajax.reload(); // Reload DataTable with new filter values
+                // Reset filters click handler
+                $('#reset_filters').on('click', function () {
+                    $('#campaign_name').val('');
+                    $('#company_s').val('');
+                    $('#company_time').val('');
+                    $('#closedon').val('');
+                    $('#daterange').val('');
+                    
+                    var drp = $('#daterange').data('daterangepicker');
+                    if (drp) {
+                        drp.setStartDate(moment());
+                        drp.setEndDate(moment());
+                    }
+                    
+                    $('#spinner-overlay').show();
+                    table.search('').draw();
+                    table.ajax.reload();
                 });
 
-                $('#global_filter').on('keyup', function () {
+                // Export CSV handler
+                $('#export_csv').on('click', function () {
+                    var campaign_name = $('#campaign_name').val() || '';
+                    var cName = $('#company_s').val() || '';
+                    var timeZone = $('#company_time').val() || '';
+                    var closedon = $('#closedon').val() || '';
+                    
+                    var date_from = '';
+                    var date_to = '';
+                    var drp = $('#daterange').data('daterangepicker');
+                    if (drp && $('#daterange').val() !== '') {
+                        date_from = drp.startDate.format('YYYY-MM-DD');
+                        date_to = drp.endDate.format('YYYY-MM-DD');
+                    }
+                    
+                    var search = table.search() || '';
 
-                    table.ajax.reload(); // Reload DataTable with new filter values
+                    var exportUrl = "{{ route('employeecompletedleads.export_csv') }}" + 
+                        "?campaign_name=" + encodeURIComponent(campaign_name) + 
+                        "&cName=" + encodeURIComponent(cName) + 
+                        "&timeZone=" + encodeURIComponent(timeZone) + 
+                        "&closedon=" + encodeURIComponent(closedon) + 
+                        "&date_from=" + encodeURIComponent(date_from) + 
+                        "&date_to=" + encodeURIComponent(date_to) + 
+                        "&search=" + encodeURIComponent(search);
+
+                    window.location.href = exportUrl;
                 });
             });
 

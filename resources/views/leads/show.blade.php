@@ -263,7 +263,7 @@
 
                     @if(count($record['notes'] ?? []) > 0)
                         <div class="table-container" id="table_data">
-                            <table id="employee-table">
+                            <table id="employee-table" class="table table-striped table-hover">
                                 <thead class="thead-main">
                                     <tr>
                                         <th>Note</th>
@@ -278,7 +278,14 @@
                                     @foreach (($record['notes'] ?? []) as $note)
                                                             <tr>
                                                                 <td width="300">
-                                                                    <p class="notes_comment">{{ $note['feedback'] }}</p>
+                                                                    <p class="notes_comment">
+                                                                        @if(strlen($note['feedback'] ?? '') > 50)
+                                                                            {{ \Illuminate\Support\Str::limit($note['feedback'], 50) }}
+                                                                            <a href="javascript:void(0);" class="show-more-note" data-note="{{ $note['feedback'] }}" style="color: #007bff; font-weight: 600; cursor: pointer; text-decoration: underline; display: inline-block; margin-left: 5px; padding: 0;">Show More</a>
+                                                                        @else
+                                                                            {{ $note['feedback'] ?? '' }}
+                                                                        @endif
+                                                                    </p>
                                                                 </td>
                                                                 <td>
                                                                     <?php
@@ -311,7 +318,14 @@
 
 <tr>
     <td width="300" style="{{ $tdStyle }}">
-        <p class="notes_comment">{{ $note['feedback'] }}</p>
+        <p class="notes_comment">
+            @if(strlen($note['feedback'] ?? '') > 100)
+                {{ \Illuminate\Support\Str::limit($note['feedback'], 100) }}
+                <a href="javascript:void(0);" class="show-more-note" data-note="{{ $note['feedback'] }}" style="color: #007bff; font-weight: 600; cursor: pointer; text-decoration: underline; display: inline-block; margin-left: 5px; padding: 0;">Show More</a>
+            @else
+                {{ $note['feedback'] ?? '' }}
+            @endif
+        </p>
     </td>
 
     <td style="{{ $tdStyle }}">
@@ -352,6 +366,24 @@
                     <button type="button" class="btn btn-cancel" onclick="window.history.back()">Back</button>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- View Full Note Modal -->
+    <div id="view-note-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="viewNoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: #0d3a6b; color: white;">
+                    <h4 class="modal-title" style="color: white;">Full Note</h4>
+                    <button type="button" class="close close-view-note-modal" data-dismiss="modal" aria-hidden="true" style="color: white; opacity: 1; border: none; background: transparent; font-size: 24px;">×</button>
+                </div>
+                <div class="modal-body" style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                    <p id="full-note-content" style="white-space: pre-wrap; word-break: break-word; font-family: 'Poppins', sans-serif; font-size: 14px; line-height: 1.6; color: #333; margin: 0;"></p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
+                    <button type="button" class="btn btn-default waves-effect close-view-note-modal" data-dismiss="modal" style="background: #6c757d; color: white; border-radius: 4px; padding: 6px 12px;">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -490,14 +522,20 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
+        <style>
+            #employee-table td:last-child {
+                display: table-cell !important;
+            }
+        </style>
+
         <script>
             $(document).ready(function () {
-                var table = $('.table').DataTable({
+                var table = $('#employee-table').DataTable({
                     "order": [],
                     "pageLength": 10,
                     "columnDefs": [{
                         "type": "date",
-                        "targets": 3
+                        "targets": [1, 4]
                     }]
                 });
 
@@ -505,6 +543,18 @@
                     $("#reminder_for").val('');
                     $('.alert.alert-danger.print-error-msg').hide();
                     $('#status').prop('selectedIndex', 0);
+                });
+
+                // Show more note modal handler
+                $(document).on('click', '.show-more-note', function (e) {
+                    e.preventDefault();
+                    var note = $(this).attr('data-note');
+                    $('#full-note-content').text(note);
+                    $('#view-note-modal').modal('show');
+                });
+
+                $('.close-view-note-modal').on('click', function () {
+                    $('#view-note-modal').modal('hide');
                 });
             });
         </script>
