@@ -65,16 +65,22 @@ class DailyReport
 
         $rowNumber = 2;
         foreach ($leads as $lead) {
-            $sheet->setCellValue('A' . $rowNumber, $lead->source->source_name)
-                ->setCellValue('B' . $rowNumber, $lead->source->description)
+            $sourceName = $lead->source->source_name ?? '';
+            $sourceDesc = $lead->source->description ?? '';
+            $updatedAt = $lead->updated_at ? strtotime($lead->updated_at) : false;
+            $dateStr = $updatedAt ? date('d/m/Y', $updatedAt) : '';
+            $timeStr = $updatedAt ? date('h:i a', $updatedAt) : '';
+
+            $sheet->setCellValue('A' . $rowNumber, $sourceName)
+                ->setCellValue('B' . $rowNumber, $sourceDesc)
                 ->setCellValue('C' . $rowNumber, $lead->company_name)
                 ->setCellValue('D' . $rowNumber, $lead->prospect_first_name . ' ' . $lead->prospect_last_name)
                 ->setCellValue('E' . $rowNumber, $lead->designation)
                 ->setCellValue('F' . $rowNumber, $lead->linkedin_address)
                 ->setCellValue('G' . $rowNumber, $lead->feedback)
                 ->setCellValue('H' . $rowNumber, $lead->reminder_for)
-                ->setCellValue('I' . $rowNumber, date('d/m/Y', strtotime($lead->updated_at)))
-                ->setCellValue('J' . $rowNumber, date('h:i a', strtotime($lead->updated_at)));
+                ->setCellValue('I' . $rowNumber, $dateStr)
+                ->setCellValue('J' . $rowNumber, $timeStr);
 
             $rowNumber++;
         }
@@ -94,7 +100,7 @@ class DailyReport
 
     private function getLeadsData()
     {
-        $query = Lead::where('asign_to', $this->id)
+        $query = Lead::where('asign_to', (string)$this->id)
             ->join('notes', 'notes.lead_id', '=', 'leads.id')
             ->select('leads.id', 'leads.prospect_first_name', 'leads.prospect_last_name',
                 'notes.reminder_for', 'notes.feedback', 'notes.updated_at', 'leads.status', 'leads.linkedin_address',
@@ -103,7 +109,7 @@ class DailyReport
 
         // Apply filters (campaign, date range, etc.)
         if ($this->campaign_id) {
-            $query->where('notes.source_id', $this->campaign_id);
+            $query->where('notes.source_id', (string)$this->campaign_id);
         }
         if ($this->date_from && $this->date_to) {
             $date_from_new = date('Y-m-d H:i:s', strtotime($this->date_from));

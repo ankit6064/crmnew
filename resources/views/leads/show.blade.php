@@ -189,19 +189,19 @@
     <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; border: 1px solid #e9ecef;">
         <!-- Status Indicator -->
         <div style="margin-bottom: 10px;">
-            @if ($data['status'] == "1")
+            @if ($data['status'] == 1)
                 <span style="background: #ffc107; color: #212529; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
                     <i class="ti-time"></i> Pending
                 </span>
-                @elseif($data['status'] == "0")
+                @elseif($data['status'] == 0)
                 <span style="background: #dc3545; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
                     <i class="ti-close"></i> fresh lead
                 </span>
-            @elseif($data['status'] == "2")
+            @elseif($data['status'] == 2)
                 <span style="background: #dc3545; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
                     <i class="ti-close"></i> Failed
                 </span>
-            @elseif($data['status'] == "4")
+            @elseif($data['status'] == 4)
                 <span style="background: #ffc107; color: #212529; padding: 6px 16px; border-radius: 20px; font-weight: 500; font-size: 14px;">
                     <i class="ti-reload"></i> In Progress
                 </span>

@@ -119,25 +119,38 @@
 
                 </div> -->
                 <style>
-                    .filter-row {
-                        display: flex;
-                        gap: 10px;
-                        flex-wrap: wrap;
-                        align-items: flex-end;
+                    .filter-card {
+                        background: #ffffff;
+                        border-radius: 12px;
+                        border: 1px solid #e2e8f0;
+                        padding: 24px;
                         margin-bottom: 25px;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+                    }
+
+                    .filter-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 20px;
+                        align-items: end;
+                    }
+
+                    @media (max-width: 900px) {
+                        .filter-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                    }
+
+                    @media (max-width: 600px) {
+                        .filter-grid {
+                            grid-template-columns: 1fr;
+                        }
                     }
 
                     .filter-group {
                         display: flex;
                         flex-direction: column;
-                        gap: 5px;
-                        flex: 1 1 120px; /* Responsive width */
-                        max-width: 170px;
-                    }
-                    
-                    .filter-group.daterange-group {
-                        flex: 1.4 1 160px;
-                        max-width: 210px;
+                        gap: 8px;
                     }
 
                     .filter-group label {
@@ -145,138 +158,156 @@
                         font-size: 13px;
                         color: #475569;
                         margin-bottom: 0px;
+                        font-family: 'Poppins', sans-serif;
                     }
 
-                    .filter-select, .filter-input {
-                        width: 100%;
-                        height: 40px;
-                        border-radius: 6px;
-                        border: 1px solid #ced4da;
-                        padding: 0 12px;
+                    .filter-select,
+                    .filter-input {
+                        width: 100% !important;
+                        min-width: unset !important;
+                        height: 42px;
+                        border-radius: 8px;
+                        border: 1px solid #cbd5e1;
+                        padding: 0 14px;
                         font-size: 13px;
-                        color: #333;
-                        background-color: #fff;
+                        color: #1e293b;
+                        background-color: #f8fafc;
                         box-sizing: border-box;
+                        transition: all 0.2s ease;
+                        font-family: 'Poppins', sans-serif;
                     }
 
-                    .filter-select:focus, .filter-input:focus {
+                    .table-container {
+                        width: 100% !important;
+                        overflow-x: auto !important;
+                    }
+
+                    .filter-select:focus,
+                    .filter-input:focus {
                         border-color: #4b3fb3;
+                        background-color: #ffffff;
                         outline: none;
                         box-shadow: 0 0 0 3px rgba(75, 63, 179, 0.15);
                     }
 
-                    .filter-group-btn {
+                    .filter-actions {
                         display: flex;
-                        align-items: flex-end;
-                        height: 40px;
+                        gap: 12px;
+                        justify-content: flex-end;
+                        align-items: center;
+                        height: 42px;
                     }
 
                     .btn-reset {
-                        background-color: #2ecc71;
-                        color: white;
-                        border: none;
+                        background-color: #f1f5f9;
+                        color: #475569;
+                        border: 1px solid #cbd5e1;
                         padding: 0 20px;
-                        border-radius: 6px;
-                        font-weight: 500;
+                        border-radius: 8px;
+                        font-weight: 600;
                         font-family: 'Poppins', sans-serif;
-                        height: 40px;
+                        height: 42px;
                         font-size: 13px;
                         cursor: pointer;
-                        transition: background-color 0.2s;
+                        transition: all 0.2s;
+                        box-sizing: border-box;
                     }
 
                     .btn-reset:hover {
-                        background-color: #27ae60;
+                        background-color: #e2e8f0;
+                        color: #0f172a;
+                        border-color: #94a3b8;
                     }
 
                     .btn-export {
-                        background-color: #192e62;
+                        background-color: #1e3a8a;
                         color: white;
                         border: none;
                         padding: 0 20px;
-                        border-radius: 6px;
-                        font-weight: 500;
+                        border-radius: 8px;
+                        font-weight: 600;
                         font-family: 'Poppins', sans-serif;
-                        height: 40px;
+                        height: 42px;
                         font-size: 13px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         gap: 8px;
                         cursor: pointer;
-                        transition: background-color 0.2s;
+                        transition: all 0.2s;
+                        box-sizing: border-box;
                     }
 
                     .btn-export:hover {
-                        background-color: #112045;
+                        background-color: #172554;
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.2);
                     }
                 </style>
-                <div class="filter-row">
 
-                    <!-- Date Range Filter -->
-                    <div class="filter-group daterange-group">
-                        <label for="daterange">Date Range</label>
-                        <input type="text" id="daterange" class="filter-input" placeholder="Select date range" readonly style="cursor: pointer;">
+                <div class="filter-card">
+                    <div class="filter-grid">
+                        <!-- Date Range Filter -->
+                        <div class="filter-group daterange-group">
+                            <label for="daterange">Date Range</label>
+                            <input type="text" id="daterange" class="filter-input" placeholder="Select date range" readonly
+                                style="cursor: pointer;">
+                        </div>
+
+                        <!-- Campaign Filter -->
+                        <div class="filter-group">
+                            <label for="campaign_name">Campaign</label>
+                            <select id="campaign_name" class="filter-select">
+                                <option value="">Select Campaign</option>
+                                @foreach($sourceNames as $s)
+                                    <option value="{{ $s['source_name'] }}">{{ $s['source_name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Company Filter -->
+                        <div class="filter-group">
+                            <label for="company_s">Company</label>
+                            <select id="company_s" class="filter-select">
+                                <option value="">Select Company</option>
+                                @foreach($comapnyName as $c)
+                                    <option value="{{ $c['company_name'] }}">{{ $c['company_name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Timezone -->
+                        <div class="filter-group">
+                            <label for="company_time">Time Zone</label>
+                            <select id="company_time" class="filter-select">
+                                <option value="">Select Time Zone</option>
+                                @foreach($timeZone as $t)
+                                    <option value="{{ $t['timezone'] }}">{{ $t['timezone'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Closed On -->
+                        <div class="filter-group">
+                            <label for="closedon">Closed On</label>
+                            <select id="closedon" class="filter-select">
+                                <option value="">Select Date</option>
+                                @foreach($closedon as $d)
+                                    <option value="{{ $d['date'] }}">{{ date('d/m/Y', strtotime($d['date'])) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Actions Group -->
+                        <div class="filter-actions">
+                            <button id="reset_filters" class="btn btn-reset">
+                                Reset
+                            </button>
+                            <button id="export_csv" class="btn btn-export">
+                                <i class="fa fa-file-csv"></i> Export CSV
+                            </button>
+                        </div>
                     </div>
-
-                    <!-- Campaign Filter -->
-                    <div class="filter-group">
-                        <label for="campaign_name">Campaign</label>
-                        <select id="campaign_name" class="filter-select">
-                            <option value="">Select Campaign</option>
-                            @foreach($sourceNames as $s)
-                                <option value="{{ $s['source_name'] }}">{{ $s['source_name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Company Filter -->
-                    <div class="filter-group">
-                        <label for="company_s">Company</label>
-                        <select id="company_s" class="filter-select">
-                            <option value="">Select Company</option>
-                            @foreach($comapnyName as $c)
-                                <option value="{{ $c['company_name'] }}">{{ $c['company_name'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Timezone -->
-                    <div class="filter-group">
-                        <label for="company_time">Time Zone</label>
-                        <select id="company_time" class="filter-select">
-                            <option value="">Select Time Zone</option>
-                            @foreach($timeZone as $t)
-                                <option value="{{ $t['timezone'] }}">{{ $t['timezone'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Closed On -->
-                    <div class="filter-group">
-                        <label for="closedon">Closed On</label>
-                        <select id="closedon" class="filter-select">
-                            <option value="">Select Date</option>
-                            @foreach($closedon as $d)
-                                <option value="{{ $d['date'] }}">{{ date('d/m/Y', strtotime($d['date'])) }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Reset Button -->
-                    <div class="filter-group-btn">
-                        <button id="reset_filters" class="btn btn-success btn-reset">
-                            Reset
-                        </button>
-                    </div>
-
-                    <!-- Export CSV Button -->
-                    <div class="filter-group-btn">
-                        <button id="export_csv" class="btn btn-primary btn-export">
-                            <i class="fa fa-file-csv"></i> Export CSV
-                        </button>
-                    </div>
-
                 </div>
 
 

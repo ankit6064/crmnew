@@ -369,9 +369,50 @@
                     });
                 },
                 initComplete: function () {
-                    $('div.dataTables_filter input')
-                        .attr('placeholder', 'Search by company, prospect, designation')
-                        .css({ 'width': '250px' });
+                    var api = this.api();
+                    var searchInput = $('div.dataTables_filter input');
+                    
+                    // Style the label container to align items nicely
+                    $('div.dataTables_filter label').css({
+                        'display': 'inline-flex',
+                        'align-items': 'center',
+                        'gap': '8px'
+                    });
+
+                    // Set placeholder, width, and style the search input
+                    searchInput.attr('placeholder', 'Search by company, prospect, designation')
+                        .css({
+                            'width': '250px',
+                            'display': 'inline-block',
+                            'height': '32px',
+                            'margin': '0'
+                        });
+
+                    // Create and append the Search button
+                    var searchButton = $('<button type="button" class="btn" id="dt-search-btn" style="background-color: #192e62; color: #fff; border: none; padding: 5px 15px; border-radius: 4px; font-weight: 500; font-size: 13px; height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; transition: background-color 0.2s;"><i class="fas fa-search"></i> Search</button>');
+                    
+                    $('div.dataTables_filter label').append(searchButton);
+
+                    // Add simple hover effect to search button
+                    searchButton.hover(
+                        function() { $(this).css('background-color', '#101e42'); },
+                        function() { $(this).css('background-color', '#192e62'); }
+                    );
+
+                    // Unbind default search triggers (keyup, input, etc.)
+                    searchInput.unbind();
+
+                    // Search on button click
+                    searchButton.on('click', function () {
+                        api.search(searchInput.val()).draw();
+                    });
+
+                    // Search on Enter key press
+                    searchInput.on('keyup', function (e) {
+                        if (e.keyCode === 13) {
+                            api.search($(this).val()).draw();
+                        }
+                    });
 
                     $('#spinner-overlay').hide();
                 },

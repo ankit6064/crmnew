@@ -296,17 +296,11 @@ class SourcesController extends Controller
                     "assign_to_manager",
                     "is_active",
                     DB::raw("'N/A' as company_distribution"),
-                    DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads")
+                    DB::raw("(SELECT COUNT(*) FROM leads WHERE leads.source_id = CAST(sources.id AS CHAR)) as total_leads"),
+                    DB::raw("EXISTS(SELECT 1 FROM mom_report JOIN leads ON mom_report.lead_id = leads.id WHERE leads.source_id = CAST(sources.id AS CHAR) AND mom_report.mom_file_path IS NOT NULL) as has_mom_report")
                 )
                     ->whereIn('is_active', $status)
-                    ->leftJoinSub(
-                        Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
-                            ->groupBy('source_id'),
-                        'leads_count',
-                        'leads_count.source_id',
-                        'sources.id'
-                    )
-                    ->with(['closed_leads', 'leadNotImported']);
+                    ->with(['leadNotImported', 'manager']);
 
             } else {
 
@@ -323,18 +317,12 @@ class SourcesController extends Controller
                         "assign_to_manager",
                         "is_active",
                         DB::raw("'N/A' as company_distribution"),
-                        DB::raw("COALESCE(leads_count.totalLeads, 0) as total_leads"),
+                        DB::raw("(SELECT COUNT(*) FROM leads WHERE leads.source_id = CAST(sources.id AS CHAR)) as total_leads"),
+                        DB::raw("EXISTS(SELECT 1 FROM mom_report JOIN leads ON mom_report.lead_id = leads.id WHERE leads.source_id = CAST(sources.id AS CHAR) AND mom_report.mom_file_path IS NOT NULL) as has_mom_report"),
                         DB::raw("(SELECT SUM(amount) FROM money WHERE money.source_id = sources.id) as amount")
                     )
                     ->whereIn('is_active', $status)
-                    ->leftJoinSub(
-                        Lead::select('source_id', DB::raw('COUNT(*) as totalLeads'))
-                            ->groupBy('source_id'),
-                        'leads_count',
-                        'leads_count.source_id',
-                        'sources.id'
-                    )
-                    ->with(['closed_leads', 'leadNotImported']);
+                    ->with(['leadNotImported', 'manager']);
             }
 
             return DataTables::eloquent($query)
@@ -375,10 +363,8 @@ class SourcesController extends Controller
                 })
 
                 ->addColumn('manager_name', function ($row) {
-                    $manager = User::where(['id' => $row->assign_to_manager])->first();
-
-                    if (!empty($row->assign_to_manager)) {
-                        return $manager->name;
+                    if (!empty($row->assign_to_manager) && !empty($row->manager)) {
+                        return $row->manager->name;
                     } else {
                         $assignmanager = '<a href="#" onclick="assignmanager(' . $row->id . ');" style="background-color:black;color:white">
                                     <span class="label label-warning" data-tippy-content="Assign to Manager">
@@ -397,12 +383,6 @@ class SourcesController extends Controller
 
                 /* ACTION COLUMN WITH ALL TIPPY ADDED */
                 ->addColumn('action', function ($row) {
-
-                    $checkMomReport = MomReport::join('leads', 'mom_report.lead_id', '=', 'leads.id')
-                        ->where('leads.source_id', $row->id)
-                        ->whereNotNull('mom_report.mom_file_path')
-                        ->first();
-
                     $html = '
                         <a href="' . url('/sources/' . $row->id . '/leadview') . '" target="_blank">
                             <span class="label" data-tippy-content="View Leads" style="color:#000;font-size:15px;">
@@ -422,7 +402,7 @@ class SourcesController extends Controller
                             </span>
                         </a>';
 
-                    if (!empty($checkMomReport)) {
+                    if (!empty($row->has_mom_report)) {
                         $html .= '
                             <a href="' . url('download-mom-report', ['source_id' => $row->id]) . '">
                                 <span class="label" data-tippy-content="Download MOM Report" style="color:blue;font-size:15px;">
@@ -449,16 +429,6 @@ class SourcesController extends Controller
                             </a>';
                     }
 
-                    // if (!empty($row->leadNotImported)) {
-                    //     $html .=
-                    //         '<a href="' . route('download.csv', ['filename' => $row->leadNotImported->file_name]) . '">
-                    //         <span class="label" data-toggle="tooltip" data-placement="top" title="Download leads not imported" 
-                    //             style="color:red;font-size: 15px;">
-                    //             <i class="ti-download"></i>
-                    //         </span>
-                    //     </a>';
-                    // }
-    
                     if (Auth::user()->is_admin == null) {
                         $html .= '
                             <a href="' . url('sources/delete', ['id' => $row->id]) . '" onclick="return confirm(\'Are you sure?\')">
@@ -925,6 +895,19 @@ class SourcesController extends Controller
                 ->addColumn('update_note_date', function ($row) {
                     return $row->note_created_date;
                 })
+                ->addColumn('note_created_date_new', function ($row) {
+
+                    $notedetails = $row->latestNote;
+
+                    if ($notedetails) {
+
+                        $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
+                        return $createdAt;
+                    } else {
+                        return 'N/A';
+                    }
+
+                })
                 ->editColumn('contact_number_1', function ($row) {
                     if (empty($row->contact_number_1)) {
                         return 'N/A';
@@ -932,7 +915,7 @@ class SourcesController extends Controller
 
                     // Split by comma, semicolon, or space
                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
-                    $numbers = array_filter($numbers); // Remove empty strings
+                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
                     $count = count($numbers);
 
                     if ($count <= 1) {
@@ -957,7 +940,7 @@ class SourcesController extends Controller
 
                     // Split by comma, semicolon, or space
                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_2);
-                    $numbers = array_filter($numbers); // Remove empty strings
+                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
                     $count = count($numbers);
 
                     if ($count <= 1) {
@@ -979,7 +962,17 @@ class SourcesController extends Controller
                 ->make(true);
         }
 
-        $comapnyName = Lead::with('source')->where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('company_name', 'asc')->groupBy('company_name')->get();
+        // $comapnyName = Lead::with('source')->where(['status' => '4', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('company_name', 'asc')->groupBy('company_name')->get();
+
+
+        $comapnyName = Lead::with('source')
+            ->whereIn('status', [1, 4])
+            ->where('asign_to', auth()->user()->id)
+            ->where('source_id', $id)
+            ->orderBy('company_name', 'asc')
+            ->groupBy('company_name')
+            ->get();
+
         $timeZone = Lead::with('source')->where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('timezone', 'asc')->groupBy('timezone')->get();
         $source = Source::where('id', $id)->first();
 
@@ -1007,21 +1000,30 @@ class SourcesController extends Controller
         $comapnyName = Lead::select('company_name')
             ->where('status', 3)
             ->whereIn('asign_to', $employee_ids)
-            ->groupBy('company_name')
+            ->whereNotNull('company_name')
+            ->where('company_name', '!=', '')
+            ->distinct()
             ->orderBy('company_name', 'asc')
             ->get();
 
-        $sourceNames = Source::select('sources.source_name', 'sources.description')
-            ->join('leads', 'leads.source_id', '=', 'sources.id')
-            ->where('leads.status', 3)
-            ->whereIn('leads.asign_to', $employee_ids)
-            ->groupBy('sources.source_name')
-            ->orderBy('sources.source_name')
+        $sourceIds = Lead::where('status', 3)
+            ->whereIn('asign_to', $employee_ids)
+            ->whereNotNull('source_id')
+            ->where('source_id', '!=', '')
+            ->distinct()
+            ->pluck('source_id')
+            ->toArray();
+
+        $sourceNames = Source::whereIn('id', $sourceIds)
+            ->select('source_name', 'description')
+            ->orderBy('source_name')
             ->get();
 
         $timeZone = Lead::select('timezone')->where(['status' => 3])
             ->whereIn('asign_to', $employee_ids)
-            ->groupBy('timezone')
+            ->whereNotNull('timezone')
+            ->where('timezone', '!=', '')
+            ->distinct()
             ->orderBy('timezone', 'asc')
             ->get();
 
@@ -1037,17 +1039,15 @@ class SourcesController extends Controller
             $query = Lead::with(['user', 'lhsreport'])->select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
                 ->where('status', 3)->whereIn('asign_to', $employee_ids);
             if (!empty(request('cName'))) {
-                $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
+                $query->where('company_name', '=', request('cName'));
             }
 
             if (!empty(request('timeZone'))) {
-                $query->where('timezone', 'LIKE', '%' . request('timeZone') . '%');
+                $query->where('timezone', '=', request('timeZone'));
             }
 
             if (!empty(request('campaign_name'))) {
-                $query->whereHas('source', function ($q) use ($request) {
-                    $q->where('source_name', 'LIKE', '%' . request('campaign_name') . '%');
-                });
+                $query->where('sources.source_name', '=', request('campaign_name'));
             }
 
             if (!empty(request('closedon'))) {
@@ -1073,12 +1073,12 @@ class SourcesController extends Controller
             }
 
             if (!empty(request('date_from')) && !empty(request('date_to'))) {
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     $q->whereBetween('leads.closed_on', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59'])
-                      ->orWhere(function($sub) {
-                          $sub->whereNull('leads.closed_on')
-                              ->whereBetween('leads.updated_at', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59']);
-                      });
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('leads.closed_on')
+                                ->whereBetween('leads.updated_at', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59']);
+                        });
                 });
             }
             $columnIndex = $request->input('order.0.column'); // this will be 10
@@ -1147,7 +1147,7 @@ class SourcesController extends Controller
 
                     // Split by comma, semicolon, or space
                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
-                    $numbers = array_filter($numbers); // Remove empty strings
+                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
                     $count = count($numbers);
 
                     if ($count <= 1) {
@@ -1505,7 +1505,7 @@ class SourcesController extends Controller
     // }
     public function meeting_scheduled(Request $request)
     {
-        if(auth::user()->is_admin == null){
+        if (auth::user()->is_admin == null) {
             $employee_ids = User::where(function ($query) {
                 $query->whereIn('is_admin', ['1', '3']);
             })
@@ -1517,14 +1517,14 @@ class SourcesController extends Controller
                 })
                 ->where('is_active', 1)
                 ->pluck('id');
-    
+
             $comapnyName = Lead::with('source')
                 ->whereNotNull('invitation_date')
                 ->whereIn('asign_to', $employee_ids)
                 ->groupBy('company_name')
                 ->orderBy('company_name', 'asc')
                 ->get();
-    
+
             $sourceNames = Source::select('sources.source_name', 'sources.description')
                 ->join('leads', 'leads.source_id', '=', 'sources.id')
                 ->whereNotNull('leads.invitation_date')
@@ -1532,8 +1532,8 @@ class SourcesController extends Controller
                 ->groupBy('sources.source_name')
                 ->orderBy('sources.source_name')
                 ->get();
-    
-        }else{
+
+        } else {
 
             $employee_ids = User::where(function ($query) {
                 $query->where('user_id', auth()->id())
@@ -1547,14 +1547,14 @@ class SourcesController extends Controller
                 })
                 ->where('is_active', 1)
                 ->pluck('id');
-    
+
             $comapnyName = Lead::with('source')
                 ->whereNotNull('invitation_date')
                 ->whereIn('asign_to', $employee_ids)
                 ->groupBy('company_name')
                 ->orderBy('company_name', 'asc')
                 ->get();
-    
+
             $sourceNames = Source::select('sources.source_name', 'sources.description')
                 ->join('leads', 'leads.source_id', '=', 'sources.id')
                 ->whereNotNull('leads.invitation_date')
@@ -1562,9 +1562,9 @@ class SourcesController extends Controller
                 ->groupBy('sources.source_name')
                 ->orderBy('sources.source_name')
                 ->get();
-    
+
         }
-        
+
         if (request()->ajax()) {
             $query = Lead::select('leads.*', 'sources.source_name', 'sources.description')
                 ->join('sources', 'leads.source_id', '=', 'sources.id')
@@ -1627,12 +1627,12 @@ class SourcesController extends Controller
                 })
                 ->editColumn('meeting_status', function ($row) {
                     if (empty($row->meeting_status) || $row->meeting_status == 'Pending') {
-                        if(auth::user()->is_admin == null){
+                        if (auth::user()->is_admin == null) {
                             return '<span class="badge bg-light text-dark">N/A</span>';
-                        }else{
+                        } else {
 
-                        
-                        return '<button class="btn btn-sm btn-primary" onclick="updateMeeting(' . $row->id . ')">Update Meeting</button>';
+
+                            return '<button class="btn btn-sm btn-primary" onclick="updateMeeting(' . $row->id . ')">Update Meeting</button>';
                         }
                     }
                     if ($row->meeting_status == 'Done')
@@ -1718,23 +1718,32 @@ class SourcesController extends Controller
             ->where('is_active', 1)
             ->pluck('id');
         $comapnyName = Lead::select('company_name')
-            ->where('status', 3)
+            ->where('status', 5)
             ->whereIn('asign_to', $employee_ids)
-            ->groupBy('company_name')
+            ->whereNotNull('company_name')
+            ->where('company_name', '!=', '')
+            ->distinct()
             ->orderBy('company_name', 'asc')
             ->get();
 
-        $sourceNames = Source::select('sources.source_name', 'sources.description')
-            ->join('leads', 'leads.source_id', '=', 'sources.id')
-            ->where('leads.status', 3)
-            ->whereIn('leads.asign_to', $employee_ids)
-            ->groupBy('sources.source_name')
-            ->orderBy('sources.source_name')
+        $sourceIds = Lead::where('status', 5)
+            ->whereIn('asign_to', $employee_ids)
+            ->whereNotNull('source_id')
+            ->where('source_id', '!=', '')
+            ->distinct()
+            ->pluck('source_id')
+            ->toArray();
+
+        $sourceNames = Source::whereIn('id', $sourceIds)
+            ->select('source_name', 'description')
+            ->orderBy('source_name')
             ->get();
 
         $timeZone = Lead::select('timezone')->where(['status' => 5])
             ->whereIn('asign_to', $employee_ids)
-            ->groupBy('timezone')
+            ->whereNotNull('timezone')
+            ->where('timezone', '!=', '')
+            ->distinct()
             ->orderBy('timezone', 'asc')
             ->get();
 
@@ -1750,32 +1759,28 @@ class SourcesController extends Controller
             $query = Lead::with('user')->select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
                 ->where('status', 5)->whereIn('asign_to', $employee_ids);
             if (!empty(request('cName'))) {
-                $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
+                $query->where('company_name', '=', request('cName'));
             }
 
             if (!empty(request('timeZone'))) {
-                $query->where('timezone', 'LIKE', '%' . request('timeZone') . '%');
+                $query->where('timezone', '=', request('timeZone'));
             }
 
             if (!empty(request('campaign_name'))) {
-                $query->whereHas('source', function ($q) use ($request) {
-                    $q->where('source_name', 'LIKE', '%' . request('campaign_name') . '%');
-                });
+                $query->where('sources.source_name', '=', request('campaign_name'));
             }
 
             if (!empty(request('closedon'))) {
-                // Ensure 'closedon' is in a valid format (Y-m-d) and match only the date part of updated_at
-                $query->whereRaw('DATE(leads.updated_at) = ?', [request('closedon')]);
-
+                $query->whereDate('leads.updated_at', request('closedon'));
             }
 
             if (!empty(request('date_from')) && !empty(request('date_to'))) {
                 $query->where(function ($q) {
                     $q->whereBetween('leads.closed_on', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59'])
-                      ->orWhere(function($sub) {
-                          $sub->whereNull('leads.closed_on')
-                              ->whereBetween('leads.updated_at', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59']);
-                      });
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('leads.closed_on')
+                                ->whereBetween('leads.updated_at', [request('date_from') . ' 00:00:00', request('date_to') . ' 23:59:59']);
+                        });
                 });
             }
             // $columnIndex = $request->input('order.0.column'); // this will be 10
@@ -2373,12 +2378,12 @@ class SourcesController extends Controller
         }
 
         if (!empty($request->get('date_from')) && !empty($request->get('date_to'))) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->whereBetween('leads.closed_on', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59'])
-                  ->orWhere(function($sub) use ($request) {
-                      $sub->whereNull('leads.closed_on')
-                          ->whereBetween('leads.updated_at', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59']);
-                  });
+                    ->orWhere(function ($sub) use ($request) {
+                        $sub->whereNull('leads.closed_on')
+                            ->whereBetween('leads.updated_at', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59']);
+                    });
             });
         }
 
@@ -2397,7 +2402,7 @@ class SourcesController extends Controller
             });
         }
 
-        $leads = $query->get();
+        $leads = $query->with(['lhsreport', 'user'])->get();
 
         $filename = 'Closed_Leads_' . date('Y-m-d') . '.csv';
 
@@ -2411,7 +2416,7 @@ class SourcesController extends Controller
 
         $callback = function () use ($leads) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for Excel UTF-8 compatibility
             fputs($file, "\xEF\xBB\xBF");
 
@@ -2435,11 +2440,11 @@ class SourcesController extends Controller
 
             foreach ($leads as $lead) {
                 // Determine Closed On Date
-                $checklhs = LhsReport::where('lead_id', $lead->id)->value('created_at');
+                $checklhs = $lead->lhsreport ? $lead->lhsreport->created_at : null;
                 $closedOnDate = $checklhs ? \Carbon\Carbon::parse($checklhs)->format('d/m/Y') : date('d/m/Y', strtotime($lead->updated_at));
 
                 // Closed By User Name
-                $closedByUser = User::find($lead->asign_to);
+                $closedByUser = $lead->user;
                 $closedByName = $closedByUser ? ($closedByUser->first_name . ' ' . $closedByUser->last_name) : 'N/A';
 
                 // Confirmation Status
@@ -2511,12 +2516,12 @@ class SourcesController extends Controller
         }
 
         if (!empty($request->get('date_from')) && !empty($request->get('date_to'))) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->whereBetween('leads.closed_on', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59'])
-                  ->orWhere(function($sub) use ($request) {
-                      $sub->whereNull('leads.closed_on')
-                          ->whereBetween('leads.updated_at', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59']);
-                  });
+                    ->orWhere(function ($sub) use ($request) {
+                        $sub->whereNull('leads.closed_on')
+                            ->whereBetween('leads.updated_at', [$request->get('date_from') . ' 00:00:00', $request->get('date_to') . ' 23:59:59']);
+                    });
             });
         }
 
@@ -2535,7 +2540,7 @@ class SourcesController extends Controller
             });
         }
 
-        $leads = $query->get();
+        $leads = $query->with('user')->get();
 
         $filename = 'Completed_Leads_' . date('Y-m-d') . '.csv';
 
@@ -2549,7 +2554,7 @@ class SourcesController extends Controller
 
         $callback = function () use ($leads) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for Excel UTF-8 compatibility
             fputs($file, "\xEF\xBB\xBF");
 
@@ -2573,7 +2578,7 @@ class SourcesController extends Controller
                 $completedOnDate = !empty($lead->closed_on) ? date('d/m/Y', strtotime($lead->closed_on)) : date('d/m/Y', strtotime($lead->updated_at));
 
                 // Completed By User Name
-                $completedByUser = User::find($lead->asign_to);
+                $completedByUser = $lead->user;
                 $completedByName = $completedByUser ? ($completedByUser->first_name . ' ' . $completedByUser->last_name) : 'N/A';
 
                 fputcsv($file, [

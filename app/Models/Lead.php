@@ -66,6 +66,10 @@ class Lead extends Model
     {
         return $this->hasOne('App\Models\Note');
     }
+    public function latestNote()
+    {
+        return $this->hasOne('App\Models\Note', 'lead_id')->latestOfMany();
+    }
 
     public function feedback()
     {

@@ -16,6 +16,11 @@
         .is-invalid-input {
             border: 1px solid #dc3545 !important;
         }
+
+        .table-container {
+            width: 100% !important;
+            overflow-x: auto !important;
+        }
     </style>
 
     {{-- LinkedIn Update Modal --}}
@@ -90,12 +95,12 @@
                     { data: "company_name" },
                     { data: "source_name" },
                     {
-                        data: "prospect_full_name", orderable: false ,
+                        data: "prospect_full_name", orderable: false,
                         render: function (data, type, row) {
                             return `${data}`;
                         }
                     },
-                    { data: "designation", orderable: false  },
+                    { data: "designation", orderable: false },
                     { data: "created_at" },
                 ],
                 lengthMenu: [[10, 20, 30], [10, 20, 30]],

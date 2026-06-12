@@ -393,7 +393,8 @@ class EmployeeController extends Controller
                 ->addColumn('totalcampaigns', function ($data) {
                     // Count users where user_id matches the current data id
                     $totalcampaigns = Source::where(function ($q) use ($data) {
-                        $q->where('user_id', $data->id);
+                        $q->where('user_id', $data->id)
+                            ->orWhere('assign_to_manager', $data->id);
                     })
                         ->where('is_active', 1)
                         ->count();
@@ -649,12 +650,12 @@ class EmployeeController extends Controller
                 'leads.linkedin_address'
             )
                 ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->where('leads.asign_to', auth()->user()->id);
+                ->where('leads.asign_to', (string)auth()->user()->id);
 
 
             // Filter by campaign ID
             if (!empty($campaign_id)) {
-                $query->where('notes.source_id', $campaign_id);
+                $query->where('notes.source_id', (string)$campaign_id);
             }
 
             // Filter by date range
@@ -700,16 +701,19 @@ class EmployeeController extends Controller
 
         // Optimized campaigns query with proper selection
         $campaigns = Lead::select('source_id', DB::raw('COUNT(source_id) as totalLeads'))
-            ->where('asign_to', auth()->user()->id)
+            ->where('asign_to', (string)auth()->user()->id)
             ->groupBy('source_id')
             ->with('source') // eager load the source relationship
             ->get();
+
+        $conversationTypes = conversationType::orderBy('type')->get()->toArray();
 
         return view('employee.employee_daily_report', [
             'campaigns' => $campaigns,
             'campaign_id' => $request->get('campaign_id', ''),
             'date_from' => $request->get('date_from', ''),
             'date_to' => $request->get('date_to', ''),
+            'conversationTypes' => $conversationTypes,
         ]);
     }
 
@@ -730,6 +734,7 @@ class EmployeeController extends Controller
     private function getStatusIcon($status)
     {
         $statusIcons = [
+            0 => ['img' => 'pending.png', 'title' => 'Pending'],
             1 => ['img' => 'pending.png', 'title' => 'Pending'],
             2 => ['img' => 'failed.png', 'title' => 'Failed'],
             3 => ['img' => 'completed.png', 'title' => 'Closed'],
@@ -738,7 +743,7 @@ class EmployeeController extends Controller
 
         return isset($statusIcons[$status])
             ? '<img style="width: 20px" src="' . asset('public/admin/assets/images/' . $statusIcons[$status]['img']) . '" alt="' . $statusIcons[$status]['title'] . '">'
-            : '';
+            : '<img style="width: 20px" src="' . asset('public/admin/assets/images/pending.png') . '" alt="Pending">';
     }
 
     public function getLeadsData(Request $request)
@@ -849,8 +854,7 @@ class EmployeeController extends Controller
         // Fetch Data for DataTable
         return datatables()->of($query)
             ->addColumn('lead_name', function ($data) {
-                $lead = Lead::find($data->lead_id);
-                $leadName = '<a href="' . url('/leads/' . $lead->id) . '" target="_blank">' . $lead->prospect_first_name . ' ' . $lead->prospect_last_name . '</a>';
+                $leadName = '<a href="' . url('/leads/' . $data->lead_id) . '" target="_blank">' . $data->prospect_first_name . ' ' . $data->prospect_last_name . '</a>';
 
                 $linkedinAddress = $data['linkedin_address'] ?? ''; // Ensure the variable exists
                 $linkedinIcon = '';
@@ -879,13 +883,13 @@ class EmployeeController extends Controller
             })
             ->addColumn('status', function ($data) {
                 $statusIcons = [
+                    0 => '<p class="pending">Pending</p>',
                     1 => '<p class="pending">Pending</p>',
                     2 => '<p class="failed">Failed</p>',
                     3 => '<p class="completed">Completed</p>',
                     4 => '<p class="in-progress">In Progress</p>',
-
                 ];
-                return $statusIcons[$data->status] ?? '';
+                return $statusIcons[$data->status] ?? '<p class="pending">Pending</p>';
             })
             ->rawColumns(['lead_name', 'status'])
             ->make(true);
@@ -1637,9 +1641,9 @@ class EmployeeController extends Controller
     public function assignsubmanager(Request $request)
     {
         $userId = $request->employeeid;
-        $sources = Lead::select('sources.id', 'sources.source_name')->where('asign_to', $userId)
-            ->join('sources', 'sources.id', 'leads.source_id')
-            ->distinct('leads.source_id')
+        $sources = Source::where('user_id', $userId)
+            ->orWhere('assign_to_manager', $userId)
+            ->where('is_active', 1)
             ->get();
 
         $employees = User::where('is_admin', USER)
@@ -1783,14 +1787,40 @@ class EmployeeController extends Controller
                 ->addColumn('actions', function ($data) {
                     // Customize the action buttons
                     $editLink = '<i class="fa-solid fa-pen-to-square text-success editEmployee" 
-                data-url="' . route('employee.submanageredit', ['employee_id' => $data->id]) . '"></i>';
+                        data-url="' . route('employee.submanageredit', ['employee_id' => $data->id]) . '" style="cursor: pointer; margin-right: 8px;"></i>';
 
-                    $checked = $data->is_active == 1 ? 'checked' : '';
-                    $editLink .= '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checked . '>';
-                    // $editLink .= '<i class="fa-solid fa-trash"></i>';
-    
+                    /**
+                     * Login permission switch
+                     */
+                    $check = RestrictEmployeelogin::where('employee_id', $data->id)->first();
+                    $loginChecked = $check ? '' : 'checked';
 
-                    return $editLink;
+                    $login_permission = '
+                        <input
+                            type="checkbox"
+                            class="switchery"
+                            data-tooltip="' . ($loginChecked ? 'Disable Login' : 'Enable Login') . '"
+                            data-id="' . $data->id . '"
+                            onchange="disablelogin(' . $data->id . ', \'' . addslashes($data->email) . '\');"
+                            ' . $loginChecked . '
+                        >';
+
+                    /**
+                     * Active / Inactive status switch
+                     */
+                    $statusChecked = $data->is_active == 1 ? 'checked' : '';
+                    $changestatus = '
+                        <input
+                            data-sid="' . $data->source_id . '"
+                            data-id="' . $data->id . '"
+                            class="switchery"
+                            type="checkbox"
+                            id="togglebtn"
+                            data-tooltip="' . ($statusChecked ? 'Deactivate Employee' : 'Activate Employee') . '"
+                            ' . $statusChecked . '
+                        >';
+
+                    return $login_permission . ' ' . $editLink . ' ' . $changestatus;
                 })
 
                 ->rawColumns(['actions', 'status', 'totalemployees', 'totalcampaigns'])

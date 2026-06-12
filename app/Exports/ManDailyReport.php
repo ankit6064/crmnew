@@ -13,96 +13,89 @@ class ManDailyReport
     protected $emp_id;
     protected $date_from;
     protected $date_to;
+    protected $filter_by;
+    protected $reminder_for_conversation;
     protected $onlyConversation;
 
-    function __construct($camp_id, $emp_id, $date_from, $date_to, $par = null, $par1 = null, $onlyConversation = null)
+    function __construct($camp_id, $emp_id, $date_from, $date_to, $filter_by = null, $reminder_for_conversation = null, $onlyConversation = null)
     {
         $this->camp_id = $camp_id;
         $this->emp_id = $emp_id;
         $this->date_from = $date_from;
         $this->date_to = $date_to;
+        $this->filter_by = $filter_by;
+        $this->reminder_for_conversation = $reminder_for_conversation;
         $this->onlyConversation = $onlyConversation;
     }
 
     // Query function (your custom query logic)
     public function query()
     {
-        $date_from_new = date('Y-m-d H:i:s', strtotime($this->date_from));
-        $date_to_new = date('Y-m-d H:i:s', strtotime($this->date_to));
+        $query = Lead::select(
+            'users.name as name',
+            'sources.source_name as source_name',
+            'sources.description as description',
+            'leads.company_name as company_name',
+            'leads.prospect_first_name',
+            'leads.prospect_last_name',
+            'leads.designation',
+            'leads.linkedin_address',
+            'notes.feedback',
+            'notes.reminder_for',
+            'leads.note_created_date',
+            'notes.phone_number'
+        )
+        ->join('notes', 'notes.lead_id', '=', 'leads.id')
+        ->join('users', 'users.id', '=', 'leads.asign_to')
+        ->join('sources', 'sources.id', '=', 'leads.source_id');
 
-        if ($this->emp_id != "" && $this->camp_id != "" && $this->date_from == "" && $this->date_to == "") {
-            return Lead::query()
-                ->where('asign_to', $this->emp_id)
-                ->where('notes.source_id', $this->camp_id)
-                // ->whereNotNull('notes.source_id')
-                ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->join('users','users.id','=','leads.assign_to')
-                ->join('sources','sources.id','=','leads.source_id')
-                ->latest('notes.updated_at');
-        } elseif ($this->emp_id != "" && $this->camp_id == "" && $this->date_from == "" && $this->date_to == "") {
-            return Lead::query()
-                ->where('asign_to', $this->emp_id)
-                // ->whereNotNull('notes.source_id')
-                ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->join('users','users.id','=','leads.asign_to')
-                ->join('sources','sources.id','=','leads.source_id')
-                ->latest('notes.updated_at');
-        } elseif ($this->emp_id == "" && $this->camp_id != "" && $this->date_from == "" && $this->date_to == "") {
-            return Lead::query()
-                ->where('notes.source_id', '=', $this->camp_id)
-                // ->whereNotNull('notes.source_id')
-                ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->join('users','users.id','=','leads.asign_to')
-                ->join('sources','sources.id','=','leads.source_id')
-                ->latest('notes.updated_at');
-        } elseif ($this->emp_id == "" && $this->camp_id == "" && $this->date_from == "" && $this->date_to == "") {
-            return Lead::join('notes', 'notes.lead_id', '=', 'leads.id')
-                // ->whereNotNull('notes.source_id')
-                ->join('users','users.id','=','leads.asign_to')
-                ->join('sources','sources.id','=','leads.source_id')
-                ->latest('notes.updated_at');
-        } elseif ($this->emp_id != "" && $this->camp_id == "" && $this->date_from != "" && $this->date_to != "") {
-            return Lead::query()
-                ->where('asign_to', $this->emp_id)
-                ->whereBetween('notes.updated_at', [$date_from_new, $date_to_new])
-                // ->whereNotNull('notes.source_id')
-                ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->join('users','users.id','=','leads.asign_to')
-                ->join('sources','sources.id','=','leads.source_id')
-                ->latest('notes.updated_at', 'desc');
-        } elseif ($this->emp_id != "" && $this->camp_id != "" && $this->date_from != "" && $this->date_to != "") {
-            return Lead::query()
-                ->where("notes.source_id", '=', $this->camp_id)
-                ->where("asign_to", "=", $this->emp_id)
-                // ->whereNotNull('notes.source_id')
-                ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->join('users','users.id','=','leads.asign_to')
-                ->join('sources','sources.id','=','leads.source_id')
-                ->latest('notes.updated_at', 'desc')
-                ->whereBetween('notes.updated_at', [$date_from_new, $date_to_new]);
-        } elseif ($this->date_from && $this->date_to && !$this->onlyConversation) {
-            return Lead::query()
-                ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->join('users','users.id','=','leads.asign_to')
-                ->join('sources','sources.id','=','leads.source_id')
-                ->latest('notes.updated_at', 'desc')
-                // ->whereNotNull('notes.source_id')
-                ->whereBetween('notes.updated_at', [$date_from_new, $date_to_new]);
-        } elseif ($this->date_from && $this->date_to && $this->onlyConversation) {
-            return Lead::query()
-                ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->join('users','users.id','=','leads.asign_to')
-                ->join('sources','sources.id','=','leads.source_id')
-                ->latest('notes.updated_at', 'desc')
-                // ->whereNotNull('notes.source_id')
-                ->whereNotNull('notes.reminder_for')
-                ->whereBetween('notes.updated_at', [$date_from_new, $date_to_new]);
+        if ($this->emp_id != "") {
+            $query->where('leads.asign_to', (string)$this->emp_id);
         }
+
+        if ($this->camp_id != "") {
+            $query->where('notes.source_id', (string)$this->camp_id);
+        }
+
+        if ($this->date_from != "" && $this->date_to != "") {
+            $date_from_new = date('Y-m-d H:i:s', strtotime($this->date_from));
+            $date_to_new = date('Y-m-d H:i:s', strtotime($this->date_to));
+            $query->whereBetween('notes.updated_at', [$date_from_new, $date_to_new]);
+        }
+
+        // Apply VM/No Response or Conversation filters
+        if ($this->onlyConversation) {
+            $query->whereNotNull('notes.reminder_for');
+        } elseif ($this->filter_by != "") {
+            if ($this->filter_by == 1) {
+                $query->whereNull('notes.reminder_for');
+            } elseif ($this->filter_by == 2) {
+                if ($this->reminder_for_conversation != "") {
+                    $query->where('notes.reminder_for', $this->reminder_for_conversation);
+                } else {
+                    $query->whereNotNull('notes.reminder_for');
+                }
+            }
+        }
+
+        $query->orderBy('notes.updated_at', 'desc');
+
+        return $query;
     }
 
     // Map data to the rows of the Excel
     public function map($lead): array
     {
+        $dateStr = '';
+        $timeStr = '';
+        if ($lead->note_created_date) {
+            $ts = strtotime($lead->note_created_date);
+            if ($ts !== false) {
+                $dateStr = date('d/m/Y', $ts);
+                $timeStr = date('h:i a', $ts);
+            }
+        }
+
         return [
             $lead->name,
             $lead->source_name,
@@ -113,8 +106,8 @@ class ManDailyReport
             $lead->linkedin_address,
             $lead->feedback,
             $lead->reminder_for,
-            date('d/m/Y', strtotime($lead->note_created_date)),
-            date('h:i a', strtotime($lead->note_created_date)),
+            $dateStr,
+            $timeStr,
             $lead->phone_number,
         ];
     }

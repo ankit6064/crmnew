@@ -37,5 +37,9 @@ class Source extends Model
     {
         return $this->hasOne(LeadNotImported::class, 'source_id');
     }
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'assign_to_manager');
+    }
 
 }

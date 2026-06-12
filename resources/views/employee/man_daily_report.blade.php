@@ -117,7 +117,7 @@
     @media (max-width: 1200px) {
         .filter-group {
             min-width: 160px;
-        }
+    }
     }
     
     @media (max-width: 992px) {
@@ -128,7 +128,7 @@
         .filter-actions {
             flex: 0 0 100%;
             margin-top: 10px;
-        }
+    }
     }
     
     @media (max-width: 768px) {
@@ -162,7 +162,7 @@
 
     .employee-filterss .filter-select, .filter-date {
     min-width: 306px;
-}
+    }
 </style>
 
 <div class="main-right">
@@ -172,90 +172,90 @@
         {{-- Filters --}}
         <div class="employee-filterss daily-report-filter">
             <div class="filter-container">
-                <form action="{{ route('employee.man_daily_report') }}" method="get" id="searchform">
-                    @csrf
-                    
+            <form action="{{ route('employee.man_daily_report') }}" method="get" id="searchform">
+                @csrf
+                
                     <div class="filter-row">
-                        {{-- Employee Filter --}}
-                        @if(Auth::user()->is_admin != 1)
-                        <div class="filter-group">
-                            <label class="filter-label" for="employee_id">Employee</label>
-                            <select class="filter-select" name="employee_id" id="employee_id">
-                                <option value="">Select Employee</option>
-                                @foreach($employees as $emp)
-                                    <option value="{{ $emp['id'] }}" {{ request('employee_id') == $emp['id'] ? 'selected' : '' }}>
-                                        {{ $emp['name'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @endif
+                    {{-- Employee Filter --}}
+                    @if(Auth::user()->is_admin != 1)
+                    <div class="filter-group">
+                        <label class="filter-label" for="employee_id">Employee</label>
+                        <select class="filter-select" name="employee_id" id="employee_id">
+                            <option value="">Select Employee</option>
+                            @foreach($employees as $emp)
+                                <option value="{{ $emp['id'] }}" {{ request('employee_id') == $emp['id'] ? 'selected' : '' }}>
+                                    {{ $emp['name'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
 
-                        {{-- Campaign Filter --}}
-                        <div class="filter-group">
-                            <label class="filter-label" for="campaign_id">Campaign</label>
-                            <select class="filter-select" name="campaign_id" id="campaign_id">
-                                <option value="">Select Campaign</option>
-                                @foreach($campaigns as $campaign)
-                                    <option value="{{ $campaign['id'] }}" {{ request('campaign_id') == $campaign['id'] ? 'selected' : '' }}>
-                                        {{ $campaign['source_name']}} - {{  $campaign['description'] }}
-                                    </option>
-                                @endforeach                    
-                            </select>
-                        </div>
+                    {{-- Campaign Filter --}}
+                    <div class="filter-group">
+                        <label class="filter-label" for="campaign_id">Campaign</label>
+                        <select class="filter-select" name="campaign_id" id="campaign_id">
+                            <option value="">Select Campaign</option>
+                            @foreach($campaigns as $campaign)
+                                <option value="{{ $campaign['id'] }}" {{ request('campaign_id') == $campaign['id'] ? 'selected' : '' }}>
+                                    {{ $campaign['source_name']}} - {{  $campaign['description'] }}
+                                </option>
+                            @endforeach                    
+                        </select>
+                    </div>
 
-                        {{-- Filter By --}}
-                        <div class="filter-group">
-                            <label class="filter-label" for="filter_by">Type</label>
-                            <select class="filter-select" name="filter_by" id="filter_by">
-                                <option value="">Select Type</option>
-                                <option value="1" {{ request('filter_by') == 1 ? 'selected' : '' }}>VM/No Response</option>
-                                <option value="2" {{ request('filter_by') == 2 ? 'selected' : '' }}>Conversation</option>
-                            </select>
-                        </div>
+                    {{-- Filter By --}}
+                    <div class="filter-group">
+                        <label class="filter-label" for="filter_by">Type</label>
+                        <select class="filter-select" name="filter_by" id="filter_by">
+                            <option value="">Select Type</option>
+                            <option value="1" {{ request('filter_by') == 1 ? 'selected' : '' }}>VM/No Response</option>
+                            <option value="2" {{ request('filter_by') == 2 ? 'selected' : '' }}>Conversation</option>
+                        </select>
+                    </div>
 
-                        {{-- Conversation Type --}}
-                        <div class="filter-group" id="conversation_div" style="display:none;">
-                            <label class="filter-label" for="reminder_for_conversation">Conversation Type</label>
-                            <select class="filter-select" id="reminder_for_conversation" name="reminder_for_conversation">
-                                <option value="">Choose Conversation Type</option>
-                                @foreach($conversationTypes as $type)
-                                    <option value="{{ $type['type'] }}"
-                                        {{ request('reminder_for_conversation') == $type['type'] ? 'selected' : '' }}>
-                                        {{ $type['type'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    {{-- Conversation Type --}}
+                    <div class="filter-group" id="conversation_div" style="display:none;">
+                        <label class="filter-label" for="reminder_for_conversation">Conversation Type</label>
+                        <select class="filter-select" id="reminder_for_conversation" name="reminder_for_conversation">
+                            <option value="">Choose Conversation Type</option>
+                            @foreach($conversationTypes as $type)
+                                <option value="{{ $type['type'] }}"
+                                    {{ request('reminder_for_conversation') == $type['type'] ? 'selected' : '' }}>
+                                    {{ $type['type'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                         </div>
 
                         <div class="filter-row">
 
 
-                        {{-- Date From --}}
-                        <div class="filter-group">
-                            <label class="filter-label" for="date_from_new">Date From</label>
-                            <input type="datetime-local" class="filter-date" name="date_from" id="date_from_new"
-                                value="{{ request('date_from') }}">
-                        </div>
+                    {{-- Date From --}}
+                    <div class="filter-group">
+                        <label class="filter-label" for="date_from_new">Date From</label>
+                        <input type="datetime-local" class="filter-date" name="date_from" id="date_from_new"
+                            value="{{ request('date_from') }}">
+                    </div>
 
-                        {{-- Date To --}}
-                        <div class="filter-group">
-                            <label class="filter-label" for="date_to_new">Date To</label>
-                            <input type="datetime-local" class="filter-date" name="date_to" id="date_to_new"
-                                value="{{ request('date_to') }}">
-                        </div>
+                    {{-- Date To --}}
+                    <div class="filter-group">
+                        <label class="filter-label" for="date_to_new">Date To</label>
+                        <input type="datetime-local" class="filter-date" name="date_to" id="date_to_new"
+                            value="{{ request('date_to') }}">
+                    </div>
 
-                        {{-- Filter Actions --}}
-                        <div class="filter-actions">
+                    {{-- Filter Actions --}}
+                    <div class="filter-actions">
                             <button type="button" id="sub_cmap" class="filter-btn filter-blue">Filter</button>
                             <button type="reset" class="filter-btn filter-red"
-                                onclick="window.location.href='{{ route('employee.man_daily_report') }}'">
-                                Reset
-                            </button>
-                        </div>
+                            onclick="window.location.href='{{ route('employee.man_daily_report') }}'">
+                            Reset
+                        </button>
                     </div>
-                </form>
+                </div>
+            </form>
             </div>
         </div>
 
@@ -268,12 +268,12 @@
             </div>
 
 
-                   <!-- Datatable -->
+            <!-- Datatable -->
             <div class="table">
                 <div class="table-container">
                     <table id="employee-table">
                         <thead class="thead-main">
-                        <tr>
+                            <tr>
                                 <th>Lead Name</th>
                                 <th>Conversation Type</th>
                                 <th>Note</th>
@@ -287,8 +287,8 @@
                 </div>
             </div>
 
-                {{-- Pagination Placeholder (DataTables will inject) --}}
-                <div id="pagination" class="pagination"></div>
+            {{-- Pagination Placeholder (DataTables will inject) --}}
+            <div id="pagination" class="pagination"></div>
             </div>
         </div>
     </div>

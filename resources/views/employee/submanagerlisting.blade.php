@@ -92,17 +92,17 @@
 
                     <div class="col-md-4 text-end">
                         @if(Auth::user()->is_admin == null)
-                        <button type="button" class="btn return-btn"
-                            onclick="window.history.back() || (window.location.href='/dashboard');">
-                            <i class="fas fa-arrow-left me-2"></i> Back
-                        </button>
+                            <button type="button" class="btn return-btn"
+                                onclick="window.history.back() || (window.location.href='/dashboard');">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </button>
                         @else
-                        <button type="button" class="btn return-btn"
-                            onclick="window.history.back() || (window.location.href='/managerdashboard');">
-                            <i class="fas fa-arrow-left me-2"></i> Back
-                        </button>
+                            <button type="button" class="btn return-btn"
+                                onclick="window.history.back() || (window.location.href='/managerdashboard');">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </button>
                         @endif
-                     
+
                     </div>
                 </div>
 
@@ -277,7 +277,7 @@
                                 size: 'small'
                             });
                             let switchElement = $(this).next('.switchery')[0];
-                            tippy(switchElement, { content: 'Change Status', placement: 'top' });
+                            tippy(switchElement, { content: this.getAttribute('data-tooltip') || 'Change Status', placement: 'top' });
                         }
                     });
 
@@ -385,6 +385,30 @@
                         modal.show();
                         $('#campaignlistingbody').html(response.html);
                     }
+                }
+            });
+        }
+
+        function disablelogin(employeeid, employeemail) {
+            $.ajax({
+                url: "{{ route('employee.manageemployeelogin') }}",
+                method: 'post',
+                data: {
+                    employeeid,
+                    employeemail,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.status == 200) {
+                        alert(response.message);
+                    } else {
+                        alert('Failed to toggle status.');
+                    }
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
                 }
             });
         }

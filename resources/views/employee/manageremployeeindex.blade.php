@@ -418,6 +418,33 @@
       });
     }
 
+    function disablelogin(employeeid, employeemail) {
+      $.ajax({
+        url: "{{ route('employee.manageemployeelogin') }}", // Corrected route syntax
+        method: 'post',
+        data: {
+          employeeid,
+          employeemail,
+          _token: $('meta[name="csrf-token"]').attr('content') // Laravel CSRF token
+        },
+        dataType: "json",
+
+        success: function (response) {
+          if (response.status == 200) {
+            alert(response.message);
+          } else {
+            alert('Failed to toggle status.');
+          }
+        },
+        error: function (error) {
+          console.error('Error:', error);
+          alert('An error occurred. Please try again.');
+        }
+      });
+
+    }
+
+
     function closemodal() {
       $('#assignsubmanager').modal('hide');
       $('#campaignlisting').modal('hide');

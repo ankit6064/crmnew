@@ -2352,3 +2352,17 @@ div#status-modal button.close.close-status-modal {
 
 }
 /*-mediaquery-*/
+
+/* Style for No matching records found td to span full width */
+.dataTables_empty,
+table tbody tr td.dataTables_empty,
+.graph tbody tr td.dataTables_empty,
+.graph.campaignslist.logstable.myself-logs.daily-report tr td.dataTables_empty,
+.graph.campaignslist.logstable.myself-logs tr td.dataTables_empty,
+.graph.campaignslist.logstable tr td.dataTables_empty,
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads tr td.dataTables_empty,
+.graph.campaignslist.logstable.lead-listing tr td.dataTables_empty {
+    display: table-cell !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}

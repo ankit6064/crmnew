@@ -283,25 +283,17 @@
                     $('#spinner-overlay').hide(); // Hide full-page spinner when data has been loaded
                 });
 
-                // Show spinner on page change (redraw)
-                table.on('draw.dt', function () {
-                    $('#spinner-overlay').show(); // Show spinner on page change
+                // Show loader immediately when filters change
+                $('#employee_id, #callback_status').on('change', function () {
+                    $('#spinner-overlay').show();
+                    table.ajax.reload(); // Reload DataTable with new filter values
                 });
 
-                // Hide spinner after each page draw is completed
-                table.on('draw.dt', function () {
-                    $('#spinner-overlay').hide(); // Hide spinner after data is rendered
-                });
-                $('#employee_id').on('change', function () {
-                    table.ajax.reload(); // Reload DataTable with new filter values
-                });
-                $('#callback_status').on('change', function () {
-                    table.ajax.reload(); // Reload DataTable with new filter values
-                });
+                // Show loader immediately when filters are reset
                 $('#resetFilters').click(function () {
                     $('#employee_id').val('');
                     $('#callback_status').val('');
-
+                    $('#spinner-overlay').show();
                     table.draw(); // reload data
                 });
             });

@@ -1026,12 +1026,13 @@ class LeadsController extends Controller
                 ->rawColumns(['prospect_name', 'status', 'action', 'contact_number_1'])
                 ->addColumn('status', function ($row) {
                     $statuses = [
+                        0 => '<p class="status-label pending">Pending</p>',
                         1 => '<p class="status-label pending">Pending</p>',
                         2 => '<p class="status-label failed">Failed</p>',
                         3 => '<p class="status-label completed">Completed</p>',
                         4 => '<p class="status-label in-progress">In Progress</p>',
                     ];
-                    return $statuses[$row->status] ?? '';
+                    return $statuses[$row->status] ?? '<p class="status-label pending">Pending</p>';
                 })
                 ->addColumn('action', function ($row) {
                     return "<a href='/leads/{$row->id}' target='_blank'><i class='fa fa-eye' style='color:black; cursor:pointer;'></i></a>";
@@ -1131,6 +1132,7 @@ class LeadsController extends Controller
 
                 ->editColumn('status', function ($row) {
                     $statuses = [
+                        0 => '<p class="pending">Pending</p>',
                         1 => '<p class="pending">Pending</p>',
                         2 => '<p class="failed">Failed</p>',
                         3 => '<p class="completed">Closed</p>',
@@ -1138,7 +1140,7 @@ class LeadsController extends Controller
                         5 => '<p class="in-progress">Completed</p>',
                     ];
 
-                    return $statuses[$row->status] ?? '--';
+                    return $statuses[$row->status] ?? '<p class="pending">Pending</p>';
                 })
 
                 ->addColumn('action', function ($row) {
@@ -1420,7 +1422,7 @@ class LeadsController extends Controller
 
                     if ($row->lhs_sent_at) {
                         $lhsSentAt = \Carbon\Carbon::parse($row->lhs_sent_at);
-                        
+
                         // If LHS sent less than 24 hours ago and no reminder sent yet
                         if (!$row->lhs_reminder_sent_at && $lhsSentAt->diffInHours(now()) < 24) {
                             return '<span class="badge bg-secondary">LHS Sent (Wait 24h)</span>';
@@ -1428,7 +1430,7 @@ class LeadsController extends Controller
 
                         if ($row->lhs_reminder_sent_at) {
                             $reminderSentAt = \Carbon\Carbon::parse($row->lhs_reminder_sent_at);
-                            
+
                             // If reminder sent more than 24 hours ago, show RED button
                             if ($reminderSentAt->diffInHours(now()) >= 24) {
                                 return '<button class="btn btn-sm btn-danger send-lhs-reminder" data-id="' . $row->id . '">
