@@ -1035,7 +1035,7 @@ class LeadsController extends Controller
                     return $statuses[$row->status] ?? '<p class="status-label pending">Pending</p>';
                 })
                 ->addColumn('action', function ($row) {
-                    return "<a href='/leads/{$row->id}' target='_blank'><i class='fa fa-eye' style='color:black; cursor:pointer;'></i></a>";
+                    return "<a href='" . route('showlead', $row->id) . "' target='_blank'><i class='fa fa-eye' style='color:black; cursor:pointer;'></i></a>";
                 })
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at
@@ -2540,12 +2540,12 @@ class LeadsController extends Controller
 
         $accessibleFields = '';
         $accessibleFieldsData = '';
-        // if (auth()->user()->manager_type == 2) {
-        //     $accessibleFields = 'consider';
-        //     if (isset($data['source']['accessible_fields']) && !empty($data['source']['accessible_fields'])) {
-        //         $accessibleFieldsData = unserialize($data['source']['accessible_fields']);
-        //     }
-        // }
+        if (auth()->user()->manager_type == 2) {
+            $accessibleFields = 'consider';
+            if (isset($data['source']['accessible_fields']) && !empty($data['source']['accessible_fields'])) {
+                $accessibleFieldsData = unserialize($data['source']['accessible_fields']);
+            }
+        }
 
         $fiedsArray = array();
         $fiedsArray['phoneAccessible'] = true;

@@ -121,7 +121,7 @@
                                     <th>Time Zone</th>
                                     <th>Designation</th>
                                     <th>Phone No.</th>
-                                    <th>Date</th>
+                                    <th>Created At</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
