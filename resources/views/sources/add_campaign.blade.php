@@ -26,18 +26,18 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="start_date">Start Date</label>
-                            <input type="text" name="start_date" id="start_date" placeholder="Start Date" readonly
-                                value="{{ $source['start_date'] }}">
-                        </div>
-                        <div class="form-group">
-                            <label for="end_date">End Date</label>
-                            <input type="text" name="end_date" id="end_date" placeholder="End Date" readonly
-                                value="{{ $source['end_date'] }}">
-                        </div>
-                    </div>
+                    <!-- <div class="form-row">
+                                <div class="form-group">
+                                    <label for="start_date">Start Date</label>
+                                    <input type="text" name="start_date" id="start_date" placeholder="Start Date" readonly
+                                        value="{{ $source['start_date'] }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="end_date">End Date</label>
+                                    <input type="text" name="end_date" id="end_date" placeholder="End Date" readonly
+                                        value="{{ $source['end_date'] }}">
+                                </div>
+                            </div> -->
 
                     <div class="file-upload-section">
                         <label for="lead_file" class="file-label">Import Bulk Leads <span
@@ -62,7 +62,7 @@
     </div>
 
     <div class="popupcenter" id="successModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+                        background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
         <div class="popupp">
             <div class="success-icon">
                 <i class="fa-solid fa-circle-check"></i>
@@ -72,7 +72,7 @@
     </div>
 
     <div class="popupcenter" id="duplicateModal" style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh;
-    background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+            background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
         <div class="popupp">
             <div class="success-icon">
                 <i class="fa-solid fa-circle-exclamation"></i>
@@ -94,7 +94,7 @@
 
     <script>
         $(document).ready(function () {
-            
+
             // Fix for 'extension' method not being found
             if ($.validator) {
                 $.validator.addMethod("extension", function (value, element, param) {
@@ -111,7 +111,7 @@
                 rules: {
                     file: {
                         required: true,
-                        extension: "csv,xls,xlsx"               
+                        extension: "csv,xls,xlsx"
                     }
                 },
                 messages: {

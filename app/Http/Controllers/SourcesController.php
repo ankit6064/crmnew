@@ -136,10 +136,22 @@ class SourcesController extends Controller
             'description' => 'required',
         ]);
 
+        $validator->after(function ($validator) use ($request) {
+            $exists = Source::whereRaw('LOWER(source_name) = ?', [strtolower($request->source_name)])
+                ->whereRaw('LOWER(description) = ?', [strtolower($request->description)])
+                ->exists();
+            if ($exists) {
+                $validator->errors()->add('source_name', 'Campaign already exists.');
+            }
+        });
+
         if ($validator->fails()) {
-            return response()->json([
-                'error' => $validator->errors()->all()
-            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'error' => $validator->errors()->all()
+                ]);
+            }
+            return redirect()->route('sources.create')->withErrors($validator)->withInput()->with('error', $validator->errors()->first());
         }
 
         // Create Campaign
@@ -491,8 +503,23 @@ class SourcesController extends Controller
             ]
         );
 
+        $validator->after(function ($validator) use ($request, $id) {
+            $exists = Source::whereRaw('LOWER(source_name) = ?', [strtolower($request->source_name)])
+                ->whereRaw('LOWER(description) = ?', [strtolower($request->description)])
+                ->where('id', '!=', $id)
+                ->exists();
+            if ($exists) {
+                $validator->errors()->add('source_name', 'Campaign already exists.');
+            }
+        });
+
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'error' => $validator->errors()->all()
+                ]);
+            }
+            return redirect()->back()->withErrors($validator)->withInput()->with('error', $validator->errors()->first());
         }
 
         $input = $request->all();
@@ -2309,20 +2336,25 @@ class SourcesController extends Controller
     public function checkCampaignExists(Request $request)
     {
         $campaignName = strtolower($request->source_name);
+        $subCampaign = strtolower($request->description);
 
-        if (isset($request->source_id) && !empty($request->source_id)) {
-            $checkSourceName = Source::whereRaw('LOWER(source_name) = ?', [$campaignName])->where('id', '!=', $request->source_id)->first();
+        $query = Source::whereRaw('LOWER(source_name) = ?', [$campaignName]);
 
-        } else {
-            $checkSourceName = Source::whereRaw('LOWER(source_name) = ?', [$campaignName])->first();
-
+        if (!empty($subCampaign)) {
+            $query->whereRaw('LOWER(description) = ?', [$subCampaign]);
         }
 
+        $id = $request->source_id ?: $request->id;
+        if (!empty($id)) {
+            $query->where('id', '!=', $id);
+        }
+
+        $checkSourceName = $query->first();
 
         if ($checkSourceName) {
             return response()->json([
                 'status' => 400,
-                'message' => 'Source Exists'
+                'message' => 'Campaign already exists.'
             ]);
         } else {
             return response()->json([

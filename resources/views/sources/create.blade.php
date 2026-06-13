@@ -155,46 +155,41 @@ $(document).ready(function () {
                 return;
             }
 
-            const fileName = $('#lead_file').val().split('\\').pop();
-            const ext = fileName.split('.').pop().toLowerCase();
             const campaignName = $('#campaign').val();
+            const description = $('#sub_campaign').val();
 
-            if (ext === 'csv') {
+            $.ajax({
+                url: "{{ route('sources.checkCampaignExists') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    source_name: campaignName,
+                    description: description
+                },
 
-                $.ajax({
-                    url: "{{ route('sources.checkCampaignExists') }}",
-                    type: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        source_name: campaignName
-                    },
+                success: function (response) {
 
-                    success: function (response) {
+                    if (response.status == 400) {
 
-                        if (response.status == 400) {
+                        var validator = $('#campaignForm').validate();
+                        validator.showErrors({
+                            source_name: "Campaign already exists."
+                        });
 
-                            $('#duplicateModal').css('display', 'flex');
+                    } else {
 
-                        } else {
+                        skipCampaignCheck = true;
+                        form.submit();
 
-                            skipCampaignCheck = true;
-                            form.submit();
-
-                        }
-
-                    },
-
-                    error: function () {
-                        alert("Something went wrong while checking campaign.");
                     }
 
-                });
+                },
 
-            } else {
+                error: function () {
+                    alert("Something went wrong while checking campaign.");
+                }
 
-                form.submit();
-
-            }
+            });
         }
 
     });
@@ -249,6 +244,17 @@ $(document).ready(function () {
                     }, 3000);
 
                 }, 100);
+            });
+        @endif
+
+        @if(session('error'))
+            $(document).ready(function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: '{{ session('error') }}',
+                    confirmButtonColor: '#192e62',
+                });
             });
         @endif
     </script>
