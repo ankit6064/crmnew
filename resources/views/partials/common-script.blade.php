@@ -44,17 +44,48 @@
         $(document).on('click', '.copy-password-btn', function () {
             var password = $(this).data('password');
             if (password) {
-                navigator.clipboard.writeText(password).then(function () {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success('Password copied to clipboard!');
-                    } else {
-                        alert('Password copied to clipboard!');
-                    }
-                }).catch(function (err) {
-                    console.error('Failed to copy: ', err);
-                });
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(password).then(function () {
+                        showCopySuccess();
+                    }).catch(function (err) {
+                        console.error('Failed to copy: ', err);
+                        fallbackCopyTextToClipboard(password);
+                    });
+                } else {
+                    fallbackCopyTextToClipboard(password);
+                }
             }
         });
+
+        function showCopySuccess() {
+            if (typeof toastr !== 'undefined') {
+                toastr.success('Password copied to clipboard!');
+            } else {
+                alert('Password copied to clipboard!');
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    showCopySuccess();
+                } else {
+                    console.error('Fallback copy command was unsuccessful');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed: ', err);
+            }
+            document.body.removeChild(textArea);
+        }
     });
 </script>
 <!-- Toastr options-->
