@@ -190,8 +190,7 @@
                         email: {
                             required: true,
                             email: true
-                        },
-                        address: "required"
+                        }
                     },
                     messages: {
                         first_name: "Please enter first name.",
@@ -200,8 +199,7 @@
                         email: {
                             required: "Please enter email.",
                             email: "Enter a valid email."
-                        },
-                        address: "Please enter address."
+                        }
                     },
                     errorClass: 'error text-danger',
                     validClass: 'valid',

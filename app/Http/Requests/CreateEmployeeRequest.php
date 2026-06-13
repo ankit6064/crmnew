@@ -26,7 +26,7 @@ class CreateEmployeeRequest extends FormRequest
             'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
             'phone_no' => 'required|numeric',
             'email' => 'required|email|unique:users,email',
-            'address' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
             'manager' => 'nullable|exists:users,id',
         ];
     }
@@ -45,7 +45,6 @@ class CreateEmployeeRequest extends FormRequest
             'last_name.regex' => 'Last name must contain only letters and spaces.',
             'phone_no.required' => 'Phone number is required.',
             'email.required' => 'Email is required.',
-            'address.required' => 'Address is required.',
             'manager.exists' => 'The selected manager is invalid.',
         ];
     }

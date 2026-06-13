@@ -100,12 +100,12 @@
                     <div class="col-md-4 text-end">
                         @if(Auth::user()->is_admin == null)
                         <button type="button" class="btn return-btn"
-                            onclick="window.history.back() || (window.location.href='/dashboard');">
+                            onclick="window.history.back() || (window.location.href='{{ route('dashboard') }}');">
                             <i class="fas fa-arrow-left me-2"></i> Back
                         </button>
                         @else
                         <button type="button" class="btn return-btn"
-                            onclick="window.history.back() || (window.location.href='/managerdashboard');">
+                            onclick="window.history.back() || (window.location.href='{{ route('managerdashboard') }}');">
                             <i class="fas fa-arrow-left me-2"></i> Back
                         </button>
                         @endif

@@ -40,7 +40,7 @@
 
                 <div class="col-md-4 text-end">
                     <button type="button" class="btn return-btn"
-                        onclick="window.history.back() || (window.location.href='/managerdashboard');">
+                        onclick="window.history.back() || (window.location.href='{{ route('managerdashboard') }}');">
                         <i class="fas fa-arrow-left me-2"></i> Back
                     </button>
                 </div>

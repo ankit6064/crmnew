@@ -26,7 +26,7 @@ class StoreManagerRequest extends FormRequest
             'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
             'phone_no' => 'required|numeric|digits:10',
             'email' => 'required|email',
-            'address' => 'required|string|min:3|max:255',
+            'address' => 'nullable|string|max:255',
             'manager_type' => 'required|in:1,2'
         ];
     }

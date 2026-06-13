@@ -60,7 +60,7 @@
 
                     <div class="col-md-4 text-end">
                         <button type="button" class="btn return-btn"
-                            onclick="window.history.back() || (window.location.href='/sources/employeecampaign');">
+                            onclick="window.history.back() || (window.location.href='{{ route('sources.employeecampaign') }}');">
                             <i class="fas fa-arrow-left me-2"></i> Back
                         </button>
                     </div>

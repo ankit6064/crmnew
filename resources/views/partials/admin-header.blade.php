@@ -119,7 +119,7 @@
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = '/leads/callbackleads'; // replace with your target URL
+                            window.location.href = '{{ route('callbackleads') }}'; // replace with your target URL
                         }
                     });
                 }
@@ -153,7 +153,7 @@
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = '/leads/managercallbackleads?status=passed'; // replace with your target URL
+                            window.location.href = '{{ route('managercallbackleads', ['status' => 'passed']) }}'; // replace with your target URL
                         }
                     });
                 }
