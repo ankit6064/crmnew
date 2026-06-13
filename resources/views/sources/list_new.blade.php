@@ -176,13 +176,14 @@
 
                                     <th width="200" style="text-align:center">Campaign</th>
                                     <th width="200" style="text-align:center">Sub Campaign</th>
-                                    <th width="200" style="text-align:center">Transfer</th>
-                                    <th width="50" style="text-align:center">Leads</th>
-                                    <th width="50" style="text-align:center">Distribution</th>
                                     <th width="50" style="text-align:center">Manager</th>
+                                    <th width="50" style="text-align:center">Leads</th>
+                                    <th width="200" style="text-align:center">Transfer</th>
 
-                                    <th style="text-align:center">Created On</th>
-                                    <th style="text-align:center">Modified On</th>
+                                    <!-- <th width="50" style="text-align:center">Distribution</th> -->
+
+                                    <th style="text-align:center">Created At</th>
+                                    <th style="text-align:center">Updated At</th>
                                     <th width="50" style="text-align:center">Status</th>
 
                                     <!--<th>Total Amount</th>-->
@@ -405,10 +406,11 @@
                 columns: [
                     { data: 'source_name_new', name: 'source_name' },
                     { data: 'description', name: 'description' },
-                    { data: 'transfer', name: 'transfer', orderable: false },
-                    { data: 'total_leads_new', name: 'total_leads' },
-                    { data: 'company_distribution', name: 'company_distribution', orderable: false },
                     { data: 'manager_name', name: 'manager_name', orderable: false },
+                    { data: 'total_leads_new', name: 'total_leads' },
+
+                    { data: 'transfer', name: 'transfer', orderable: false },
+                    // { data: 'company_distribution', name: 'company_distribution', orderable: false },
 
                     { data: 'created_at_new', name: 'created_at', orderable: true },
                     { data: 'updated_at_new', name: 'updated_at', orderable: true },
