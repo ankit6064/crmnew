@@ -2540,12 +2540,12 @@ class LeadsController extends Controller
 
         $accessibleFields = '';
         $accessibleFieldsData = '';
-        if (auth()->user()->manager_type == 2) {
-            $accessibleFields = 'consider';
-            if (isset($data['source']['accessible_fields']) && !empty($data['source']['accessible_fields'])) {
-                $accessibleFieldsData = unserialize($data['source']['accessible_fields']);
-            }
-        }
+        // if (auth()->user()->manager_type == 2) {
+        //     $accessibleFields = 'consider';
+        //     if (isset($data['source']['accessible_fields']) && !empty($data['source']['accessible_fields'])) {
+        //         $accessibleFieldsData = unserialize($data['source']['accessible_fields']);
+        //     }
+        // }
 
         $fiedsArray = array();
         $fiedsArray['phoneAccessible'] = true;

@@ -366,13 +366,19 @@ class SourcesController extends Controller
                     if (!empty($row->assign_to_manager) && !empty($row->manager)) {
                         return $row->manager->name;
                     } else {
-                        $assignmanager = '<a href="#" onclick="assignmanager(' . $row->id . ');" style="background-color:black;color:white">
+                        if (Auth::user()->is_admin == null) {
+
+                            $assignmanager = '<a href="#" onclick="assignmanager(' . $row->id . ');" style="background-color:black;color:white">
                                     <span class="label label-warning" data-tippy-content="Assign to Manager">
                                         Assign
                                     </span>
                                   </a>';
-                        return $assignmanager;
+                            return $assignmanager;
+                        } else {
+                            return 'N/A';
+                        }
                     }
+
                 })
 
                 ->addColumn('status', function ($row) {
