@@ -384,6 +384,7 @@ class SourcesController extends Controller
                 /* ACTION COLUMN WITH ALL TIPPY ADDED */
                 ->addColumn('action', function ($row) {
                     $html = '
+                    
                         <a href="' . url('/sources/' . $row->id . '/leadview') . '" target="_blank">
                             <span class="label" data-tippy-content="View Leads" style="color:#000;font-size:15px;">
                                 <i class="fa-solid fa-eye"></i>

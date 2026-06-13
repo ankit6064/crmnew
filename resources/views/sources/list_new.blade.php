@@ -469,7 +469,7 @@
 
                         // 4️⃣ Attach tooltip to Switchery UI
                         tippy(switcheryUI, {
-                            content: 'Manage Status',
+                            content: this.checked ? 'Inactive Campaign' : 'Active Campaign',
                             theme: 'light-border',
                             placement: 'top'
                         });
@@ -701,12 +701,22 @@
                             // timer: 2000,
                             showConfirmButton: true
                         });
+                        
+                        // Dynamically update the count cards
+                        $('.filter-card[data-filter="total"] .card-body h2').text(response.total);
+                        $('.filter-card[data-filter="active"] .card-body h2').text(response.active);
+                        $('.filter-card[data-filter="inactive"] .card-body h2').text(response.inactive);
+                        
+                        // Redraw table dynamically
+                        $('#employee-table').DataTable().draw(false);
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Failed',
                             text: response.message || 'Unable to update status'
                         });
+                        // Revert checkbox state by redrawing table
+                        $('#employee-table').DataTable().draw(false);
                     }
                 },
                 error: function () {
@@ -715,6 +725,8 @@
                         title: 'Error',
                         text: 'Something went wrong. Please try again.'
                     });
+                    // Revert checkbox state by redrawing table
+                    $('#employee-table').DataTable().draw(false);
                 }
             });
         }
