@@ -20,7 +20,17 @@
                 elseif ($status == 'Rescheduled') $pageTitle = 'Meeting Rescheduled';
                 elseif ($status == 'Pending') $pageTitle = 'Pending Meetings';
             @endphp
-            <h2 id="page-title">{{ $pageTitle }}</h2>
+            <div class="row align-items-center mb-3">
+                <div class="col-md-8">
+                    <h2 id="page-title" class="mb-0">{{ $pageTitle }}</h2>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button type="button" class="btn return-btn"
+                        onclick="window.history.back() || (window.location.href='{{ Auth::user()->is_admin == null ? route('dashboard') : (Auth::user()->is_admin == 1 ? route('employeedashboard') : route('managerdashboard')) }}');">
+                        <i class="fas fa-arrow-left me-2"></i> Back
+                    </button>
+                </div>
+            </div>
 
             <div class="graph campaignslist">
 

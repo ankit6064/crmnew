@@ -72,8 +72,12 @@
                 @endif
 
                 <div class="card card-outline-info">
-                    <div class="card-header">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                         <h4 class="m-b-0 text-white">Callback Lead List</h4>
+                        <button type="button" class="btn btn-sm" style="background-color: #fff; color: #000; font-weight: 500; border-radius: 4px; border: 1px solid #fff; display: flex; align-items: center;"
+                            onclick="window.history.back() || (window.location.href='{{ Auth::user()->is_admin == null ? route('dashboard') : (Auth::user()->is_admin == 1 ? route('employeedashboard') : route('managerdashboard')) }}');">
+                            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i> Back
+                        </button>
                     </div>
 
                     <div class="card-body">
