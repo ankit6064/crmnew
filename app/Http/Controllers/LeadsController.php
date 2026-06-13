@@ -1002,16 +1002,25 @@ class LeadsController extends Controller
                         return 'N/A';
                     }
 
-                    // Split by comma, semicolon, or space
-                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
-                    $numbers = array_filter($numbers); // Remove empty strings
+                    // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+                    if (strpos($row->contact_number_1, '/-') !== false) {
+                        $numbers = explode('/-', $row->contact_number_1);
+                    } else {
+                        $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    }
+                    $numbers = array_map('trim', $numbers);
+                    $numbers = array_values(array_filter($numbers)); // Remove empty strings
                     $count = count($numbers);
 
-                    if ($count <= 1) {
-                        return $row->contact_number_1;
+                    if ($count == 0) {
+                        return 'N/A';
                     }
 
                     $firstNumber = $numbers[0];
+                    if ($count <= 1) {
+                        return $firstNumber;
+                    }
+
                     $contact = json_encode($row->contact_number_1);
                     // Pass the rest of the numbers as a JSON array to the JS function
     
@@ -1159,16 +1168,25 @@ class LeadsController extends Controller
                         return 'N/A';
                     }
 
-                    // Split by comma, semicolon, or space
-                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
-                    $numbers = array_filter($numbers); // Remove empty strings
+                    // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+                    if (strpos($row->contact_number_1, '/-') !== false) {
+                        $numbers = explode('/-', $row->contact_number_1);
+                    } else {
+                        $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    }
+                    $numbers = array_map('trim', $numbers);
+                    $numbers = array_values(array_filter($numbers)); // Remove empty strings
                     $count = count($numbers);
 
-                    if ($count <= 1) {
-                        return $row->contact_number_1;
+                    if ($count == 0) {
+                        return 'N/A';
                     }
 
                     $firstNumber = $numbers[0];
+                    if ($count <= 1) {
+                        return $firstNumber;
+                    }
+
                     $contact = json_encode($row->contact_number_1);
                     // Pass the rest of the numbers as a JSON array to the JS function
     
@@ -1324,16 +1342,25 @@ class LeadsController extends Controller
                         return 'N/A';
                     }
 
-                    // Split by comma, semicolon, or space
-                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
-                    $numbers = array_filter($numbers); // Remove empty strings
+                    // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+                    if (strpos($row->contact_number_1, '/-') !== false) {
+                        $numbers = explode('/-', $row->contact_number_1);
+                    } else {
+                        $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    }
+                    $numbers = array_map('trim', $numbers);
+                    $numbers = array_values(array_filter($numbers)); // Remove empty strings
                     $count = count($numbers);
 
-                    if ($count <= 1) {
-                        return $row->contact_number_1;
+                    if ($count == 0) {
+                        return 'N/A';
                     }
 
                     $firstNumber = $numbers[0];
+                    if ($count <= 1) {
+                        return $firstNumber;
+                    }
+
                     $contact = json_encode($row->contact_number_1);
                     // Pass the rest of the numbers as a JSON array to the JS function
     
