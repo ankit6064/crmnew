@@ -22,8 +22,8 @@ class UpdateManagerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
+            'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
             'phone_no' => 'required|numeric|digits:10',
             'email' => 'required|email|unique:users,email,' . $this->route('manager_id'),
             'address' => 'nullable|string|max:255',
@@ -41,7 +41,9 @@ class UpdateManagerRequest extends FormRequest
     {
         return [
             'first_name.required' => 'First name is required.',
+            'first_name.regex' => 'First name must contain only letters and spaces.',
             'last_name.required' => 'Last name is required.',
+            'last_name.regex' => 'Last name must contain only letters and spaces.',
             'phone_no.required' => 'Phone number is required.',
             'phone_no.numeric' => 'Phone number must be a valid number.',
             'phone_no.digits' => 'Phone number must be 10 digits.',

@@ -137,7 +137,7 @@
                         Update
                     </button>
 
-                    <button type="button" class="btn-cancel" onclick="window.history.back();">
+                    <button type="button" class="btn-cancel" onclick="window.location.href='{{ route('manager.index') }}'">
                         Cancel
                     </button>
                 </div>
@@ -161,6 +161,10 @@ function updateManager() {
 
     $('.text-danger').text('');
     $('input, select').css('border', '');
+
+    if (!$("#managerUpdateForm").valid()) {
+        return;
+    }
 
     let formData = new FormData($('#managerUpdateForm')[0]);
 

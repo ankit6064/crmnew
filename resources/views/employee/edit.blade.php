@@ -120,7 +120,7 @@
                         <button type="button" class="btn btn-save" onclick="submitform();">
                             Update
                         </button>
-                        <button type="button" class="btn btn-cancel" onclick="window.history.back();">
+                        <button type="button" class="btn btn-cancel" onclick="window.location.href='{{ route('employee.manageremployeeindex') }}'">
                             Cancel
                         </button>
                     </div>
@@ -155,7 +155,7 @@
                     let employeeId = $('#employee_id').val();
 
                     $.ajax({
-                        url: "/employee/" + employeeId,
+                        url: "{{ route('employee.update', $employee->id) }}",
                         method: 'POST',
                         data: formData,
                         processData: false,

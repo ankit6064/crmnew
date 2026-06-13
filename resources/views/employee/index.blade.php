@@ -322,7 +322,12 @@
         },
         {
           data: 'orignal_password',
-          name: 'orignal_password'
+          name: 'orignal_password',
+          orderable: false,
+          render: function(data) {
+            if (!data || data === 'N/A') return "N/A";
+            return `<span>${data}</span> <i class="fa-regular fa-copy copy-password-btn" data-password="${data}" style="cursor: pointer; margin-left: 5px; color: #192e62;" title="Copy Password"></i>`;
+          }
         },
         {
           data: 'phone_no',

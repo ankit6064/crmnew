@@ -28,17 +28,16 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         // Check if the user's account is active
         if (Auth::user()->is_active == 2) {
-        // Log the user out immediately
-        Auth::logout();
+            // Log the user out immediately
+            Auth::logout();
 
-        // Redirect back with an error message
-        return back()->withErrors(['email' => 'Your account is inactive. Please contact support.']);
+            // Redirect back with an error message
+            return back()->withErrors(['email' => 'Your account is inactive. Please contact admin.']);
         }
         $request->session()->regenerate();
         if (Auth::user()->is_admin == 1) {
             return redirect()->intended(RouteServiceProvider::EmployeeHOME);
-        }
-        elseif (Auth::user()->is_admin == 2) {
+        } elseif (Auth::user()->is_admin == 2) {
             return redirect()->intended(RouteServiceProvider::ManagerHOME);
         }
         return redirect()->intended(RouteServiceProvider::HOME);

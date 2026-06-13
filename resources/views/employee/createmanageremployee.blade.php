@@ -86,7 +86,7 @@
 
                 <div class="btn-group">
                     <button type="button" class="btn btn-save" onclick="submitform();">Save</button>
-                    <button type="reset" class="btn btn-cancel" onclick="window.history.back();">Cancel</button>
+                    <button type="button" class="btn btn-cancel" onclick="window.location.href='{{ route('employee.manageremployeeindex') }}'">Cancel</button>
                 </div>
 
             </form>
@@ -116,6 +116,10 @@
         function submitform() {
 
             clearErrors();
+
+            if (!$("#employeeForm").valid()) {
+                return;
+            }
 
             let form = $('#employeeForm')[0];
             let formData = new FormData(form);

@@ -88,7 +88,7 @@
 
           <div class="col-md-4 text-end">
             <button type="button" class="btn return-btn"
-              onclick="window.history.back() || (window.location.href='/managerdashboard');">
+              onclick="window.history.back() || (window.location.href='{{ route('managerdashboard') }}');">
               <i class="fas fa-arrow-left me-2"></i> Back
             </button>
           </div>
@@ -271,7 +271,15 @@
           { data: 'first_name', name: 'first_name', render: data => data || "N/A" },
           { data: 'last_name', name: 'last_name', render: data => data || "N/A" },
           { data: 'email', name: 'email', orderable: false, render: data => data || "N/A" },
-          { data: 'orignal_password', name: 'orignal_password', orderable: false, render: data => data || "N/A" },
+          {
+            data: 'orignal_password',
+            name: 'orignal_password',
+            orderable: false,
+            render: function(data) {
+              if (!data || data === 'N/A') return "N/A";
+              return `<span>${data}</span> <i class="fa-regular fa-copy copy-password-btn" data-password="${data}" style="cursor: pointer; margin-left: 5px; color: #192e62;" title="Copy Password"></i>`;
+            }
+          },
           { data: 'phone_no', name: 'phone_no', orderable: false, render: data => data || "N/A" },
           { data: 'totalcampaigns', name: 'totalcampaigns', orderable: false, render: data => data || "N/A" },
           { data: 'sub_manager', name: 'sub_manager', orderable: false, render: data => data || "N/A" },

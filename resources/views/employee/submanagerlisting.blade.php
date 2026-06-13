@@ -93,12 +93,12 @@
                     <div class="col-md-4 text-end">
                         @if(Auth::user()->is_admin == null)
                             <button type="button" class="btn return-btn"
-                                onclick="window.history.back() || (window.location.href='/dashboard');">
+                                onclick="window.history.back() || (window.location.href='{{ route('dashboard') }}');">
                                 <i class="fas fa-arrow-left me-2"></i> Back
                             </button>
                         @else
                             <button type="button" class="btn return-btn"
-                                onclick="window.history.back() || (window.location.href='/managerdashboard');">
+                                onclick="window.history.back() || (window.location.href='{{ route('managerdashboard') }}');">
                                 <i class="fas fa-arrow-left me-2"></i> Back
                             </button>
                         @endif
@@ -261,7 +261,15 @@
                     { data: 'first_name', name: 'first_name', render: data => data || "N/A" },
                     { data: 'last_name', name: 'last_name', render: data => data || "N/A" },
                     { data: 'email', name: 'email', orderable: false, render: data => data || "N/A" },
-                    { data: 'orignal_password', name: 'orignal_password', orderable: false, render: data => data || "N/A" },
+                    {
+                        data: 'orignal_password',
+                        name: 'orignal_password',
+                        orderable: false,
+                        render: function(data) {
+                            if (!data || data === 'N/A') return "N/A";
+                            return `<span>${data}</span> <i class="fa-regular fa-copy copy-password-btn" data-password="${data}" style="cursor: pointer; margin-left: 5px; color: #192e62;" title="Copy Password"></i>`;
+                        }
+                    },
                     { data: 'phone_no', name: 'phone_no', orderable: false, render: data => data || "N/A" },
                     { data: 'totalemployees', name: 'totalemployees', orderable: false, searchable: false, render: data => data || "0" },
                     { data: 'totalcampaigns', name: 'totalcampaigns', orderable: false, searchable: false, render: data => data || "0" },
@@ -282,8 +290,8 @@
                     });
 
                     tippy('.viewEmployee', { content: 'View Employees', placement: 'top' });
-                    tippy('.editEmployee', { content: 'Edit Manager', placement: 'top' });
-                    tippy('.deleteEmployee', { content: 'Delete Employee', placement: 'top' });
+                    tippy('.editEmployee', { content: 'Edit Sub-Manager', placement: 'top' });
+                    tippy('.deleteEmployee', { content: 'Delete Sub-Manager', placement: 'top' });
                 }
             });
 

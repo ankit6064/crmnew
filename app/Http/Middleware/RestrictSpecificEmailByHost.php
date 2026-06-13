@@ -13,7 +13,7 @@ class RestrictSpecificEmailByHost
         // Only apply on login POST requests
         if ($request->is('login') && $request->isMethod('post')) {
             $blockedHost = '127.0.0.1'; // the disallowed IP/domain
-            $checkblock = RestrictEmployeelogin::where('employee_email',$request->input('email'))->first();
+            $checkblock = RestrictEmployeelogin::where('employee_email', $request->input('email'))->first();
 
             $currentHost = $request->getHost();
             // dd($currentHost);

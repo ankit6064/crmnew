@@ -451,6 +451,9 @@ class EmployeeController extends Controller
                 })
 
                 ->addColumn('sub_manager', function ($data) {
+                    if ($data->is_admin == SUBMANAGER) {
+                        return '<span class="badge" style="background-color: #28a745; color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 4px;">Sub-Manager</span>';
+                    }
                     // Customize the action buttons
                     $submanager = '<button style="background-color:#192e62;color:#fff;border-radius:3px" onclick="assignsubmanager(' . $data->id . ')">Assign Role</button>';
                     return $submanager;
@@ -650,12 +653,12 @@ class EmployeeController extends Controller
                 'leads.linkedin_address'
             )
                 ->join('notes', 'notes.lead_id', '=', 'leads.id')
-                ->where('leads.asign_to', (string)auth()->user()->id);
+                ->where('leads.asign_to', (string) auth()->user()->id);
 
 
             // Filter by campaign ID
             if (!empty($campaign_id)) {
-                $query->where('notes.source_id', (string)$campaign_id);
+                $query->where('notes.source_id', (string) $campaign_id);
             }
 
             // Filter by date range
@@ -701,7 +704,7 @@ class EmployeeController extends Controller
 
         // Optimized campaigns query with proper selection
         $campaigns = Lead::select('source_id', DB::raw('COUNT(source_id) as totalLeads'))
-            ->where('asign_to', (string)auth()->user()->id)
+            ->where('asign_to', (string) auth()->user()->id)
             ->groupBy('source_id')
             ->with('source') // eager load the source relationship
             ->get();
@@ -1816,7 +1819,7 @@ class EmployeeController extends Controller
                             class="switchery"
                             type="checkbox"
                             id="togglebtn"
-                            data-tooltip="' . ($statusChecked ? 'Deactivate Employee' : 'Activate Employee') . '"
+                            data-tooltip="' . ($statusChecked ? 'Deactivate Sub-Manager' : 'Activate Employee') . '"
                             ' . $statusChecked . '
                         >';
 

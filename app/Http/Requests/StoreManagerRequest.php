@@ -22,8 +22,8 @@ class StoreManagerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
+            'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
             'phone_no' => 'required|numeric|digits:10',
             'email' => 'required|email',
             'address' => 'required|string|min:3|max:255',
@@ -41,7 +41,9 @@ class StoreManagerRequest extends FormRequest
     {
         return [
             'first_name.required' => 'First Name is required.',
+            'first_name.regex' => 'First name must contain only letters and spaces.',
             'last_name.required' => 'Last Name is required.',
+            'last_name.regex' => 'Last name must contain only letters and spaces.',
             'phone_no.required' => 'Phone Number is required.',
             'email.required' => 'Email address is required.',
             'email.unique' => 'The email address is already taken.',

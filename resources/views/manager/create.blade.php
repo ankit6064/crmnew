@@ -141,7 +141,7 @@
                         Save
                     </button>
 
-                    <button type="button" class="btn-cancel" onclick="window.history.back();">
+                    <button type="button" class="btn-cancel" onclick="window.location.href='{{ route('manager.index') }}'">
                         Cancel
                     </button>
                 </div>
@@ -165,6 +165,10 @@ function submitManager() {
 
     $('.text-danger').text('');
     $('input, select').css('border', '');
+
+    if (!$("#managerForm").valid()) {
+        return;
+    }
 
     let formData = new FormData($('#managerForm')[0]);
 

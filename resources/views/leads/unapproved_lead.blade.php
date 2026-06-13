@@ -139,6 +139,40 @@
             $(document).on('click', '.onchange_element_cross', function () {
                 updateStatus($(this).data('id'), 'cancel', $(this).data('emp-id'));
             });
+
+
+            function updateStatus(leadId, status, empId) {
+                const selectedValue = $(`#${leadId}`).val();
+                const _token = $('input[name="_token"]').val();
+
+
+
+                if (status == 'approved') {
+
+                    var message = 'Do you want to approve this lead?';
+                } else {
+                    var message = 'Do you want to Unapprove this lead?';
+
+                }
+
+
+                if (leadId && confirm(`${message}`)) {
+                    $.ajax({
+                        url: '{{ route("updateApprovalStatus") }}',
+                        type: 'POST',
+                        data: {
+                            leadId,
+                            sourceId: selectedValue,
+                            status,
+                            user_id: empId,
+                            _token
+                        },
+                        success: () => table.ajax.reload(),
+                        error: (jqXHR, textStatus, errorThrown) => console.error(`Error: ${textStatus}`, errorThrown)
+                    });
+                }
+            }
+
         });
     </script>
 

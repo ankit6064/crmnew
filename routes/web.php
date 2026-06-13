@@ -34,23 +34,18 @@ Route::fallback(function () {
     return redirect()->route('login')->with('error', 'Invalid route');
 });
 
-Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/home', [HomeController::class, 'home'])->middleware(['auth', 'verified'])->name('home');
-Route::get('/home_datatable', [HomeController::class, 'home_datatable'])->middleware(['auth', 'verified'])->name('home_datatable');
-Route::get('/employeedashboard', [HomeController::class, 'employeedashboard'])->middleware(['auth', 'verified'])->name('employeedashboard');
-Route::get('/geEmployeeDashboardData', [HomeController::class, 'geEmployeeDashboardData'])->middleware(['auth', 'verified'])->name('geEmployeeDashboardData');
-
-
-
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [HomeController::class, 'index'])->middleware(['verified'])->name('dashboard');
+    Route::get('/home', [HomeController::class, 'home'])->middleware(['verified'])->name('home');
+    Route::get('/home_datatable', [HomeController::class, 'home_datatable'])->middleware(['verified'])->name('home_datatable');
+    Route::get('/employeedashboard', [HomeController::class, 'employeedashboard'])->middleware(['verified'])->name('employeedashboard');
+    Route::get('/geEmployeeDashboardData', [HomeController::class, 'geEmployeeDashboardData'])->middleware(['verified'])->name('geEmployeeDashboardData');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/managerdashboard', [HomeController::class, 'managerdashboard'])->middleware(['auth', 'verified'])->name('managerdashboard');
-    Route::get('/getmanagergraph', [HomeController::class, 'getmanagergraph'])->middleware(['auth', 'verified'])->name('getmanagergraph');
-
-
-});
+    Route::get('/managerdashboard', [HomeController::class, 'managerdashboard'])->middleware(['verified'])->name('managerdashboard');
+    Route::get('/getmanagergraph', [HomeController::class, 'getmanagergraph'])->middleware(['verified'])->name('getmanagergraph');
 
 Route::get('lead/export/{id}/pdf_down', [LeadClosedController::class,'generateSinglePDF'])->name('generateSinglePDF');
 Route::get('download-mom-report/{id}', [SourcesController::class,'downloadmomreport'])->name('download-mom-report');
@@ -214,6 +209,7 @@ Route::prefix('leads')->group(function (): void {
     Route::post('update_meeting_status', [SourcesController::class,'update_meeting_status'])->name('update_meeting_status');
 
     Route::get('notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/filter', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.filter');
     Route::post('notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::get('notifications/count', [\App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.count');
 
@@ -270,10 +266,8 @@ Route::get('filteremployeelogs', [LogsController::class, 'filteremployeelogs'])-
 
 Route::get('filterleadslogs', [LogsController::class, 'filterleadslogs'])->name('filterleadslogs');
 Route::get('viewleadlogs/{id}', [LogsController::class, 'viewleadlogs'])->name('viewleadlogs');
-Route::get('viewleadlogstable', [LogsController::class, 'viewleadlogstable'])->name('viewleadlogstable');
-Route::get('download-csv/{filename}', [ImportExportController::class,'downloadCsv'])->name('download.csv');
-
-
-
+    Route::get('viewleadlogstable', [LogsController::class, 'viewleadlogstable'])->name('viewleadlogstable');
+    Route::get('download-csv/{filename}', [ImportExportController::class,'downloadCsv'])->name('download.csv');
+});
 
 require __DIR__ . '/auth.php';

@@ -41,12 +41,20 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        // $('.switchery').each(function() {
-        //     new Switchery(this, {
-        //         color: '#1AB394',
-        //         secondaryColor: '#f9f9f9'
-        //     });
-        // });
+        $(document).on('click', '.copy-password-btn', function () {
+            var password = $(this).data('password');
+            if (password) {
+                navigator.clipboard.writeText(password).then(function () {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Password copied to clipboard!');
+                    } else {
+                        alert('Password copied to clipboard!');
+                    }
+                }).catch(function (err) {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+        });
     });
 </script>
 <!-- Toastr options-->

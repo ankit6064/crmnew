@@ -16,6 +16,14 @@ class NotificationController extends Controller
             $query->where('type', $request->type);
         }
 
+        if ($request->filled('status')) {
+            if ($request->status == 'read') {
+                $query->where('is_read', true);
+            } elseif ($request->status == 'unread') {
+                $query->where('is_read', false);
+            }
+        }
+
         if ($request->filled('date')) {
             $query->whereDate('created_at', $request->date);
         }
@@ -24,12 +32,23 @@ class NotificationController extends Controller
             ->paginate(20)
             ->appends($request->all());
 
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('notifications.table_partial', compact('notifications'))->render()
+            ]);
+        }
+
         return view('notifications.index', compact('notifications'));
     }
 
     public function markAsRead($id)
     {
         Notification::where('id', $id)->where('user_id', Auth::id())->update(['is_read' => true]);
+
+        if (request()->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
         return back()->with('success', 'Notification marked as read');
     }
 

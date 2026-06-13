@@ -34,7 +34,7 @@
             </li>
             <!-- More left-aligned items -->
         </ul>
-      <input type="hidden" name="usertype" id="usertype" value="{{ Auth::user()->is_admin }}">
+        <input type="hidden" name="usertype" id="usertype" value="{{ Auth::user()->is_admin }}">
         <ul class="navbar-nav my-lg-0 ml-auto">
             <!-- Right-aligned items -->
             <li class="bell-area">
@@ -73,11 +73,6 @@
                             </div>
                         </div>
                     </li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li><a class="dropdown-item" href="http://203.190.154.131/profile">Edit Profile</a></li>
-                    <!-- Additional items can be added here if needed -->
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -166,7 +161,7 @@
             },
         });
     }
-    
+
     $(document).ready(function () {
         var checkleads;
 
