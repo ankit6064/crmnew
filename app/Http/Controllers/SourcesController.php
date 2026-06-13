@@ -361,7 +361,8 @@ class SourcesController extends Controller
                 ->editColumn('source_name_new', function ($data) {
                     return '<div class="tooltip1 source-item source-item-' . $data->id . '" 
                                 data-tippy-content="Source: ' . $data->source_name . '" 
-                                data-source-id="' . $data->id . '">
+                                data-source-id="' . $data->id . '"
+                                style="text-decoration: underline dotted;cursor:pointer">
                                 ' . $data->source_name . '
                             </div>';
                 })

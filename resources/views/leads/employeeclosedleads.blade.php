@@ -892,12 +892,39 @@
         }
 
         function showAllNumbers(numbers) {
-            let rowHtml = '';
+            if (!numbers) return;
+            let numList = [];
+            if (numbers.indexOf('/-') !== -1) {
+                numList = numbers.split('/-');
+            } else {
+                numList = numbers.split(/[,\s;]+/);
+            }
+            numList = numList.map(n => n.trim()).filter(n => n.length > 0);
+            
+            let rowHtml = '<table class="table table-bordered table-striped text-center" style="margin-top: 10px; width: 100%;">';
+            rowHtml += '<thead>';
+            rowHtml += '  <tr>';
+            rowHtml += '    <th style="text-align: center; width: 80px;">Dial</th>';
+            rowHtml += '    <th style="text-align: center;">Phone Number</th>';
+            rowHtml += '  </tr>';
+            rowHtml += '</thead>';
+            rowHtml += '<tbody>';
+            
+            numList.forEach(function(num) {
+                let dialNum = num.replace(/[^0-9+]/g, '');
+                rowHtml += '  <tr>';
+                rowHtml += '    <td>';
+                rowHtml += '      <a href="tel:' + dialNum + '" class="btn btn-xs btn-success" style="border-radius: 50%; padding: 5px 8px; background-color: #28a745; border-color: #28a745;">';
+                rowHtml += '        <i class="fa fa-phone" style="color: white;"></i>';
+                rowHtml += '      </a>';
+                rowHtml += '    </td>';
+                rowHtml += '    <td style="font-size: 15px; font-weight: 500; vertical-align: middle; text-align: left; padding-left: 15px;">' + num + '</td>';
+                rowHtml += '  </tr>';
+            });
+            rowHtml += '</tbody>';
+            rowHtml += '</table>';
 
-            rowHtml += '<p>' + numbers + '</p>';
-
-
-            $('#numberRow').html(rowHtml);
+            $('#numberRow').css('display', 'block').html(rowHtml);
             $('#numberModal').modal('show');
         }
 
