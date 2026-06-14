@@ -13,7 +13,7 @@
             margin-top: 5px !important;
         }
 
-        .daterangepicker .calendar-table th, 
+        .daterangepicker .calendar-table th,
         .daterangepicker .calendar-table td {
             font-family: 'Poppins', sans-serif !important;
             font-size: 13px !important;
@@ -24,24 +24,26 @@
             color: #475569 !important;
         }
 
-        .daterangepicker td.off, 
-        .daterangepicker td.off.in-range, 
-        .daterangepicker td.off.start-date, 
+        .daterangepicker td.off,
+        .daterangepicker td.off.in-range,
+        .daterangepicker td.off.start-date,
         .daterangepicker td.off.end-date {
             color: #cbd5e1 !important;
             background-color: transparent !important;
         }
 
-        .daterangepicker td.available:hover, 
+        .daterangepicker td.available:hover,
         .daterangepicker th.available:hover {
             background-color: #f1f5f9 !important;
         }
 
-        .daterangepicker td.active, 
+        .daterangepicker td.active,
         .daterangepicker td.active:hover {
-            background-color: #3b82f6 !important; /* Blue background color from screenshot */
+            background-color: #3b82f6 !important;
+            /* Blue background color from screenshot */
             color: #ffffff !important;
-            border-radius: 50% !important; /* Circular active day */
+            border-radius: 50% !important;
+            /* Circular active day */
         }
 
         .daterangepicker td.in-range {
@@ -82,7 +84,8 @@
         }
 
         .daterangepicker .applyBtn {
-            background-color: #4b3fb3 !important; /* Dark Purple/Indigo background from screenshot */
+            background-color: #4b3fb3 !important;
+            /* Dark Purple/Indigo background from screenshot */
             border: none !important;
             color: #ffffff !important;
             font-weight: 600 !important;
@@ -113,11 +116,11 @@
 
                 <!-- Filters -->
                 <!-- <div class="row">
-                    <div class="add-submanager">
-                        <input type="search" id="global_filter" name="search" placeholder="search...">
-                    </div>
+                        <div class="add-submanager">
+                            <input type="search" id="global_filter" name="search" placeholder="search...">
+                        </div>
 
-                </div> -->
+                    </div> -->
                 <style>
                     .filter-card {
                         background: #ffffff;
@@ -289,7 +292,7 @@
 
                         <!-- Closed On -->
                         <div class="filter-group">
-                            <label for="closedon">Closed On</label>
+                            <label for="closedon">Completed On</label>
                             <select id="closedon" class="filter-select">
                                 <option value="">Select Date</option>
                                 @foreach($closedon as $d)
@@ -469,7 +472,7 @@
                                         <th>Designation</th>
                                         <th>Email Id</th>
                                         <th>Phone Number</th>
-                                        <th>Closed On</th>
+                                        <th>Completed On</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -620,13 +623,13 @@
                     $('#company_time').val('');
                     $('#closedon').val('');
                     $('#daterange').val('');
-                    
+
                     var drp = $('#daterange').data('daterangepicker');
                     if (drp) {
                         drp.setStartDate(moment());
                         drp.setEndDate(moment());
                     }
-                    
+
                     $('#spinner-overlay').show();
                     table.search('').draw();
                     table.ajax.reload();
@@ -638,7 +641,7 @@
                     var cName = $('#company_s').val() || '';
                     var timeZone = $('#company_time').val() || '';
                     var closedon = $('#closedon').val() || '';
-                    
+
                     var date_from = '';
                     var date_to = '';
                     var drp = $('#daterange').data('daterangepicker');
@@ -646,16 +649,16 @@
                         date_from = drp.startDate.format('YYYY-MM-DD');
                         date_to = drp.endDate.format('YYYY-MM-DD');
                     }
-                    
+
                     var search = table.search() || '';
 
-                    var exportUrl = "{{ route('employeecompletedleads.export_csv') }}" + 
-                        "?campaign_name=" + encodeURIComponent(campaign_name) + 
-                        "&cName=" + encodeURIComponent(cName) + 
-                        "&timeZone=" + encodeURIComponent(timeZone) + 
-                        "&closedon=" + encodeURIComponent(closedon) + 
-                        "&date_from=" + encodeURIComponent(date_from) + 
-                        "&date_to=" + encodeURIComponent(date_to) + 
+                    var exportUrl = "{{ route('employeecompletedleads.export_csv') }}" +
+                        "?campaign_name=" + encodeURIComponent(campaign_name) +
+                        "&cName=" + encodeURIComponent(cName) +
+                        "&timeZone=" + encodeURIComponent(timeZone) +
+                        "&closedon=" + encodeURIComponent(closedon) +
+                        "&date_from=" + encodeURIComponent(date_from) +
+                        "&date_to=" + encodeURIComponent(date_to) +
                         "&search=" + encodeURIComponent(search);
 
                     window.location.href = exportUrl;
@@ -897,86 +900,86 @@
 
 
 
-        function deleteLead(id){
-            Swal.fire({
-            title: 'Are you sure?',
-            text: 'You won\'t be able to revert this!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // Perform the AJAX request to delete the manager
-              $.ajax({
-                url: `delete/${id}`, // Adjust this URL to match your route
-                type: 'GET', // Use GET request for deletion
-                success: function (response) {
-                  // Handle successful response (e.g., show a success message)
-                  Swal.fire(
-                    'Deleted!',
-                    'The lead has been deleted.',
-                    'success'
-                  );
+            function deleteLead(id) {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You won\'t be able to revert this!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Perform the AJAX request to delete the manager
+                        $.ajax({
+                            url: `delete/${id}`, // Adjust this URL to match your route
+                            type: 'GET', // Use GET request for deletion
+                            success: function (response) {
+                                // Handle successful response (e.g., show a success message)
+                                Swal.fire(
+                                    'Deleted!',
+                                    'The lead has been deleted.',
+                                    'success'
+                                );
 
-                  // Redraw the DataTable to reflect the changes
-                  $('#employee-table').DataTable()
-                    .draw(); // Redraw the DataTable
-                },
-                error: function (xhr, status, error) {
-                  // Handle error (e.g., show an error message)
-                  Swal.fire(
-                    'Error!',
-                    'There was an issue deleting the lead.',
-                    'error'
-                  );
-                }
-              });
+                                // Redraw the DataTable to reflect the changes
+                                $('#employee-table').DataTable()
+                                    .draw(); // Redraw the DataTable
+                            },
+                            error: function (xhr, status, error) {
+                                // Handle error (e.g., show an error message)
+                                Swal.fire(
+                                    'Error!',
+                                    'There was an issue deleting the lead.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
             }
-          });      
-          }
 
-          function showAllNumbers(numbers) {
-              if (!numbers) return;
-              let numList = [];
-              if (numbers.indexOf('/-') !== -1) {
-                  numList = numbers.split('/-');
-              } else {
-                  numList = numbers.split(/[,\s;]+/);
-              }
-              numList = numList.map(n => n.trim()).filter(n => n.length > 0);
+            function showAllNumbers(numbers) {
+                if (!numbers) return;
+                let numList = [];
+                if (numbers.indexOf('/-') !== -1) {
+                    numList = numbers.split('/-');
+                } else {
+                    numList = numbers.split(/[,\s;]+/);
+                }
+                numList = numList.map(n => n.trim()).filter(n => n.length > 0);
 
-              let rowHtml = '<table class="table table-bordered table-striped text-center" style="margin-top: 10px; width: 100%;">';
-              rowHtml += '<thead>';
-              rowHtml += '  <tr>';
-              rowHtml += '    <th style="text-align: center; width: 80px;">Dial</th>';
-              rowHtml += '    <th style="text-align: center;">Phone Number</th>';
-              rowHtml += '  </tr>';
-              rowHtml += '</thead>';
-              rowHtml += '<tbody>';
+                let rowHtml = '<table class="table table-bordered table-striped text-center" style="margin-top: 10px; width: 100%;">';
+                rowHtml += '<thead>';
+                rowHtml += '  <tr>';
+                rowHtml += '    <th style="text-align: center; width: 80px;">Dial</th>';
+                rowHtml += '    <th style="text-align: center;">Phone Number</th>';
+                rowHtml += '  </tr>';
+                rowHtml += '</thead>';
+                rowHtml += '<tbody>';
 
-              numList.forEach(function (num) {
-                  let dialNum = num.replace(/[^0-9+]/g, '');
-                  rowHtml += '  <tr>';
-                  rowHtml += '    <td>';
-                  rowHtml += '      <a href="tel:' + dialNum + '" class="btn btn-xs btn-success" style="border-radius: 50%; padding: 5px 8px; background-color: #28a745; border-color: #28a745;">';
-                  rowHtml += '        <i class="fa fa-phone" style="color: white;"></i>';
-                  rowHtml += '      </a>';
-                  rowHtml += '    </td>';
-                  rowHtml += '    <td style="font-size: 15px; font-weight: 500; vertical-align: middle; text-align: left; padding-left: 15px;">' + num + '</td>';
-                  rowHtml += '  </tr>';
-              });
-              rowHtml += '</tbody>';
-              rowHtml += '</table>';
+                numList.forEach(function (num) {
+                    let dialNum = num.replace(/[^0-9+]/g, '');
+                    rowHtml += '  <tr>';
+                    rowHtml += '    <td>';
+                    rowHtml += '      <a href="tel:' + dialNum + '" class="btn btn-xs btn-success" style="border-radius: 50%; padding: 5px 8px; background-color: #28a745; border-color: #28a745;">';
+                    rowHtml += '        <i class="fa fa-phone" style="color: white;"></i>';
+                    rowHtml += '      </a>';
+                    rowHtml += '    </td>';
+                    rowHtml += '    <td style="font-size: 15px; font-weight: 500; vertical-align: middle; text-align: left; padding-left: 15px;">' + num + '</td>';
+                    rowHtml += '  </tr>';
+                });
+                rowHtml += '</tbody>';
+                rowHtml += '</table>';
 
-              $('#numberRow').css('display', 'block').html(rowHtml);
-              $('#numberModal').modal('show');
-          }
+                $('#numberRow').css('display', 'block').html(rowHtml);
+                $('#numberModal').modal('show');
+            }
 
-          function closeNumberModal() {
-              $('#numberModal').modal('hide');
-          }
+            function closeNumberModal() {
+                $('#numberModal').modal('hide');
+            }
 
         </script>
 
