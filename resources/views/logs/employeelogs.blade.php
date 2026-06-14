@@ -94,6 +94,13 @@
 $(document).ready(function () {
 	const url = "{{ route('filteremployeelogs') }}";
 
+	let appliedFilters = {
+		employeeid: $('#employee_id').val() || '',
+		sourceid: $('#source_id').val() || '',
+		date: $('#daterange').val() || '',
+		type: $('#type').val() || ''
+	};
+
 	var table = $('#employee-table').DataTable({
 		processing: false,
 		serverSide: true,
@@ -102,10 +109,10 @@ $(document).ready(function () {
 		ajax: {
 			url: url,
 			data: function (d) {
-				d.employeeid = $('#employee_id').val();
-				d.sourceid = $('#source_id').val();
-				d.date = $('#daterange').val();
-				d.type = $('#type').val();
+				d.employeeid = appliedFilters.employeeid;
+				d.sourceid = appliedFilters.sourceid;
+				d.date = appliedFilters.date;
+				d.type = appliedFilters.type;
 			},
 			beforeSend: function () {
                 $('#spinner-overlay').show();
@@ -135,6 +142,10 @@ $(document).ready(function () {
 
 	// Filter button
 	$('#filterLogs').on('click', function () {
+		appliedFilters.employeeid = $('#employee_id').val();
+		appliedFilters.sourceid = $('#source_id').val();
+		appliedFilters.date = $('#daterange').val();
+		appliedFilters.type = $('#type').val();
 		$('#spinner-overlay').show();
 		table.ajax.reload();
 	});
@@ -142,6 +153,10 @@ $(document).ready(function () {
 	// Reset button
 	$('#reset').on('click', function () {
 		$('#employee_id, #source_id, #type, #daterange').val('');
+		appliedFilters.employeeid = '';
+		appliedFilters.sourceid = '';
+		appliedFilters.date = '';
+		appliedFilters.type = '';
 		$('#spinner-overlay').show();
 		table.ajax.reload();
 	});

@@ -1068,7 +1068,8 @@ class SourcesController extends Controller
             ->toArray();
 
         $sourceNames = Source::whereIn('id', $sourceIds)
-            ->select('source_name', 'description')
+            ->select('source_name')
+            ->distinct()
             ->orderBy('source_name')
             ->get();
 
@@ -1134,15 +1135,15 @@ class SourcesController extends Controller
                         });
                 });
             }
-            $columnIndex = $request->input('order.0.column'); // this will be 10
+            $columnIndex = $request->input('order.0.column'); // this will be 9
             $direction = $request->input('order.0.dir');      // this will be 'desc'
 
-            if (!is_null($columnIndex) && $columnIndex == 10 && $direction == 'desc') {
+            if (!is_null($columnIndex) && $columnIndex == 9 && $direction == 'desc') {
                 $query->orderbyDesc('leads.closed_on')->orderByDesc('leads.updated_at');
 
             }
 
-            if (!is_null($columnIndex) && $columnIndex == 10 && $direction == 'asc') {
+            if (!is_null($columnIndex) && $columnIndex == 9 && $direction == 'asc') {
                 $query->orderBy('leads.closed_on')->orderBy('leads.updated_at');
 
             }
@@ -1797,7 +1798,8 @@ class SourcesController extends Controller
             ->toArray();
 
         $sourceNames = Source::whereIn('id', $sourceIds)
-            ->select('source_name', 'description')
+            ->select('source_name')
+            ->distinct()
             ->orderBy('source_name')
             ->get();
 
@@ -1845,18 +1847,18 @@ class SourcesController extends Controller
                         });
                 });
             }
-            // $columnIndex = $request->input('order.0.column'); // this will be 10
-            // $direction = $request->input('order.0.dir');      // this will be 'desc'
+            $columnIndex = $request->input('order.0.column'); // this will be 9
+            $direction = $request->input('order.0.dir');      // this will be 'desc'
 
-            // if (!is_null($columnIndex) && $columnIndex == 10 && $direction == 'desc') {
-            //    $query->orderbyDesc('leads.closed_on')->orderByDesc('leads.updated_at');
+            if (!is_null($columnIndex) && $columnIndex == 9 && $direction == 'desc') {
+                $query->orderbyDesc('leads.closed_on')->orderByDesc('leads.updated_at');
 
-            // }
+            }
 
-            // if (!is_null($columnIndex) && $columnIndex == 10 && $direction == 'asc') {
-            //     $query->orderBy('leads.closed_on')->orderBy('leads.updated_at');
+            if (!is_null($columnIndex) && $columnIndex == 9 && $direction == 'asc') {
+                $query->orderBy('leads.closed_on')->orderBy('leads.updated_at');
 
-            //  }
+            }
 
 
 
@@ -1997,7 +1999,41 @@ class SourcesController extends Controller
                     $employeedetails = $row->user;
                     return $employeedetails ? ($employeedetails->first_name . ' ' . $employeedetails->last_name) : 'N/A';
                 })
-                ->rawColumns(['action', 'prospect_first_name_new']) // To render HTML in the actions column
+                ->editColumn('contact_number_1', function ($row) {
+                    if (empty($row->contact_number_1)) {
+                        return 'N/A';
+                    }
+
+                    // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+                    if (strpos($row->contact_number_1, '/-') !== false) {
+                        $numbers = explode('/-', $row->contact_number_1);
+                    } else {
+                        $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                    }
+                    $numbers = array_map('trim', $numbers);
+                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
+                    $count = count($numbers);
+
+                    if ($count == 0) {
+                        return 'N/A';
+                    }
+
+                    $firstNumber = $numbers[0];
+                    if ($count <= 1) {
+                        return $firstNumber;
+                    }
+
+                    $contact = json_encode($row->contact_number_1);
+                    // Pass the rest of the numbers as a JSON array to the JS function
+    
+                    return "{$firstNumber} 
+            <span class='badge' 
+                  style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+                  onclick='showAllNumbers({$contact})'>
+                  + show more
+            </span>";
+                })
+                ->rawColumns(['action', 'prospect_first_name_new', 'contact_number_1']) // To render HTML in the actions column
                 ->make(true);
         }
         $id = '';
@@ -2308,19 +2344,25 @@ class SourcesController extends Controller
     public function downloadmomreport($id)
     {
         $source = Source::where('id', $id)->first();
+        if (!$source) {
+            return back()->with('error', 'File not found');
+        }
         $folderName = 'public/mom/' . $source->source_name . '-' . $source->id; // Folder to be zipped (inside storage/app/)
         $zipFileName = $source->source_name . '_mom_' . time() . '.zip'; // ZIP file name
         $zipPath = storage_path('app/' . $zipFileName); // Path to store ZIP
 
         // Ensure folder exists
         if (!Storage::exists($folderName)) {
-            return back()->with('error', 'Folder not found.');
+            return back()->with('error', 'File not found');
         }
 
         // Create a new ZIP Archive
         $zip = new ZipArchive;
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
             $files = Storage::files($folderName); // Get all files in folder
+            if (empty($files)) {
+                return back()->with('error', 'File not found');
+            }
             foreach ($files as $file) {
                 $filePath = storage_path('app/' . $file);
                 $zip->addFile($filePath, basename($file)); // Add file to ZIP
@@ -2328,7 +2370,7 @@ class SourcesController extends Controller
 
             $zip->close();
         } else {
-            return back()->with('error', 'Could not create ZIP file.');
+            return back()->with('error', 'File not found');
         }
 
         // Download ZIP & delete after sending
@@ -2496,7 +2538,6 @@ class SourcesController extends Controller
                 'Prospect Name',
                 'Time Zone',
                 'Designation',
-                'Status',
                 'Email Id',
                 'Phone Number',
                 'Closed On',
@@ -2528,7 +2569,6 @@ class SourcesController extends Controller
                     $lead->prospect_first_name . ' ' . $lead->prospect_last_name,
                     $lead->timezone,
                     $lead->designation,
-                    'Closed',
                     $lead->prospect_email,
                     $lead->contact_number_1,
                     $closedOnDate,
@@ -2634,7 +2674,6 @@ class SourcesController extends Controller
                 'Prospect Name',
                 'Time Zone',
                 'Designation',
-                'Status',
                 'Email Id',
                 'Phone Number',
                 'Completed On'
@@ -2656,7 +2695,6 @@ class SourcesController extends Controller
                     $lead->prospect_first_name . ' ' . $lead->prospect_last_name,
                     $lead->timezone,
                     $lead->designation,
-                    'Completed',
                     $lead->prospect_email,
                     $lead->contact_number_1,
                     $completedOnDate

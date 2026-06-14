@@ -101,7 +101,7 @@ class LeadsController extends Controller
                     // $data->view_notes_url = route('notes.view', ['id' => $data->id]);
                     $data->view_url = url('/leads', [$data->id]);
                     $data->export_url = $data->status == LEAD_STATUS_CLOSED ? url('/employee/export/' . $data->id . '/word_single_down?employee_id=&campaign_id=&date_from=&date_to=') : 'javascript:void(0)';
-                    $data->mom_report_url = isset($data->mom_report['mom_file_path']) ? asset('storage/app/public/mom/' . $data->mom_report['mom_file_path']) : null;
+                    $data->mom_report_url = isset($data->mom_report['mom_file_path']) ? route('download-single-mom', [$data->id]) : null;
                     $data->edit_url = url('/leads/' . $data->id . '/edit');
                     $downlodMOM = " ";
                     // Set labels for different conditions
@@ -721,11 +721,11 @@ class LeadsController extends Controller
 
                 // Action HTML
                 $campaignsHtml = '
-                <span id="icons_' . $lead["id"] . '" class="group_actions" style="display:flex; gap:10px; align-items:center; cursor:pointer;">
-                    <i class="fa-solid fa-xmark onchange_element_cross" data-id="' . $lead["id"] . '" data-emp-id="' . $lead["user_id"] . '" style="font-size:18px; margin:0 5px; padding:5px; border-radius:5px; color:#fff; background:red; cursor:pointer;"></i>
-                    <i class="fa-solid fa-check onchange_element_approve" data-id="' . $lead["id"] . '" data-emp-id="' . $lead["user_id"] . '" style="font-size:18px; margin:0 5px; padding:5px; border-radius:5px; color:#fff; background:#5fbc01; cursor:pointer;"></i>
+                <span id="icons_' . $lead["id"] . '" class="group_actions" style="display:flex; gap:10px; align-items:center;">
+                    <button class="btn btn-xs btn-success onchange_element_approve" data-id="' . $lead["id"] . '" data-emp-id="' . $lead["user_id"] . '" style="padding: 2px 6px; font-size: 11px;">Approve</button>
+                    <button class="btn btn-xs btn-danger onchange_element_cross" data-id="' . $lead["id"] . '" data-emp-id="' . $lead["user_id"] . '" style="padding: 2px 6px; font-size: 11px;">Decline</button>
                 </span>';
-                $campaignsHtml .= '<select class="unapproved_lead" name="source_id" id="' . $lead["id"] . '" style="width:140px" data-id="' . $lead["source_id"] . '">';
+                $campaignsHtml .= '<select class="unapproved_lead" name="source_id" id="' . $lead["id"] . '" style="width:140px; margin-top: 5px;" data-id="' . $lead["source_id"] . '">';
                 $campaignsHtml .= '<option value="">Select a source</option>' . $optionsHtml . '</select>';
 
                 // Employee Name (Using User::find exactly as before)
@@ -733,15 +733,15 @@ class LeadsController extends Controller
                 $employeeName = (isset($userDetails) && !empty($userDetails)) ? $userDetails['name'] : 'N/A';
 
                 // LinkedIn Logic
-                $var = $lead["linkedin_address"];
+                $var = $lead["linkedin_address"] ?? '';
                 if (strpos($var, 'linkedin') === false) {
-                    $linkdin = '<td><a href="javascript:void(0)"><i style="color: #000" class="fa-brands fa-linkedin" title="LinkedIn Address Not Valid"></i></a></td>';
+                    $linkdin = '<td><div style="display:flex; align-items:center; gap:8px;"><a href="javascript:void(0)"><i style="color: #000" class="fa-brands fa-linkedin" title="LinkedIn Address Not Valid"></i></a><i class="fa-solid fa-pen-to-square edit-linkedin" onclick="editmodule(' . $lead["id"] . ', \'' . addslashes($var) . '\')" style="cursor:pointer;" title="Edit LinkedIn"></i></div></td>';
                 } else {
                     $cleanUrl = $var;
                     if (!preg_match('/^https?:\/\//i', $cleanUrl)) {
                         $cleanUrl = 'https://' . ltrim($cleanUrl, '/');
                     }
-                    $linkdin = '<td><div style="display:flex; align-items:center; gap:8px;"><a href="' . $cleanUrl . '" target="_blank"><i class="fa-brands fa-linkedin"></i></a><i class="fa-solid fa-pen-to-square" onclick="editmodule(' . $lead["id"] . ', \'' . $cleanUrl . '\')" style="cursor:pointer;"></i></div></td>';
+                    $linkdin = '<td><div style="display:flex; align-items:center; gap:8px;"><a href="' . $cleanUrl . '" target="_blank"><i class="fa-brands fa-linkedin"></i></a><i class="fa-solid fa-pen-to-square edit-linkedin" onclick="editmodule(' . $lead["id"] . ', \'' . addslashes($var) . '\')" style="cursor:pointer;" title="Edit LinkedIn"></i></div></td>';
                 }
 
                 $formattedData[] = [
@@ -853,12 +853,15 @@ class LeadsController extends Controller
                 if (isset($userDetails) && !empty($userDetails)) {
                     $employeeName = $userDetails['name'];
                 }
-                $var = $lead["linkedin_address"];
-                if (strpos($var, 'linkedin') == -1) {
-                    $linkdin = '<td><a href="javascript:void(0)" ><i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i></a></td>';
+                $var = $lead["linkedin_address"] ?? '';
+                if (strpos($var, 'linkedin') === false) {
+                    $linkdin = '<td><div style="display:flex; align-items:center; gap:8px;"><a href="javascript:void(0)"><i style="color: #000" class="fa-brands fa-linkedin" title="LinkedIn Address Not Valid"></i></a><i class="fa-solid fa-pen-to-square edit-linkedin" onclick="editmodule(' . $lead["id"] . ', \'' . addslashes($var) . '\')" style="cursor:pointer;" title="Edit LinkedIn"></i></div></td>';
                 } else {
-                    $linkdin = '<td><a href="" target="_blank" ><i  alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>
-                       </td>';
+                    $cleanUrl = $var;
+                    if (!preg_match('/^https?:\/\//i', $cleanUrl)) {
+                        $cleanUrl = 'https://' . ltrim($cleanUrl, '/');
+                    }
+                    $linkdin = '<td><div style="display:flex; align-items:center; gap:8px;"><a href="' . $cleanUrl . '" target="_blank"><i class="fa-brands fa-linkedin"></i></a><i class="fa-solid fa-pen-to-square edit-linkedin" onclick="editmodule(' . $lead["id"] . ', \'' . addslashes($var) . '\')" style="cursor:pointer;" title="Edit LinkedIn"></i></div></td>';
                 }
                 $formattedData[] = [
                     'company_name' => $lead["company_name"],
@@ -1227,10 +1230,7 @@ class LeadsController extends Controller
                 ->where('sources.is_active', 1);
 
 
-            if (
-                !$request->has('order') ||
-                ($request->input('order.0.column') == '0' && $request->input('order.0.dir') === 'asc')
-            ) {
+            if (!$request->has('order')) {
                 $query->orderBy('closed_on', 'DESC')
                     ->orderBy('leads.updated_at', 'DESC');
             }
@@ -1585,10 +1585,7 @@ class LeadsController extends Controller
                 ->where('sources.is_active', 1);
 
 
-            if (
-                !$request->has('order') ||
-                ($request->input('order.0.column') == '0' && $request->input('order.0.dir') === 'asc')
-            ) {
+            if (!$request->has('order')) {
                 $query->orderBy('closed_on', 'DESC')
                     ->orderBy('leads.updated_at', 'DESC');
             }
@@ -1633,7 +1630,7 @@ class LeadsController extends Controller
                     elseif (!empty($momReport['mom_file_path'])) {
 
                         $actionHtml .= '
-                        <a  class="downloadmom" href="' . asset('storage/' . $momReport['mom_file_path']) . '" title="Download MOM">
+                        <a  class="downloadmom" href="' . route('download-single-mom', [$data->id]) . '" title="Download MOM">
                             <i class="fa fa-download" style="margin-right:8px;color:#55ce63;font-size:15px;"></i>
                         </a>';
                     }
@@ -1689,7 +1686,7 @@ class LeadsController extends Controller
             ->latest('created_at')
             ->value('created_at');
 
-        if ($lastCreatedAt && now()->diffInSeconds($lastCreatedAt) < 15) {
+        if ($lastCreatedAt && now()->diffInSeconds($lastCreatedAt) < 30) {
             return response()->json([
                 'error' => 'Please wait 30 seconds before adding another note.'
             ], 400);

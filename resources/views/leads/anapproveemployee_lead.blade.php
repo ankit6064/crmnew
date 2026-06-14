@@ -63,6 +63,7 @@
                         <table id="employee-table" class="display nowrap" style="width:100% !important">
                             <thead class="thead-main">
                                 <tr>
+                                    <th>Linkedin</th>
                                     <th>Company Name</th>
                                     <th>Campaign Name</th>
                                     <th>Prospect Name</th>
@@ -80,6 +81,8 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript">
+        let hideSpinner = false; // Global flag to suppress spinner during LinkedIn updates
+
         $(document).ready(function () {
             const _token = $('input[name="_token"]').val();
             const spinnerOverlay = $('#spinner-overlay');
@@ -92,6 +95,7 @@
                 serverSide: true,
                 ajax: '{{ route("unapproved_emp_leads_list_pagination") }}',
                 columns: [
+                    { data: "LinkedIn", orderable: false },
                     { data: "company_name" },
                     { data: "source_name" },
                     {
@@ -119,7 +123,11 @@
                     });
                     // Show spinner overlay on processing start
                     table.on('preXhr.dt', function (e, settings, data) {
-                        $('#spinner-overlay').show(); // Show full-page spinner
+                        if (hideSpinner) {
+                            hideSpinner = false; // Reset the flag
+                        } else {
+                            $('#spinner-overlay').show(); // Show full-page spinner
+                        }
                     });
 
                     // Hide spinner overlay when data is loaded
@@ -149,24 +157,119 @@
                     const leadId = $(this).data('id');
                     const empId = $(this).data('emp-id') || '';
                     const selectedValue = $(`#${leadId}`).val();
+                    const selectedCampaignText = $(`#${leadId} option:selected`).text().trim();
 
-                    if (leadId && confirm(`Do you want to ${status} this lead?`)) {
-                        $.ajax({
-                            url: '{{ route("updateApprovalStatus") }}',
-                            type: 'POST',
-                            data: {
-                                leadId,
-                                sourceId: selectedValue,
-                                status,
-                                user_id: empId,
-                                _token
-                            },
-                            success: () => table.ajax.reload(),
-                            error: (jqXHR, textStatus, errorThrown) => console.error(`Error: ${textStatus}`, errorThrown)
-                        });
+                    let title = '';
+                    let text = '';
+                    let confirmButtonColor = '';
+
+                    if (status === 'approved') {
+                        if (!selectedValue) {
+                            Swal.fire({
+                                title: 'Select Campaign',
+                                text: 'Please select a campaign/source from the dropdown list before approving.',
+                                icon: 'warning',
+                                confirmButtonColor: '#ffc107'
+                            });
+                            return;
+                        }
+                        title = 'Approve Lead?';
+                        text = `Do you want to approve this lead for campaign: ${selectedCampaignText}?`;
+                        confirmButtonColor = '#28a745';
+                    } else {
+                        title = 'Decline Lead?';
+                        text = 'Do you want to decline this lead?';
+                        confirmButtonColor = '#dc3545';
                     }
+
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: confirmButtonColor,
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: status === 'approved' ? 'Yes, approve it!' : 'Yes, decline it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '{{ route("updateApprovalStatus") }}',
+                                type: 'POST',
+                                data: {
+                                    leadId,
+                                    sourceId: selectedValue,
+                                    status,
+                                    user_id: empId,
+                                    _token
+                                },
+                                success: () => {
+                                    toastr.success(status === 'approved' ? 'Lead approved successfully' : 'Lead declined successfully');
+                                    table.ajax.reload(null, false);
+                                },
+                                error: (jqXHR, textStatus, errorThrown) => {
+                                    console.error(`Error: ${textStatus}`, errorThrown);
+                                    toastr.error('Something went wrong.');
+                                }
+                            });
+                        }
+                    });
                 });
             }
         });
+
+        // LinkedIn Update Functions
+        function editmodule(leadId, linkedinUrl) {
+            $('#leadid').val(leadId);
+            $('#linkedinurl').val(linkedinUrl);
+            $('#linkedin_error').hide().text('');
+            $('#linkedinurl').removeClass('is-invalid-input');
+            $('#RevertModel').modal('show');
+        }
+
+        function closemodallinkedin() {
+            $('#RevertModel').modal('hide');
+        }
+
+        function updatelinkedin() {
+            const leadid = $('#leadid').val();
+            const linkedinurl = $('#linkedinurl').val().trim();
+            const token = $('input[name="_token"]').val() || $('meta[name="csrf-token"]').attr('content');
+
+            if (!linkedinurl) {
+                $('#linkedinurl').addClass('is-invalid-input');
+                $('#linkedin_error').text('LinkedIn address cannot be empty').show();
+                return;
+            }
+
+            if (linkedinurl.indexOf('linkedin') === -1) {
+                $('#linkedinurl').addClass('is-invalid-input');
+                $('#linkedin_error').text('Invalid LinkedIn address').show();
+                return;
+            }
+
+            $.ajax({
+                url: '{{ route("updatelinkedin") }}',
+                type: 'POST',
+                data: {
+                    leadid: leadid,
+                    linkedinurl: linkedinurl,
+                    _token: token
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 200) {
+                        toastr.success(response.message);
+                        $('#RevertModel').modal('hide');
+                        hideSpinner = true;
+                        $('#employee-table').DataTable().ajax.reload(null, false);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function (xhr) {
+                    toastr.error('Something went wrong. Please try again.');
+                }
+            });
+        }
     </script>
 @endsection

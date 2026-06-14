@@ -542,15 +542,15 @@ class EmployeeController extends Controller
             $campaign_id = "";
         }
 
-        if (request()->get('date_from')) {
+        if (request()->has('date_from')) {
             $date_from = $_GET['date_from'];
         } else {
-            $date_from = "";
+            $date_from = \Carbon\Carbon::now()->subDays(7)->startOfDay()->format('Y-m-d\TH:i');
         }
-        if (request()->get('date_to')) {
+        if (request()->has('date_to')) {
             $date_to = $_GET['date_to'];
         } else {
-            $date_to = "";
+            $date_to = \Carbon\Carbon::now()->endOfDay()->format('Y-m-d\TH:i');
         }
 
 
@@ -559,7 +559,7 @@ class EmployeeController extends Controller
         if (!empty($admin)) {
             $employees = User::where(['is_admin' => 1])->orderBy('name')->get()->toArray();
             if ($employee_id == NULL) {
-                $campaigns = Source::orderBy('source_name')->get()->toArray();
+                $campaigns = Source::orderBy('source_name')->get()->unique('source_name')->values()->toArray();
                 if (isset($campaigns) && !empty($campaigns)) {
                     foreach ($campaigns as $key => $value) {
                         $campId = $value['id'];
@@ -573,7 +573,7 @@ class EmployeeController extends Controller
                 }
             } else {
                 $campaigns = Source::join('relations', 'relations.assign_to_cam', '=', 'sources.id')
-                    ->where('relations.assign_to_employee', $employee_id)->orderBy('source_name')->get();
+                    ->where('relations.assign_to_employee', $employee_id)->orderBy('source_name')->get()->unique('source_name')->values();
                 if (isset($campaigns) && !empty($campaigns)) {
                     foreach ($campaigns as $key => $value) {
                         $campId = $value['assign_to_cam'];
@@ -590,7 +590,7 @@ class EmployeeController extends Controller
             $employees = User::where(['user_id' => auth()->user()->id, 'is_admin' => '1'])->orderBy('name')->get()->toArray();
             $employee_ids = array_column($employees, 'id');
             if ($employee_ids == NULL) {
-                $campaigns = Source::orderBy('source_name')->get()->toArray();
+                $campaigns = Source::orderBy('source_name')->get()->unique('source_name')->values()->toArray();
                 if (isset($campaigns) && !empty($campaigns)) {
                     foreach ($campaigns as $key => $value) {
                         $campId = $value['id'];
@@ -607,10 +607,10 @@ class EmployeeController extends Controller
                 if (request()->get('employee_id')) {
                     $employee_id = $_GET['employee_id'];
                     $campaigns = Source::join('relations', 'relations.assign_to_cam', '=', 'sources.id')
-                        ->where('relations.assign_to_employee', $employee_id)->orderBy('source_name')->get();
+                        ->where('relations.assign_to_employee', $employee_id)->orderBy('source_name')->get()->unique('source_name')->values();
                 } else {
                     $campaigns = Source::join('relations', 'relations.assign_to_cam', '=', 'sources.id')
-                        ->whereIN('relations.assign_to_employee', $employee_ids)->orderBy('source_name')->get();
+                        ->whereIN('relations.assign_to_employee', $employee_ids)->orderBy('source_name')->get()->unique('source_name')->values();
                 }
 
                 if (isset($campaigns) && !empty($campaigns)) {
@@ -637,10 +637,15 @@ class EmployeeController extends Controller
     {
         if ($request->ajax()) {
             $campaign_id = $request->get('campaign_id', '');
-            $date_from = $request->get('date_from', '');
-            $date_to = $request->get('date_to', '');
+            $date_from = $request->get('date_from');
+            $date_to = $request->get('date_to');
             $filter_by = $request->get('filter_by', '');
             $reminder_for_conversation = $request->get('reminder_for_conversation', '');
+
+            if (is_null($date_from) && is_null($date_to)) {
+                $date_from = \Carbon\Carbon::now()->subDays(7)->startOfDay()->toDateTimeString();
+                $date_to = \Carbon\Carbon::now()->endOfDay()->toDateTimeString();
+            }
 
             $query = Lead::select(
                 'leads.id',
@@ -690,9 +695,13 @@ class EmployeeController extends Controller
                     $linkedinIcon = $this->getLinkedInIcon($row->linkedin_address);
                     return $leadName . ' ' . $linkedinIcon;
                 })
-                ->addColumn('conversation_type', fn($row) => $row->reminder_for ?? '')
+                ->addColumn('conversation_type', fn($row) => !empty($row->reminder_for) ? $row->reminder_for : 'N/A')
                 ->addColumn('note', function ($row) {
-                    return strlen($row->feedback) > 20 ? '<span title="' . $row->feedback . '">' . substr($row->feedback, 0, 20) . '...</span>' : $row->feedback;
+                    $feedback = trim($row->feedback ?? '');
+                    if ($feedback === '') {
+                        return 'N/A';
+                    }
+                    return strlen($feedback) > 20 ? '<span title="' . $feedback . '">' . substr($feedback, 0, 20) . '...</span>' : $feedback;
                 })
                 ->editColumn('updated_at', fn($row) => date('d-m-Y H:i:s', strtotime($row->updated_at)))
                 ->addColumn('status', function ($row) {
@@ -702,20 +711,38 @@ class EmployeeController extends Controller
                 ->make(true);
         }
 
-        // Optimized campaigns query with proper selection
+        // Optimized campaigns query with proper selection and unique source name logic
         $campaigns = Lead::select('source_id', DB::raw('COUNT(source_id) as totalLeads'))
             ->where('asign_to', (string) auth()->user()->id)
             ->groupBy('source_id')
             ->with('source') // eager load the source relationship
-            ->get();
+            ->get()
+            ->filter(function ($camp) {
+                return isset($camp->source);
+            })
+            ->unique(function ($camp) {
+                return $camp->source->source_name;
+            })
+            ->values();
 
         $conversationTypes = conversationType::orderBy('type')->get()->toArray();
+
+        if (request()->has('date_from')) {
+            $date_from = request()->get('date_from');
+        } else {
+            $date_from = \Carbon\Carbon::now()->subDays(7)->startOfDay()->format('Y-m-d\TH:i');
+        }
+        if (request()->has('date_to')) {
+            $date_to = request()->get('date_to');
+        } else {
+            $date_to = \Carbon\Carbon::now()->endOfDay()->format('Y-m-d\TH:i');
+        }
 
         return view('employee.employee_daily_report', [
             'campaigns' => $campaigns,
             'campaign_id' => $request->get('campaign_id', ''),
-            'date_from' => $request->get('date_from', ''),
-            'date_to' => $request->get('date_to', ''),
+            'date_from' => $date_from,
+            'date_to' => $date_to,
             'conversationTypes' => $conversationTypes,
         ]);
     }
@@ -754,8 +781,17 @@ class EmployeeController extends Controller
         // Initialize Filters
         $employee_id = $request->get('employee_id') ?? null;
         $campaign_id = $request->get('campaign_id') ?? null;
-        $date_from = $request->get('date_from') ? date('Y-m-d H:i:s', strtotime($request->get('date_from'))) : null;
-        $date_to = $request->get('date_to') ? date('Y-m-d H:i:s', strtotime($request->get('date_to'))) : null;
+        $date_from_raw = $request->get('date_from');
+        $date_to_raw = $request->get('date_to');
+
+        if (is_null($date_from_raw) && is_null($date_to_raw)) {
+            $date_from = \Carbon\Carbon::now()->subDays(7)->startOfDay()->toDateTimeString();
+            $date_to = \Carbon\Carbon::now()->endOfDay()->toDateTimeString();
+        } else {
+            $date_from = $date_from_raw ? date('Y-m-d H:i:s', strtotime($date_from_raw)) : null;
+            $date_to = $date_to_raw ? date('Y-m-d H:i:s', strtotime($date_to_raw)) : null;
+        }
+
         $change_status = $request->get('change_status') ?? null;
         $reminder_for_conversation = $request->get('reminder_for_conversation') ?? null;
         $filter_by = $request->get('filter_by') ?? null;
@@ -875,10 +911,13 @@ class EmployeeController extends Controller
             })
 
             ->addColumn('conversation_type', function ($data) {
-                return $data->reminder_for ?? '';
+                return !empty($data->reminder_for) ? $data->reminder_for : 'N/A';
             })
             ->addColumn('note', function ($data) {
-                $feedback = $data->feedback ?? '';
+                $feedback = trim($data->feedback ?? '');
+                if ($feedback === '') {
+                    return 'N/A';
+                }
                 return strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback;
             })
             ->addColumn('note_date_time', function ($data) {
@@ -912,15 +951,16 @@ class EmployeeController extends Controller
         if (isset($employee_id) && !empty($employee_id)) {
             $campaigns = Source::join('relations', 'relations.assign_to_cam', '=', 'sources.id')
                 ->where('relations.assign_to_employee', $employee_id)->orderBy('source_name')
-                ->get()->toArray();
+                ->get()->unique('source_name')->values()->toArray();
         } else {
             if (!empty($admin)) {
-                $campaigns = Source::orderBy('source_name')->get()->toArray();
+                $campaigns = Source::orderBy('source_name')->get()->unique('source_name')->values()->toArray();
             } else {
                 $employees = User::where(['user_id' => auth()->user()->id, 'is_admin' => '1'])->orderBy('name')->get()->toArray();
                 $employee_ids = array_column($employees, 'id');
                 $campaigns = Source::join('relations', 'relations.assign_to_cam', '=', 'sources.id')
-                    ->whereIN('relations.assign_to_employee', $employee_ids)->orderBy('source_name')->get();
+                    ->whereIN('relations.assign_to_employee', $employee_ids)->orderBy('source_name')
+                    ->get()->unique('source_name')->values()->toArray();
             }
         }
 
@@ -1540,6 +1580,28 @@ class EmployeeController extends Controller
     }
 
 
+    public function downloadSingleMom($leadId)
+    {
+        $lead = Lead::where('id', $leadId)->with('momReport')->first();
+        if (!$lead) {
+            return redirect()->back()->with('error', 'File not found');
+        }
+
+        $momReport = $lead->momReport;
+        if (!$momReport || empty($momReport->mom_file_path)) {
+            return redirect()->back()->with('error', 'File not found');
+        }
+
+        $filePath = storage_path('app/public/' . $momReport->mom_file_path);
+        
+        if (!file_exists($filePath)) {
+            return redirect()->back()->with('error', 'File not found');
+        }
+
+        return response()->download($filePath);
+    }
+
+
     // public function wordEmployeeDownSingle($id)
 // {
 //     try {
@@ -1600,36 +1662,50 @@ class EmployeeController extends Controller
 
     public function wordEmployeeDownSingle($id)
     {
+        /*            Lead data get       */
+        $data = Lead::where("id", '=', $id)
+            ->with('lhsreport')
+            ->first();
+
+        if (!$data) {
+            return redirect()->back()->with('error', 'File not found');
+        }
+
+        if ($data->status != 3 || empty($data->lhsreport) || empty($data->lhsreport->lead_id)) {
+            return redirect()->back()->with('error', 'File not found');
+        }
+
+        /* Source name get */
+        $name = Source::query()->where("id", '=', $data->source_id)->first();
+        if (!$name) {
+            return redirect()->back()->with('error', 'File not found');
+        }
+
+        $source_name = $name->source_name;
+
         include_once 'HtmlToDoc.class.php';
         // Initialize class
         $htd = new HTML_TO_DOC();
 
-        /*            Lead data get       */
-        $data = Lead::where('status', '=', 3)
-            ->where("id", '=', $id)
-            ->with('lhsreport')
-            ->first();
-
-        /* Source name get */
-        $name = Source::query()->where("id", '=', $data['source_id'])->first();
-
-        $source_name = $name['source_name'];
-        $lead_id = $data['lead_id'];
-        /*      Data Get         */
-        if ($data['status'] == 3 && !empty($data['lhsreport']->lead_id)) {
-
-            $view = view("lhs_report")->with(['data' => $data]);
-            $firstname = $data['prospect_first_name'];
-            $lastname = $data['prospect_last_name'];
-            $path = "storage/app/public/Excel" . date("-d-m-Y") . "/" . $source_name . ' performance ' . time() . $id . "/";
-            $filename = $firstname . $lastname . date("-d-m-Y");
+        $view = view("lhs_report")->with(['data' => $data]);
+        $firstname = $data->prospect_first_name;
+        $lastname = $data->prospect_last_name;
+        $path = "storage/app/public/Excel" . date("-d-m-Y") . "/" . $source_name . ' performance ' . time() . $id . "/";
+        $filename = $firstname . $lastname . date("-d-m-Y");
+        
+        try {
             File::makeDirectory($path, $mode = 0777, true, true);
             $htd->createDoc("$view", $path . $filename);
+            
+            $filePath = $path . $filename . '.doc';
+            if (!file_exists($filePath)) {
+                return redirect()->back()->with('error', 'File not found');
+            }
+            
             $headers = array('Content-Type' => 'application/octet-stream');
-
-            return response()->download($path . $filename . '.doc', $filename . '.doc', $headers);
-        } else {
-            return redirect('leads/export_excel_pdf');
+            return response()->download($filePath, $filename . '.doc', $headers);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'File not found');
         }
     }
     /**

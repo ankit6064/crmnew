@@ -319,11 +319,12 @@
                     processing: false,
                     serverSide: true,
                     searching: true,
+                    order: [],
                     ajax: "{{ url('leads/closed') }}",
                     columns: [
                         { data: 'source_name', name: 'sources.source_name', orderable: true, searchable: true },
                         { data: 'description', name: 'sources.description', orderable: true, searchable: true },
-                        { data: 'company_name', name: 'company_name', orderable: false },
+                        { data: 'company_name', name: 'leads.company_name', orderable: true },
                         { data: 'prospect_first_name', name: 'prospect_first_name', orderable: false },
                         { data: 'timezone', name: 'timezone', orderable: false, searchable: true },
                         { data: 'designation', name: 'designation', orderable: false },

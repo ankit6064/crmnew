@@ -77,8 +77,8 @@ class DailyReport
                 ->setCellValue('D' . $rowNumber, $lead->prospect_first_name . ' ' . $lead->prospect_last_name)
                 ->setCellValue('E' . $rowNumber, $lead->designation)
                 ->setCellValue('F' . $rowNumber, $lead->linkedin_address)
-                ->setCellValue('G' . $rowNumber, $lead->feedback)
-                ->setCellValue('H' . $rowNumber, $lead->reminder_for)
+                ->setCellValue('G' . $rowNumber, !empty(trim($lead->feedback ?? '')) ? $lead->feedback : 'N/A')
+                ->setCellValue('H' . $rowNumber, !empty($lead->reminder_for) ? $lead->reminder_for : 'N/A')
                 ->setCellValue('I' . $rowNumber, $dateStr)
                 ->setCellValue('J' . $rowNumber, $timeStr);
 

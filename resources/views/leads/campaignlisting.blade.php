@@ -455,6 +455,12 @@
                     toastr.error("Something went wrong");
                 }
 
+            }).fail(function (xhr) {
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    toastr.error(xhr.responseJSON.error, 'Error!');
+                } else {
+                    toastr.error("Something went wrong", "Error!");
+                }
             });
 
         });

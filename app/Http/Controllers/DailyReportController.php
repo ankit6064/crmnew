@@ -26,15 +26,15 @@ class DailyReportController extends Controller
         } else {
             $campaign_id =  "";
         }
-        if(request()->get('date_from')){
+        if(request()->filled('date_from')){
             $date_from =  $_GET['date_from']; 
         }else{
-            $date_from =  "";
+            $date_from =  \Carbon\Carbon::now()->subDays(7)->startOfDay()->toDateTimeString();
         }
-        if(request()->get('date_to')){
+        if(request()->filled('date_to')){
             $date_to =  $_GET['date_to']; 
         }else{
-            $date_to =  "";
+            $date_to =  \Carbon\Carbon::now()->endOfDay()->toDateTimeString();
         }
     	if (request()->get('filter_by')) {
             $filter_by =  $_GET['filter_by'];
@@ -58,6 +58,10 @@ class DailyReportController extends Controller
         $emp_id = request()->get('employee_id', '');
         $date_from = request()->get('date_from', '');
         $date_to = request()->get('date_to', '');
+        if ($date_from == "" && $date_to == "") {
+            $date_from = \Carbon\Carbon::now()->subDays(7)->startOfDay()->toDateTimeString();
+            $date_to = \Carbon\Carbon::now()->endOfDay()->toDateTimeString();
+        }
         $filter_by = request()->get('filter_by', '');
         $reminder_for_conversation = request()->get('reminder_for_conversation', '');
     

@@ -66,56 +66,62 @@ class LeadClosedController extends Controller
     }
     public function generateSinglePDF($id)
     {
-        // Initialize PHPWord
-        include_once 'HtmlToDoc.class.php';
+        // Get source name
+        $source = Source::find($id);
+        if (!$source) {
+            return Redirect::back()->with('error', "File not found");
+        }
+        $source_name = $source->source_name;
 
-        // Initialize class
-        $htd = new HTML_TO_DOC();
-        
         // Fetch leads with status 3
         $datas = Lead::where('status', 3)
             ->where("source_id", $id)
             ->with('lhsreport')
             ->get();
         
-        // Get source name
-        $source = Source::find($id);
-        $source_name = $source ? $source->source_name : 'Unknown';
+        $validLeadsCount = 0;
+        foreach ($datas as $data) {
+            if ($data['status'] == 3 && !empty($data->lhsreport) && !empty($data->lhsreport->lead_id)) {
+                $validLeadsCount++;
+            }
+        }
+
+        if ($validLeadsCount == 0) {
+            return Redirect::back()->with('error', "File not found");
+        }
+
+        // Initialize PHPWord
+        include_once 'HtmlToDoc.class.php';
+        // Initialize class
+        $htd = new HTML_TO_DOC();
         
         // Define storage path
         $path = storage_path("app/public/Excel".date("-d-m-Y")."/" . $source_name.'/');
         File::makeDirectory($path, $mode = 0777, true, true);
-        if(!empty($datas)){
+        
         // Generate Word documents
         foreach ($datas as $data) {
-            if ($data['status'] == 3 && !empty($data->lhsreport->lead_id)) {
-                // Render the vie
-
-                $view =   view("lhs_report")->with(['data' => $data]);
+            if ($data['status'] == 3 && !empty($data->lhsreport) && !empty($data->lhsreport->lead_id)) {
+                // Render the view
+                $view = view("lhs_report")->with(['data' => $data]);
                 $firstname = $data['prospect_first_name'];
                 $lastname = $data['prospect_last_name'];
                 $filename = $firstname . $lastname . date("-d-m-Y");
-                File::makeDirectory($path, $mode = 0777, true, true);
-                $htd->createDoc( "$view", $path . $filename );
+                $htd->createDoc("$view", $path . $filename);
             }
         }
-    }else{
-        echo '<script>alert("Word not found"); </script>';
-            return Redirect::back()->with('error', "Word Not Found");
-    }
 
+        // Verify if folder is not empty
+        if (!File::exists($path) || count(File::files($path)) == 0) {
+            return Redirect::back()->with('error', "File not found");
+        }
+
+        /* Zip Downloader */
+        Storage::disk('local')->makeDirectory('tobedownload', $mode = 0775); // zip store here
+        $zip_file = storage_path('app/tobedownload/' . $source_name . date("-d-m-Y") . '.zip');
+        $zip = new \ZipArchive();
         
-        
-        // Return success message
-        
-    
-        if (!empty($data) && $data['status'] == 3 && !empty($data['lhsreport']->lead_id)) {
-            /* Zip Downloader */
-            Storage::disk('local')->makeDirectory('tobedownload', $mode = 0775); // zip store here
-            $zip_file = storage_path('app/tobedownload/' . $source_name . date("-d-m-Y") . '.zip');
-            $zip = new \ZipArchive();
-            $zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-            $path = storage_path("app/public/Excel".date("-d-m-Y")."/" . $source_name . "/"); // path to your Word files
+        if ($zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
             $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
             foreach ($files as $name => $file) {
                 // Skipping all subfolders
@@ -126,12 +132,11 @@ class LeadClosedController extends Controller
                     $zip->addFile($filePath, $relativePath);
                 }
             }
+            $zip->close();
         } else {
-            echo '<script>alert("Word not found"); </script>';
-            return Redirect::back()->with('error', "Word Not Found");
+            return Redirect::back()->with('error', "File not found");
         }
     
-        $zip->close();
         $headers = array('Content-Type' => 'application/octet-stream');
         $zip_new_name = $source_name . date("-d-m-Y") . ".zip";
         return response()->download($zip_file, $zip_new_name, $headers);

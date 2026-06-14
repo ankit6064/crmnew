@@ -351,7 +351,6 @@
                                     <th>Prospect Name</th>
                                     <th>Time Zone</th>
                                     <th>Designation</th>
-                                    <th>Status</th>
                                     <th>Email Id</th>
                                     <th>Phone Number</th>
                                     <th>Closed On</th>
@@ -585,6 +584,24 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="numberModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background: #192e62; color: #fff; padding: 10px 15px;">
+                    <h6 class="modal-title">Contact Numbers</h6>
+                    <button type="button" class="close" data-dismiss="modal" style="color: #fff; opacity: 1;"
+                        onclick="closeNumberModal();">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="numberRow"
+                        style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 
@@ -610,7 +627,8 @@
                 processing: false,
                 serverSide: true,
                 searching: true,
-                ordering: false,
+                ordering: true,
+                order: [[9, 'desc']],
                 searchDelay: 500, // smoother search
                 ajax: {
                     url: url,
@@ -634,24 +652,31 @@
                     }
                 },
                 columns: [
-                    { data: 'source_name', name: 'sources.source_name', searchable: false },
-                    { data: 'description', name: 'sources.description' }, // FIX HERE
-                    { data: 'company_name' },
-                    { data: 'closed_by' },
-                    { data: 'prospect_first_name_new', name: 'prospect_first_name' }, // FIX HERE
-                    { data: 'timezone' },
-                    { data: 'designation' },
-                    { data: 'status' },
-                    { data: 'prospect_email' },
-                    { data: 'contact_number_1' },
-                    { data: 'updated_at_new' },
-                    { data: 'send_lhs' },
-                    { data: 'confirmation_status' },
-                    { data: 'reminder_status' },
-                    { data: 'invitation_date' },
+                    { data: 'source_name', name: 'sources.source_name', orderable: true, searchable: false },
+                    { data: 'description', name: 'sources.description', orderable: true }, // FIX HERE
+                    { data: 'company_name', name: 'leads.company_name', orderable: true },
+                    { data: 'closed_by', orderable: false },
+                    { data: 'prospect_first_name_new', name: 'prospect_first_name', orderable: false }, // FIX HERE
+                    { data: 'timezone', orderable: false },
+                    { data: 'designation', orderable: false },
+                    { data: 'prospect_email', orderable: false },
+                    { data: 'contact_number_1', orderable: false },
+                    { data: 'updated_at_new', orderable: true },
+                    { data: 'send_lhs', orderable: false },
+                    { data: 'confirmation_status', orderable: false },
+                    { data: 'reminder_status', orderable: false },
+                    { data: 'invitation_date', orderable: false },
 
                     { data: 'action', orderable: false, searchable: false }
                 ],
+                drawCallback: function () {
+                    // Initialize Tippy tooltips for the action icons on hover
+                    tippy('[data-tippy-content]', {
+                        placement: 'top',
+                        arrow: true,
+                        animation: 'scale'
+                    });
+                },
                 initComplete: function () {
                     $('div.dataTables_filter input')
                         .attr('placeholder', 'Search by company, prospect, designation')
@@ -795,6 +820,12 @@
                     toastr.error("Something went wrong");
                 }
 
+            }).fail(function (xhr) {
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    toastr.error(xhr.responseJSON.error, 'Error!');
+                } else {
+                    toastr.error("Something went wrong", "Error!");
+                }
             });
 
         });
@@ -930,7 +961,7 @@
 
 
 
-        function closemodal() {
+        function closeNumberModal() {
             $('#numberModal').modal('hide');
 
         }

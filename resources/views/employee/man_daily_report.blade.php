@@ -236,14 +236,14 @@
                     <div class="filter-group">
                         <label class="filter-label" for="date_from_new">Date From</label>
                         <input type="datetime-local" class="filter-date" name="date_from" id="date_from_new"
-                            value="{{ request('date_from') }}">
+                            value="{{ request('date_from', $date_from) }}">
                     </div>
 
                     {{-- Date To --}}
                     <div class="filter-group">
                         <label class="filter-label" for="date_to_new">Date To</label>
                         <input type="datetime-local" class="filter-date" name="date_to" id="date_to_new"
-                            value="{{ request('date_to') }}">
+                            value="{{ request('date_to', $date_to) }}">
                     </div>
 
                     {{-- Filter Actions --}}

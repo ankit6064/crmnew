@@ -90,6 +90,12 @@
 
     <script>
     $(document).ready(function () {
+        let appliedFilters = {
+            sourceid: $('#source_id').val() || '',
+            date: $('#daterange').val() || '',
+            type: $('#type').val() || ''
+        };
+
         var table = $('#employee-table').DataTable({
             processing: false,
             serverSide: true,
@@ -98,9 +104,9 @@
             ajax: {
                 url: "{{ route('managerlogs') }}",
                 data: function (d) {
-                    d.sourceid = $('#source_id').val();
-                    d.date = $('#daterange').val();
-                    d.type = $('#type').val();
+                    d.sourceid = appliedFilters.sourceid;
+                    d.date = appliedFilters.date;
+                    d.type = appliedFilters.type;
                 }
             },
             columns: [
@@ -112,7 +118,7 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, row) {
-                        if (!data) return '--';
+                        if (!data) return 'N/A';
                         const cleanText = $('<div>').html(data).text();
                         if (cleanText.length > 80) {
                             return `
@@ -145,11 +151,17 @@
         });
 
         $('#filterLogs').on('click', function () {
+            appliedFilters.sourceid = $('#source_id').val();
+            appliedFilters.date = $('#daterange').val();
+            appliedFilters.type = $('#type').val();
             table.ajax.reload();
         });
 
         $('#reset').on('click', function () {
             $('#source_id, #type, #daterange').val('');
+            appliedFilters.sourceid = '';
+            appliedFilters.date = '';
+            appliedFilters.type = '';
             table.ajax.reload();
         });
 

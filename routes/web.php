@@ -268,6 +268,7 @@ Route::get('filterleadslogs', [LogsController::class, 'filterleadslogs'])->name(
 Route::get('viewleadlogs/{id}', [LogsController::class, 'viewleadlogs'])->name('viewleadlogs');
     Route::get('viewleadlogstable', [LogsController::class, 'viewleadlogstable'])->name('viewleadlogstable');
     Route::get('download-csv/{filename}', [ImportExportController::class,'downloadCsv'])->name('download.csv');
+    Route::get('download-single-mom/{id}', [EmployeeController::class, 'downloadSingleMom'])->name('download-single-mom');
 });
 
 require __DIR__ . '/auth.php';

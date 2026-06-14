@@ -265,6 +265,9 @@ class ImportExportController extends Controller
     public function downloadCsv($fileName)
     {
         $filePath = 'public/leads_not_imported/' . $fileName;
+        if (!Storage::exists($filePath)) {
+            return redirect()->back()->with('error', 'File not found');
+        }
         return Storage::download($filePath);
     }
 }

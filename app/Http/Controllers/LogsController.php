@@ -56,7 +56,8 @@ class LogsController extends Controller
     
         // Optimize: Apply date filter with proper indexing
         if (!empty($request->date)) {
-            [$start, $end] = array_map('trim', explode(' - ', $request->date));
+            $separator = strpos($request->date, ' to ') !== false ? ' to ' : ' - ';
+            [$start, $end] = array_map('trim', explode($separator, $request->date));
             $startDate = $start . ' 00:00:00';
             $endDate = $end . ' 23:59:59';
             
@@ -98,7 +99,7 @@ class LogsController extends Controller
                 // Use pre-fetched note data when possible
                 $type = (int) $log->type;
                 
-                return match ($type) {
+                $desc = match ($type) {
                     1 => $log->note_reminder_for ?? '',
                     2 => 'Lead status updated',
                     3 => 'LHS created',
@@ -110,6 +111,7 @@ class LogsController extends Controller
                     19 => 'Lead Confirmed',
                     default => '',
                 };
+                return trim($desc) !== '' ? $desc : 'N/A';
             })
             ->addColumn('type', fn($log) => $this->getTypeText($log->type))
             ->editColumn('created_at', fn($log) => $log->created_at?->format('d-m-Y H:i') ?? '')
@@ -163,7 +165,8 @@ class LogsController extends Controller
                 $query->where('logs.source_id', $request->sourceid);
             }
             if (!empty($request->date)) {
-                [$start, $end] = array_map('trim', explode(' - ', $request->date));
+                $separator = strpos($request->date, ' to ') !== false ? ' to ' : ' - ';
+                [$start, $end] = array_map('trim', explode($separator, $request->date));
                 $query->whereBetween('logs.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
             }
             if (isset($request->type) && !empty($request->type)) {
@@ -183,10 +186,14 @@ class LogsController extends Controller
                     return \Carbon\Carbon::parse($row->created_at)->format('d-m-y H:i');
                 })
                 ->editColumn('description', function ($row) {
-                    $full = htmlspecialchars($row->description);
-                    $short = strlen($row->description) > 100
-                        ? substr($row->description, 0, 100) . '...'
-                        : $row->description;
+                    $description = trim($row->description ?? '');
+                    if ($description === '') {
+                        return 'N/A';
+                    }
+                    $full = htmlspecialchars($description);
+                    $short = strlen($description) > 100
+                        ? substr($description, 0, 100) . '...'
+                        : $description;
 
                     return '<span title="' . $full . '">' . e($short) . '</span>';
                 })
@@ -258,7 +265,8 @@ class LogsController extends Controller
                     ->orWhere('logs.user_id', Auth::id());
             });
         if (!empty($request->date)) {
-            [$start, $end] = array_map('trim', explode(' - ', $request->date));
+            $separator = strpos($request->date, ' to ') !== false ? ' to ' : ' - ';
+            [$start, $end] = array_map('trim', explode($separator, $request->date));
             $logsQuery->whereBetween('logs.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
         }
 
@@ -322,7 +330,8 @@ class LogsController extends Controller
             ->where('logs.reference_id', $request->lead_id);
 
         if (!empty($request->date)) {
-            [$start, $end] = array_map('trim', explode(' - ', $request->date));
+            $separator = strpos($request->date, ' to ') !== false ? ' to ' : ' - ';
+            [$start, $end] = array_map('trim', explode($separator, $request->date));
             $logsQuery->whereBetween('logs.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
         }
 

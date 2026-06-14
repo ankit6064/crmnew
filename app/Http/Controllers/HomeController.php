@@ -185,7 +185,8 @@ class HomeController extends Controller
     public function getmanagergraph(Request $request)
     {
         if (!empty($request->date)) {
-            [$start, $end] = array_map('trim', explode(' - ', $request->date));
+            $separator = strpos($request->date, ' to ') !== false ? ' to ' : ' - ';
+            [$start, $end] = array_map('trim', explode($separator, $request->date));
             $start = Carbon::parse($start)->setTime(6, 41);  // set start date at 06:41
             $end = Carbon::parse($end)->addDay()->setTime(6, 40); // set next day at 06:40
         } else {
