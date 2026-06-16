@@ -45,6 +45,107 @@
             min-width: 100%;
 
         }
+        .filter-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            align-items: end;
+        }
+
+        @media (max-width: 1200px) {
+            .filter-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .filter-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 0px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .filter-select,
+        .filter-input {
+            width: 100% !important;
+            min-width: unset !important;
+            height: 42px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            padding: 0 14px;
+            font-size: 13px;
+            color: #1e293b;
+            background-color: #f8fafc;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .filter-select:focus,
+        .filter-input:focus {
+            border-color: #192e62;
+            background-color: #ffffff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(25, 46, 98, 0.15);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            align-items: center;
+            height: 42px;
+        }
+
+        .btn-reset {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-reset:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
     </style>
     <?php date_default_timezone_set('Asia/Kolkata'); ?>
 
@@ -66,6 +167,50 @@
 
             </div>
             <div class="graph campaignslist logstable lead-listing fresh-leads">
+                <div class="filter-card">
+                    <div class="filter-grid">
+                        <!-- Campaign Filter -->
+                        <div class="filter-group">
+                            <label for="campaign_name">Campaign</label>
+                            <select id="campaign_name" class="filter-select">
+                                <option value="">Select Campaign</option>
+                                @foreach($campaignNames as $name)
+                                    <option value="{{ $name }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Company Filter -->
+                        <div class="filter-group">
+                            <label for="company_s">Company</label>
+                            <select id="company_s" class="filter-select">
+                                <option value="">Select Company</option>
+                                @foreach($companyNames as $name)
+                                    <option value="{{ $name }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Timezone Filter -->
+                        <div class="filter-group">
+                            <label for="company_time">Time Zone</label>
+                            <select id="company_time" class="filter-select">
+                                <option value="">Select Time Zone</option>
+                                @foreach($timeZones as $tz)
+                                    <option value="{{ $tz }}">{{ $tz }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Actions Group -->
+                        <div class="filter-actions">
+                            <button id="reset_filters" class="btn btn-reset">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table">
                     <div class="table-container">
                         <table class="table table-striped table-hover" id="employee-table">
@@ -341,7 +486,14 @@
                     processing: false,
                     serverSide: true,
                     searching: true,
-                    ajax: "{{ url('leads/freshleads') }}",
+                    ajax: {
+                        url: "{{ url('leads/freshleads') }}",
+                        data: function (d) {
+                            d.campaign_name = $('#campaign_name').val();
+                            d.cName = $('#company_s').val();
+                            d.timeZone = $('#company_time').val();
+                        }
+                    },
                     columns: [
                         { data: 'source_name', name: 'sources.source_name', orderable: true, searchable: true },
                         { data: 'description', name: 'sources.description', orderable: true, searchable: true },
@@ -413,6 +565,17 @@
                     $('div.dataTables_filter input')
                         .attr('placeholder', 'Search by campaign,subcampaign,company')
                         .css({ 'width': '250px', 'display': 'inline-block' });
+                });
+
+                $('#campaign_name, #company_s, #company_time').on('change', function () {
+                    table.draw();
+                });
+
+                $('#reset_filters').on('click', function () {
+                    $('#campaign_name').val('');
+                    $('#company_s').val('');
+                    $('#company_time').val('');
+                    table.draw();
                 });
             });
         </script>
@@ -526,6 +689,7 @@
             function shownoteslist(lead_id) {
                 var url = '{{url("leads/notes_view")}}';
                 var full_url = url + '/' + lead_id;
+                $('#spinner-overlay').show();
                 $.ajax({
                     url: full_url,
                     type: "GET",
@@ -542,10 +706,14 @@
                         } else {
                             toastr.error(response.error, 'Error!');
                         }
-
                     },
+                    error: function() {
+                        toastr.error('Something went wrong', 'Error!');
+                    },
+                    complete: function() {
+                        $('#spinner-overlay').hide();
+                    }
                 });
-
             }
 
 

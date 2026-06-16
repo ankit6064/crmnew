@@ -1820,7 +1820,7 @@ class SourcesController extends Controller
             ->toArray();
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
-            $query = Lead::with('user')->select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
+            $query = Lead::with(['user', 'momReport'])->select('leads.*', 'sources.source_name', 'sources.description')->join('sources', 'leads.source_id', '=', 'sources.id')
                 ->where('status', 5)->whereIn('asign_to', $employee_ids);
             if (!empty(request('cName'))) {
                 $query->where('company_name', '=', request('cName'));
@@ -1923,6 +1923,14 @@ class SourcesController extends Controller
                         $notesButton .= '
                             <a href="' . url('employee/export/' . $row->id . '/word_single_down') . '?employee_id=&campaign_id=&date_from=&date_to=" class="notes_id">
                                 <i class="fa fa-arrow-down label-new" style="color:green" data-tippy-content="Download"></i>
+                            </a>';
+                    }
+
+                    // ⬇ Download MOM (only if status = 5 and MOM is generated)
+                    if ($row->status == 5 && isset($row->momReport) && !empty($row->momReport->mom_file_path)) {
+                        $notesButton .= '
+                            <a href="' . route('download-single-mom', [$row->id]) . '" class="downloadmom notes_id">
+                                <i class="fa fa-download label-new" style="color:#55ce63" data-tippy-content="Download MOM"></i>
                             </a>';
                     }
 

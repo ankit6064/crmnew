@@ -519,6 +519,7 @@ th[data-orderable="false"]::after {
         function shownoteslist(lead_id) {
             var url = '{{url("leads/notes_view")}}';
             var full_url = url + '/' + lead_id;
+            $('#spinner-overlay').show();
             $.ajax({
                 url: full_url,
                 type: "GET",
@@ -535,10 +536,14 @@ th[data-orderable="false"]::after {
                     } else {
                         toastr.error(response.error, 'Error!');
                     }
-
                 },
+                error: function() {
+                    toastr.error('Something went wrong', 'Error!');
+                },
+                complete: function() {
+                    $('#spinner-overlay').hide();
+                }
             });
-
         }
 
 

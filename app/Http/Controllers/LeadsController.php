@@ -1229,6 +1229,16 @@ class LeadsController extends Controller
                 ->where('leads.status', '3')
                 ->where('sources.is_active', 1);
 
+            if ($request->filled('cName')) {
+                $query->where('leads.company_name', $request->input('cName'));
+            }
+            if ($request->filled('timeZone')) {
+                $query->where('leads.timezone', $request->input('timeZone'));
+            }
+            if ($request->filled('campaign_name')) {
+                $query->where('sources.source_name', $request->input('campaign_name'));
+            }
+
 
             if (!$request->has('order')) {
                 $query->orderBy('closed_on', 'DESC')
@@ -1253,9 +1263,10 @@ class LeadsController extends Controller
 
                 ->addColumn('last_updated_note', function ($data) {
                     $latestNote = $data->notes->first();
-                    return $latestNote && strlen($latestNote->feedback) > 20
-                        ? substr($latestNote->feedback, 0, 20) . '...'
-                        : $latestNote->feedback ?? '';
+                    $feedback = $latestNote->feedback ?? '';
+                    return !empty($feedback)
+                        ? (strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback)
+                        : 'N/A';
                 })
 
                 ->addColumn('options', function ($data) {
@@ -1495,7 +1506,8 @@ class LeadsController extends Controller
                 ->make(true);
         }
 
-        return view('leads.closed');
+        $filters = $this->getFilterOptions('3');
+        return view('leads.closed', $filters);
     }
 
     public function update_invitation_date(Request $request)
@@ -1584,6 +1596,16 @@ class LeadsController extends Controller
                 ->where('leads.status', '5')
                 ->where('sources.is_active', 1);
 
+            if ($request->filled('cName')) {
+                $query->where('leads.company_name', $request->input('cName'));
+            }
+            if ($request->filled('timeZone')) {
+                $query->where('leads.timezone', $request->input('timeZone'));
+            }
+            if ($request->filled('campaign_name')) {
+                $query->where('sources.source_name', $request->input('campaign_name'));
+            }
+
 
             if (!$request->has('order')) {
                 $query->orderBy('closed_on', 'DESC')
@@ -1607,9 +1629,10 @@ class LeadsController extends Controller
 
                 ->addColumn('last_updated_note', function ($data) {
                     $latestNote = $data->notes->first();
-                    return $latestNote && strlen($latestNote->feedback) > 20
-                        ? substr($latestNote->feedback, 0, 20) . '...'
-                        : $latestNote->feedback ?? '';
+                    $feedback = $latestNote->feedback ?? '';
+                    return !empty($feedback)
+                        ? (strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback)
+                        : 'N/A';
                 })
 
                 ->addColumn('options', function ($data) {
@@ -1673,7 +1696,8 @@ class LeadsController extends Controller
                 ->make(true);
         }
 
-        return view('leads.completed');
+        $filters = $this->getFilterOptions('5');
+        return view('leads.completed', $filters);
     }
 
     public function add_note(Request $request)
@@ -2151,6 +2175,16 @@ class LeadsController extends Controller
                 ->where('leads.status', '2')
                 ->where('sources.is_active', 1);
 
+            if ($request->filled('cName')) {
+                $query->where('leads.company_name', $request->input('cName'));
+            }
+            if ($request->filled('timeZone')) {
+                $query->where('leads.timezone', $request->input('timeZone'));
+            }
+            if ($request->filled('campaign_name')) {
+                $query->where('sources.source_name', $request->input('campaign_name'));
+            }
+
 
             if (
                 !$request->has('order') ||
@@ -2168,9 +2202,10 @@ class LeadsController extends Controller
                 ->addColumn('last_updated_note', function ($data) {
                     // Retrieve the latest note feedback
                     $latestNote = $data->notes->first(); // Already eager loaded
-                    return $latestNote && strlen($latestNote->feedback) > 20
-                        ? substr($latestNote->feedback, 0, 20) . '...'
-                        : $latestNote->feedback ?? '';
+                    $feedback = $latestNote->feedback ?? '';
+                    return !empty($feedback)
+                        ? (strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback)
+                        : 'N/A';
                 })
                 ->addColumn('options', function ($data) {
                     // Eager load LhsReport and avoid querying inside the column
@@ -2215,7 +2250,8 @@ class LeadsController extends Controller
                 ->make(true);
         }
 
-        return view('leads.failed');
+        $filters = $this->getFilterOptions('2');
+        return view('leads.failed', $filters);
     }
 
     public function in_progress(Request $request)
@@ -2239,6 +2275,16 @@ class LeadsController extends Controller
                 ->where('leads.status', '4')
                 ->where('sources.is_active', 1);
 
+            if ($request->filled('cName')) {
+                $query->where('leads.company_name', $request->input('cName'));
+            }
+            if ($request->filled('timeZone')) {
+                $query->where('leads.timezone', $request->input('timeZone'));
+            }
+            if ($request->filled('campaign_name')) {
+                $query->where('sources.source_name', $request->input('campaign_name'));
+            }
+
 
             if (
                 !$request->has('order') ||
@@ -2256,9 +2302,10 @@ class LeadsController extends Controller
                 ->addColumn('last_updated_note', function ($data) {
                     // Retrieve the latest note feedback
                     $latestNote = $data->notes->first(); // Already eager loaded
-                    return $latestNote && strlen($latestNote->feedback) > 20
-                        ? substr($latestNote->feedback, 0, 20) . '...'
-                        : $latestNote->feedback ?? '';
+                    $feedback = $latestNote->feedback ?? '';
+                    return !empty($feedback)
+                        ? (strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback)
+                        : 'N/A';
                 })
                 ->addColumn('options', function ($data) {
                     // Eager load LhsReport and avoid querying inside the column
@@ -2305,7 +2352,8 @@ class LeadsController extends Controller
                 ->make(true);
         }
 
-        return view('leads.in_progress');
+        $filters = $this->getFilterOptions('4');
+        return view('leads.in_progress', $filters);
     }
 
 
@@ -2330,6 +2378,16 @@ class LeadsController extends Controller
                 ->where('leads.status', '1')
                 ->where('sources.is_active', 1);
 
+            if ($request->filled('cName')) {
+                $query->where('leads.company_name', $request->input('cName'));
+            }
+            if ($request->filled('timeZone')) {
+                $query->where('leads.timezone', $request->input('timeZone'));
+            }
+            if ($request->filled('campaign_name')) {
+                $query->where('sources.source_name', $request->input('campaign_name'));
+            }
+
 
             if (
                 !$request->has('order') ||
@@ -2347,9 +2405,10 @@ class LeadsController extends Controller
                 ->addColumn('last_updated_note', function ($data) {
                     // Retrieve the latest note feedback
                     $latestNote = $data->notes->first(); // Already eager loaded
-                    return $latestNote && strlen($latestNote->feedback) > 20
-                        ? substr($latestNote->feedback, 0, 20) . '...'
-                        : $latestNote->feedback ?? '';
+                    $feedback = $latestNote->feedback ?? '';
+                    return !empty($feedback)
+                        ? (strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback)
+                        : 'N/A';
                 })
                 ->addColumn('options', function ($data) {
                     // Eager load LhsReport and avoid querying inside the column
@@ -2396,7 +2455,8 @@ class LeadsController extends Controller
                 ->make(true);
         }
 
-        return view('leads.freshleads');
+        $filters = $this->getFilterOptions('1');
+        return view('leads.freshleads', $filters);
     }
 
 
@@ -2421,6 +2481,16 @@ class LeadsController extends Controller
                 // ->where('leads.status', '1')
                 ->where('sources.is_active', 1);
 
+            if ($request->filled('cName')) {
+                $query->where('leads.company_name', $request->input('cName'));
+            }
+            if ($request->filled('timeZone')) {
+                $query->where('leads.timezone', $request->input('timeZone'));
+            }
+            if ($request->filled('campaign_name')) {
+                $query->where('sources.source_name', $request->input('campaign_name'));
+            }
+
 
             if (
                 !$request->has('order') ||
@@ -2438,9 +2508,10 @@ class LeadsController extends Controller
                 ->addColumn('last_updated_note', function ($data) {
                     // Retrieve the latest note feedback
                     $latestNote = $data->notes->first(); // Already eager loaded
-                    return $latestNote && strlen($latestNote->feedback) > 20
-                        ? substr($latestNote->feedback, 0, 20) . '...'
-                        : $latestNote->feedback ?? '';
+                    $feedback = $latestNote->feedback ?? '';
+                    return !empty($feedback)
+                        ? (strlen($feedback) > 20 ? substr($feedback, 0, 20) . '...' : $feedback)
+                        : 'N/A';
                 })
                 ->addColumn('options', function ($data) {
                     // Eager load LhsReport and avoid querying inside the column
@@ -2487,7 +2558,8 @@ class LeadsController extends Controller
                 ->make(true);
         }
 
-        return view('leads.totalLeads');
+        $filters = $this->getFilterOptions();
+        return view('leads.totalLeads', $filters);
     }
 
 
@@ -2705,6 +2777,45 @@ class LeadsController extends Controller
 
     }
 
+    private function getFilterOptions($status = null)
+    {
+        $employee_id = auth()->user()->id;
+
+        $leadsQuery = Lead::where('leads.asign_to', $employee_id)
+            ->join('sources', 'leads.source_id', '=', 'sources.id')
+            ->where('sources.is_active', 1);
+
+        if ($status !== null) {
+            $leadsQuery->where('leads.status', $status);
+        }
+
+        $companyNames = (clone $leadsQuery)
+            ->whereNotNull('leads.company_name')
+            ->where('leads.company_name', '!=', '')
+            ->distinct()
+            ->orderBy('leads.company_name', 'asc')
+            ->pluck('leads.company_name');
+
+        $timeZones = (clone $leadsQuery)
+            ->whereNotNull('leads.timezone')
+            ->where('leads.timezone', '!=', '')
+            ->distinct()
+            ->orderBy('leads.timezone', 'asc')
+            ->pluck('leads.timezone');
+
+        $campaignNames = (clone $leadsQuery)
+            ->whereNotNull('sources.source_name')
+            ->where('sources.source_name', '!=', '')
+            ->distinct()
+            ->orderBy('sources.source_name', 'asc')
+            ->pluck('sources.source_name');
+
+        return [
+            'campaignNames' => $campaignNames,
+            'companyNames' => $companyNames,
+            'timeZones' => $timeZones
+        ];
+    }
 
 }
 

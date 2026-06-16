@@ -868,14 +868,15 @@
         //  VIEW NOTES
         // ======================================================
         function shownoteslist(id) {
-
+            $('#spinner-overlay').show();
             $.get("{{ url('leads/notes_view') }}/" + id, function (res) {
-
                 $('#notes_data').html(res.table);
                 $('#largeModal').modal('show');
-
+            }).fail(function() {
+                toastr.error('Something went wrong', 'Error!');
+            }).always(function() {
+                $('#spinner-overlay').hide();
             });
-
         }
 
         function closemodal() {
