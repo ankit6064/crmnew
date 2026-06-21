@@ -39,8 +39,28 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(RouteServiceProvider::EmployeeHOME);
         } elseif (Auth::user()->is_admin == 2) {
             return redirect()->intended(RouteServiceProvider::ManagerHOME);
+        } elseif (Auth::user()->is_admin == 3) {
+            return redirect()->intended(route('home'));
         }
         return redirect()->intended(RouteServiceProvider::HOME);
+    }
+
+    /**
+     * Check if the email belongs to a submanager.
+     */
+    public function checkSubmanager(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $email = $request->query('email');
+        if (empty($email)) {
+            return response()->json(['is_submanager' => false]);
+        }
+
+        $isSubmanager = \App\Models\User::where('email', $email)
+            ->where('is_admin', 3) // SUBMANAGER
+            ->where('is_active', 1)
+            ->exists();
+
+        return response()->json(['is_submanager' => $isSubmanager]);
     }
 
     /**

@@ -41,16 +41,45 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        $credentials = $this->only('email', 'password');
+        $role = $this->input('role');
 
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
+        if ($role && in_array($role, [1, 3])) {
+            // Attempt to authenticate using the selected role
+            $credentials['is_admin'] = $role;
+            if (Auth::attempt($credentials, $this->boolean('remember'))) {
+                RateLimiter::clear($this->throttleKey());
+                session(['login_role' => $role]);
+                request()->session()->flash('success', 'You have successfully logged in!');
+                return;
+            }
+
+            // Fallback: If they wanted Employee (1) but only Submanager (3) exists in DB
+            if ($role == 1) {
+                $credentials['is_admin'] = 3;
+                if (Auth::attempt($credentials, $this->boolean('remember'))) {
+                    RateLimiter::clear($this->throttleKey());
+                    session(['login_role' => 1]); // Set session role to employee (1)
+                    request()->session()->flash('success', 'You have successfully logged in!');
+                    return;
+                }
+            }
+        } else {
+            // Standard login path
+            if (Auth::attempt($credentials, $this->boolean('remember'))) {
+                RateLimiter::clear($this->throttleKey());
+                // Save default role to session
+                session(['login_role' => Auth::user()->is_admin]);
+                request()->session()->flash('success', 'You have successfully logged in!');
+                return;
+            }
         }
 
-        RateLimiter::clear($this->throttleKey());
-        request()->session()->flash('success', 'You have successfully logged in!');
+        RateLimiter::hit($this->throttleKey());
+
+        throw ValidationException::withMessages([
+            'email' => trans('auth.failed'),
+        ]);
     }
 
     /**

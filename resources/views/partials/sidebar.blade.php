@@ -92,15 +92,26 @@
                         </a>
                     </li>
                 </ul>
-            @elseif(auth()->user()->is_admin == MANAGER)
+            @elseif(auth()->user()->is_admin == MANAGER || auth()->user()->is_admin == SUBMANAGER)
+                @php
+                    $submanagerPermissions = null;
+                    if (auth()->user()->is_admin == SUBMANAGER) {
+                        $permRecord = \App\Models\SubmanagerPermissions::where('user_id', auth()->id())->first();
+                        if ($permRecord) {
+                            $submanagerPermissions = json_decode($permRecord->user_permissions);
+                        }
+                    }
+                @endphp
                 <ul id="sidebarnav">
                     <li class="nav-devider"></li>
                     <li class="nav-small-cap">Manager Panel</li>
+                    @if(auth()->user()->is_admin == MANAGER)
                     <li>
                         <a class="waves-effect waves-dark" href="{{ url('managerdashboard') }}" aria-expanded="false">
                             <i class="mdi mdi-gauge"></i><span class="hide-menu">Dashboard</span>
                         </a>
                     </li>
+                    @endif
 
                     @if (auth()->user()->manager_type == 2)
                         <li>
@@ -137,12 +148,14 @@
                                     <li class="{{ request()->routeIs('employeelogs') ? 'active' : '' }}">
                                         <a href="{{ route('employeelogs') }}">Employee Logs</a>
                                     </li>
+                                    @if(auth()->user()->is_admin == MANAGER)
                                     <li class="{{ request()->routeIs('managerlogs') ? 'active' : '' }}">
                                         <a href="{{ route('managerlogs') }}">Myself Logs</a>
                                     </li>
                                     <li class="{{ request()->routeIs('leadslogs') ? 'active' : '' }}">
                                         <a href="{{ route('leadslogs') }}">Leads Logs</a>
                                     </li>
+                                    @endif
                                 </ul>
                             </div>
                         </li>
@@ -167,15 +180,18 @@
                                     <li class="{{ request()->routeIs('employee.manageremployeeindex') ? 'active' : '' }}">
                                         <a href="{{ route('employee.manageremployeeindex') }}">View Employee</a>
                                     </li>
+                                    @if(auth()->user()->is_admin == MANAGER || (!empty($submanagerPermissions) && isset($submanagerPermissions->employee->add) && $submanagerPermissions->employee->add == 1))
                                     <li class="{{ request()->routeIs('employee.createmanageremployees') ? 'active' : '' }}">
                                         <a href="{{ route('employee.createmanageremployees') }}">Add Employee</a>
                                     </li>
+                                    @endif
                                 </ul>
                             </div>
                         </li>
 
 
 
+                        @if(auth()->user()->is_admin == MANAGER)
                         <li
                             class="{{ request()->routeIs('employee.submanagerlisting', 'employee.createmanager') ? 'active' : '' }}">
                             <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('employee.submanagerlisting', 'employee.createmanager') ? 'active' : '' }}"
@@ -196,6 +212,7 @@
                                 </ul>
                             </div>
                         </li>
+                        @endif
 
 
 
@@ -230,13 +247,17 @@
                             <div class="collapse {{ request()->is('leads/create') || request()->is('leads/assign_lead_emp') || request()->is('leads/assign_lead_emp/*') || request()->is('leads/unapprovedLeads') || request()->is('leads/employeeclosedleads') ? 'show' : '' }}"
                                 id="leads-collapse-manager">
                                 <ul aria-expanded="false" class="list-unstyled fw-normal pb-1 small">
+                                    @if(auth()->user()->is_admin == MANAGER || (!empty($submanagerPermissions) && isset($submanagerPermissions->lead->add) && $submanagerPermissions->lead->add == 1))
                                     <li class="{{ request()->is('leads/create') ? 'active' : '' }}">
                                         <a href="{{ route('leads.create') }}">Add Leads</a>
                                     </li>
+                                    @endif
+                                    @if(auth()->user()->is_admin == MANAGER || (!empty($submanagerPermissions) && isset($submanagerPermissions->lead->approve) && $submanagerPermissions->lead->approve == 1))
                                     <li
                                         class="{{ request()->is('leads/assign_lead_emp') || request()->is('leads/assign_lead_emp/*') ? 'active' : '' }}">
                                         <a href="{{ route('leads.assign_lead_emp') }}">Assign Leads</a>
                                     </li>
+                                    @endif
                                     <li class="{{ request()->is('leads/unapprovedLeads') ? 'active' : '' }}">
                                         <a href="{{ route('leads.unapprovedLeads') }}">Unapproved Leads</a>
                                     </li>
@@ -247,11 +268,13 @@
                             </div>
                         </li>
 
+                        @if(auth()->user()->is_admin == MANAGER)
                         <li>
                             <a class="waves-effect waves-dark" href="{{ url('man_daily_report') }}" aria-expanded="false">
                                 <i class="fa fa-id-card-o"></i><span class="hide-menu">Daily Report</span>
                             </a>
                         </li>
+                        @endif
                     @endif
                 </ul>
             @else

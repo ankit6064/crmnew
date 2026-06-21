@@ -79,5 +79,13 @@ class User extends Authenticatable
         return $this->hasMany(Lead::class, 'assign_to');
     }
 
-    
+    public function getIsAdminAttribute($value)
+    {
+        if (session()->has('login_role') && auth()->check() && auth()->id() === $this->id) {
+            if ($value == 3) { // SUBMANAGER
+                return session('login_role');
+            }
+        }
+        return $value;
+    }
 }

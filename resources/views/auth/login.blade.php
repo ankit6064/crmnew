@@ -49,6 +49,13 @@
                         value="{{ old('email') }}" placeholder="Enter Your Email" required autocomplete="email"
                         autofocus>
 
+                    <div id="role-container" style="display: none; margin-bottom: 15px;">
+                        <select name="role" id="role" disabled style="width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; box-shadow: 0 3px 10px #dddddd52; background-color: #fff; font-family: 'Poppins', sans-serif;">
+                            <option value="3">Login as Submanager</option>
+                            <option value="1">Login as Employee</option>
+                        </select>
+                    </div>
+
                         <div style="position: relative;">
     <input id="password" type="password"
            class="@error('password') is-invalid @enderror"
@@ -108,6 +115,45 @@ function togglePassword() {
     eyeIcon.classList.toggle("fa-eye");
     eyeIcon.classList.toggle("fa-eye-slash");
 }
+
+$(document).ready(function() {
+    function checkEmailRole() {
+        var email = $('#email').val();
+        if (email) {
+            $.ajax({
+                url: "{{ route('check-submanager') }}",
+                type: "GET",
+                data: { email: email },
+                success: function(response) {
+                    if (response.is_submanager) {
+                        $('#role').prop('disabled', false);
+                        $('#role-container').slideDown();
+                    } else {
+                        $('#role').prop('disabled', true);
+                        $('#role-container').slideUp();
+                    }
+                },
+                error: function() {
+                    $('#role').prop('disabled', true);
+                    $('#role-container').slideUp();
+                }
+            });
+        } else {
+            $('#role').prop('disabled', true);
+            $('#role-container').slideUp();
+        }
+    }
+
+    // Check on load
+    checkEmailRole();
+
+    // Check on change, blur, or input (with debounce)
+    var roleCheckTimeout;
+    $('#email').on('change blur input', function() {
+        clearTimeout(roleCheckTimeout);
+        roleCheckTimeout = setTimeout(checkEmailRole, 300);
+    });
+});
 </script>
 
 

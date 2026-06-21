@@ -13,17 +13,33 @@
         font-weight: bold;
     }
 </style>
-@if(auth()->user()->is_admin == MANAGER)
+@php
+    $submanagerPermissions = null;
+    if (auth()->user()->is_admin == SUBMANAGER) {
+        $permRecord = \App\Models\SubmanagerPermissions::where('user_id', auth()->id())->first();
+        if ($permRecord) {
+            $submanagerPermissions = json_decode($permRecord->user_permissions);
+        }
+    }
+@endphp
+@if(auth()->user()->is_admin == MANAGER || auth()->user()->is_admin == SUBMANAGER)
 
     <div class="sidebar">
 
-        <!-- Dashboard -->
+        <!-- Dashboard / Home -->
+        @if(auth()->user()->is_admin == MANAGER)
         <a href="{{ url('managerdashboard') }}" class="{{ request()->is('managerdashboard*') ? 'active' : '' }} menu-link">
             <i class="fa-solid fa-gauge"></i> Dashboard
         </a>
+        @else
+        <a href="{{ route('home') }}" class="{{ request()->is('home*') ? 'active' : '' }} menu-link">
+            <i class="fa-solid fa-house"></i> Home
+        </a>
+        @endif
 
 
         <!-- Manage Submanager -->
+        @if(auth()->user()->is_admin == MANAGER)
         @php
             $isSubmanagerActive = request()->routeIs('employee.submanagerlisting*');
         @endphp
@@ -41,6 +57,7 @@
                 </a>
             </div>
         </div>
+        @endif
 
 
         <!-- Manage Employee -->
@@ -61,10 +78,12 @@
                     <i class="fas fa-eye"></i> View Employee
                 </a>
 
+                @if(auth()->user()->is_admin == MANAGER || (!empty($submanagerPermissions) && isset($submanagerPermissions->employee->add) && $submanagerPermissions->employee->add == 1))
                 <a href="{{ route('employee.createmanageremployees') }}"
                     class="{{ request()->routeIs('employee.createmanageremployees*') ? 'active' : '' }}">
                     <i class="fas fa-plus"></i> Add Employee
                 </a>
+                @endif
             </div>
         </div>
 
@@ -81,9 +100,11 @@
             </div>
 
             <div class="submenu">
+                @if(auth()->user()->is_admin == MANAGER || (!empty($submanagerPermissions) && isset($submanagerPermissions->campaign->add) && $submanagerPermissions->campaign->add == 1))
                 <a href="{{ route('sources.create') }}" class="{{ request()->routeIs('sources.create') ? 'active' : '' }}">
                     <i class="fas fa-plus"></i> Add Campaign
                 </a>
+                @endif
 
                 <a href="{{ route('sources.getMangerSource') }}"
                     class="{{ request()->routeIs('sources.getMangerSource') ? 'active' : '' }}">
@@ -109,14 +130,18 @@
 
             <div class="submenu">
 
+                @if(auth()->user()->is_admin == MANAGER || (!empty($submanagerPermissions) && isset($submanagerPermissions->lead->add) && $submanagerPermissions->lead->add == 1))
                 <a href="{{ route('leads.create') }}" class="{{ request()->routeIs('leads.create') ? 'active' : '' }}">
                     <i class="fa-solid fa-user-plus"></i> Add Lead
                 </a>
+                @endif
 
+                @if(auth()->user()->is_admin == MANAGER || (!empty($submanagerPermissions) && isset($submanagerPermissions->lead->approve) && $submanagerPermissions->lead->approve == 1))
                 <a href="{{ route('leads.assign_lead_emp') }}"
                     class="{{ request()->routeIs('leads.assign_lead_emp') ? 'active' : '' }}">
                     <i class="fa-solid fa-user-check"></i> Assign Lead
                 </a>
+                @endif
 
                 <a href="{{ route('leads.unapprovedLeads') }}"
                     class="{{ request()->routeIs('leads.unapprovedLeads') ? 'active' : '' }}">
@@ -150,9 +175,11 @@
 
 
         <!-- Daily Report -->
+        @if(auth()->user()->is_admin == MANAGER)
         <a href="{{ url('man_daily_report') }}" class="{{ request()->is('man_daily_report*') ? 'active' : '' }} menu-link">
             <i class="fa-solid fa-file-lines"></i> Daily Report
         </a>
+        @endif
 
 
         <!-- Notifications -->
@@ -178,9 +205,11 @@
                     <i class="fas fa-eye"></i> Employee logs
                 </a>
 
+                @if(auth()->user()->is_admin == MANAGER)
                 <a href="{{ route('managerlogs') }}" class="{{ request()->routeIs('managerlogs') ? 'active' : '' }}">
                     <i class="fas fa-eye"></i> Myself logs
                 </a>
+                @endif
             </div>
         </div>
 

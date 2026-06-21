@@ -23,6 +23,9 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware(RestrictSpecificEmailByHost::class);
 
+    Route::get('check-submanager', [AuthenticatedSessionController::class, 'checkSubmanager'])
+                ->name('check-submanager');
+
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->name('password.request');
 
