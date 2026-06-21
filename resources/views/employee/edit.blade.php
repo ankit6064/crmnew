@@ -28,10 +28,10 @@
 
         /* 🟢 Valid input border (optional) */
         /* input.valid,
-        textarea.valid,
-        select.valid {
-            border: 1px solid #28a745 !important;
-        } */
+                textarea.valid,
+                select.valid {
+                    border: 1px solid #28a745 !important;
+                } */
 
         .text-danger {
             font-size: 13px;
@@ -43,7 +43,8 @@
         <div class="right-side">
             <h2>Update Employee</h2>
             <div class="graph">
-                <form method="POST" id="employeeForm" action="{{ route('employee.update', $employee->id) }}" onsubmit="event.preventDefault(); submitform();">
+                <form method="POST" id="employeeForm" action="{{ route('employee.update', $employee->id) }}"
+                    onsubmit="event.preventDefault(); submitform();">
                     @csrf
                     @method('PUT')
 
@@ -54,66 +55,43 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>First Name</label>
-                            <input type="text"
-                                   id="first_name"
-                                   name="first_name"
-                                   class="form-control"
-                                   placeholder="Enter First Name"
-                                   value="{{ old('first_name', $employee->first_name) }}">
+                            <input type="text" id="first_name" name="first_name" class="form-control"
+                                placeholder="Enter First Name" value="{{ old('first_name', $employee->first_name) }}">
                         </div>
 
                         <div class="form-group">
                             <label>Last Name</label>
-                            <input type="text"
-                                   id="last_name"
-                                   name="last_name"
-                                   class="form-control"
-                                   placeholder="Enter Last Name"
-                                   value="{{ old('last_name', $employee->last_name) }}">
+                            <input type="text" id="last_name" name="last_name" class="form-control"
+                                placeholder="Enter Last Name" value="{{ old('last_name', $employee->last_name) }}">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Phone Number</label>
-                            <input type="text"
-                                   id="phone_no"
-                                   name="phone_no"
-                                   class="form-control"
-                                   placeholder="Enter Phone No"
-                                   value="{{ old('phone_no', $employee->phone_no) }}">
+                            <input type="text" id="phone_no" name="phone_no" class="form-control"
+                                placeholder="Enter Phone No" value="{{ old('phone_no', $employee->phone_no) }}">
                         </div>
 
                         <div class="form-group">
                             <label>Email</label>
-                            <input type="text"
-                                   id="email"
-                                   name="email"
-                                   class="form-control"
-                                   placeholder="Enter Email"
-                                   value="{{ old('email', $employee->email) }}">
+                            <input type="text" id="email" name="email" class="form-control" placeholder="Enter Email"
+                                value="{{ old('email', $employee->email) }}">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Address</label>
-                            <input type="text"
-                                   id="address"
-                                   name="address"
-                                   class="form-control"
-                                   placeholder="Enter Address"
-                                   value="{{ old('address', $employee->address) }}">
+                            <input type="text" id="address" name="address" class="form-control" placeholder="Enter Address"
+                                value="{{ old('address', $employee->address) }}">
                         </div>
 
                         <div class="form-group">
                             <label>Password</label>
-                            <input type="text"
-                                   id="orignal_password"
-                                   name="orignal_password"
-                                   class="form-control"
-                                   placeholder="Enter New Password"
-                                   value="{{ old('orignal_password', $employee->orignal_password) }}">
+                            <input type="text" id="orignal_password" name="orignal_password" class="form-control"
+                                placeholder="Enter New Password"
+                                value="{{ old('orignal_password', $employee->orignal_password) }}">
                         </div>
                     </div>
 
@@ -127,16 +105,6 @@
                     </div>
 
                 </form>
-            </div>
-        </div>
-
-        <!-- Success Modal -->
-        <div class="popupcenter" id="successModal">
-            <div class="popupp">
-                <div class="success-icon">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <p>Employee has been <br> updated successfully.</p>
             </div>
         </div>
 
@@ -168,10 +136,10 @@
                         dataType: 'json',
                         success: function (response) {
                             if (response.status === 200) {
-                                $('#successModal').css('display', 'flex');
+                                toastr.success('Employee has been updated successfully.');
                                 setTimeout(function () {
                                     goBack();
-                                }, 2000);
+                                }, 1000);
                             } else {
                                 alert(response.message || 'Something went wrong.');
                             }

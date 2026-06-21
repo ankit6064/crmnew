@@ -150,16 +150,6 @@
     </div>
 </div>
 
-<!-- Success Modal -->
-<div class="popupcenter" id="successModal">
-    <div class="popupp">
-        <div class="success-icon">
-            <i class="fa-solid fa-circle-check"></i>
-        </div>
-        <p>Manager has been <br> added successfully.</p>
-    </div>
-</div>
-
 <script>
 function submitManager() {
 
@@ -182,11 +172,11 @@ function submitManager() {
             'X-CSRF-TOKEN': $('input[name="_token"]').val()
         },
         success: function () {
-            $('#successModal').css('display', 'flex');
+            toastr.success('Manager has been added successfully.');
 
             setTimeout(() => {
                 window.location.href = "{{ route('manager.index') }}";
-            }, 2000);
+            }, 1000);
         },
         error: function (xhr) {
             if (xhr.status === 422) {

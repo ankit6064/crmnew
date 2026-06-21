@@ -146,8 +146,11 @@
             <div class="graph">
                 <div class="row">
                     <div class="add-submanager">
-                        <a href="{{ route('employee.createmanageremployees', ['managerid' => $managerID]) }}">Add
-                            Employee</a>
+                        @if(is_null(Auth::user()->is_admin))
+                            <a href="{{ route('employee.create', ['manager_id' => $managerID]) }}">Add Employee</a>
+                        @else
+                            <a href="{{ route('employee.createmanageremployees', ['managerid' => $managerID]) }}">Add Employee</a>
+                        @endif
                     </div>
                 </div>
 

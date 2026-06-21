@@ -211,15 +211,6 @@
             </div>
         </div>
     </div>
-
-    <div class="popupcenter" id="successModal">
-        <div class="popupp">
-            <div class="success-icon">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <p>Employee has been <br> added successfully.</p>
-        </div>
-    </div>
 @endsection
 
 @push('scripts')

@@ -246,7 +246,7 @@ class EmployeeController extends Controller
             ]);
             // Update the employee with the validated data
             $employee->update($request->all());
-            if (Auth::user()->is_admin == 1 || Auth::user()->is_admin == 2 || Auth::user()->is_admin == 3) {
+            if (is_null(Auth::user()->is_admin) || Auth::user()->is_admin == 1 || Auth::user()->is_admin == 2 || Auth::user()->is_admin == 3) {
                 echo json_encode(['status' => 200, 'message' => 'Employee Details Updated']);
                 exit;
             }
@@ -336,6 +336,9 @@ class EmployeeController extends Controller
 
     public function createmanageremployees(\Illuminate\Http\Request $request)
     {
+        if (is_null(Auth::user()->is_admin)) {
+            return redirect()->route('employee.create', ['manager_id' => $request->managerid]);
+        }
         $requestVar = 'CreateEmployeeRequest';
         $managers = user::where('is_admin', MANAGER)->orderBy('name')->pluck('name', 'id');
         $managerId = $request->managerid;

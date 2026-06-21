@@ -52,17 +52,7 @@
         </div>
     </div>
 
-    {{-- Success Modal --}}
-    <div class="popupcenter" id="successModal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                                            background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-        <div class="popupp">
-            <div class="success-icon">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <p>Campagin has been <br> added successfully.</p>
-        </div>
-    </div>
+
 
     <div class="popupcenter" id="duplicateModal" style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh;
                     background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
@@ -235,18 +225,10 @@
         @if(session('success'))
             $(document).ready(function () {
                 setTimeout(function () {
-                    // $('#successModal').css('display', 'flex');
-
-                    setTimeout(function () {
-                        $('#successModal').fadeOut(300, function () {
-                            window.location.href = "{{ route('sources.getMangerSource') }}";
-                        });
-                    }, 3000);
-
-                }, 100);
+                    window.location.href = "{{ route('sources.getMangerSource') }}";
+                }, 1500);
             });
         @endif
-
     </script>
 
 

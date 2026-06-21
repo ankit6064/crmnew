@@ -83,15 +83,7 @@
         </div>
     </div>
 
-    {{-- Success Modal --}}
-    <div class="popupcenter" id="successModal" style="display:none;">
-        <div class="popupp">
-            <div class="success-icon">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <p>Campaign updated successfully.</p>
-        </div>
-    </div>
+
 
     {{-- Scripts --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -188,13 +180,9 @@
     <script>
         @if(session('success'))
             $(document).ready(function () {
-                $('#successModal').show();
-
                 setTimeout(function () {
-                    $('#successModal').fadeOut(function () {
-                        window.location.href = "{{ route('sources.getMangerSource') }}";
-                    });
-                }, 2000);
+                    window.location.href = "{{ route('sources.getMangerSource') }}";
+                }, 1500);
             });
         @endif
 

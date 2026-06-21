@@ -34,9 +34,23 @@ class HomeController extends Controller
         $totalmomcount = Lead::join('mom_report', 'leads.id', 'mom_report.lead_id')->count();
 
         
-        $totallhscount = Lead::whereNotNull('invitation_date')->count();
-        $totalmomcount = Lead::where('meeting_status', 'Done')->count();
-        $totalfailedcount = Lead::where('meeting_status', 'Failed')->count();
+        $totallhscount = Lead::whereNotNull('invitation_date')
+            ->where(function ($q) {
+                $q->whereNull('meeting_status')
+                  ->orWhere('meeting_status', '')
+                  ->orWhereIn('meeting_status', ['Pending', 'Rescheduled']);
+            })
+            ->count();
+        $totalmomcount = Lead::where(function ($q) {
+            $q->where('meeting_status', 'Done')
+              ->orWhere(function ($sq) {
+                  $sq->where('status', '5')->has('momReport');
+              });
+        })->count();
+        $totalfailedcount = Lead::where(function ($q) {
+            $q->where('meeting_status', 'Failed')
+              ->orWhere('status', '2');
+        })->count();
 
         // Return view with lead counts
         return view('dashboard', [
@@ -152,9 +166,28 @@ class HomeController extends Controller
         })
             ->count();
         $totalleads = Lead::where('asign_to_manager', Auth::id())->count();
-        $totallhscount = Lead::where('asign_to_manager', Auth::id())->whereNotNull('invitation_date')->count();
-        $totalmomcount = Lead::where('asign_to_manager', Auth::id())->where('meeting_status', 'Done')->count();
-        $totalfailedcount = Lead::where('asign_to_manager', Auth::id())->where('meeting_status', 'Failed')->count();
+        $totallhscount = Lead::where('asign_to_manager', Auth::id())
+            ->whereNotNull('invitation_date')
+            ->where(function ($q) {
+                $q->whereNull('meeting_status')
+                  ->orWhere('meeting_status', '')
+                  ->orWhereIn('meeting_status', ['Pending', 'Rescheduled']);
+            })
+            ->count();
+        $totalmomcount = Lead::where('asign_to_manager', Auth::id())
+            ->where(function ($q) {
+                $q->where('meeting_status', 'Done')
+                  ->orWhere(function ($sq) {
+                      $sq->where('status', '5')->has('momReport');
+                  });
+            })
+            ->count();
+        $totalfailedcount = Lead::where('asign_to_manager', Auth::id())
+            ->where(function ($q) {
+                $q->where('meeting_status', 'Failed')
+                  ->orWhere('status', '2');
+            })
+            ->count();
 
         $employee = User::select('id', 'first_name', 'last_name')->where('user_id', Auth::id())->orderby('first_name')->get();
         $sources = Source::select('id', 'source_name', 'description')->where('assign_to_manager', Auth::id())->orderby('source_name')->get();

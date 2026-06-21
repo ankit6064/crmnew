@@ -1643,8 +1643,26 @@ class SourcesController extends Controller
                 $query->whereDate('invitation_date', '<=', request('invitation_to'));
             }
 
-            if (!empty(request('meeting_status'))) {
+            if (request('meeting_status') == 'Failed') {
+                $query->where(function ($q) {
+                    $q->where('meeting_status', 'Failed')
+                      ->orWhere('status', '2');
+                });
+            } elseif (request('meeting_status') == 'Done') {
+                $query->where(function ($q) {
+                    $q->where('meeting_status', 'Done')
+                      ->orWhere(function ($sq) {
+                          $sq->where('status', '5')->has('momReport');
+                      });
+                });
+            } elseif (!empty(request('meeting_status'))) {
                 $query->where('meeting_status', request('meeting_status'));
+            } else {
+                $query->where(function ($q) {
+                    $q->whereNull('meeting_status')
+                      ->orWhere('meeting_status', '')
+                      ->orWhereIn('meeting_status', ['Pending', 'Rescheduled']);
+                });
             }
 
             $search = $request->input('search.value');

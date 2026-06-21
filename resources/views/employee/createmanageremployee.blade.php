@@ -95,16 +95,6 @@
         </div>
     </div>
 
-    <!-- Success Modal -->
-    <div class="popupcenter" id="successModal">
-        <div class="popupp">
-            <div class="success-icon">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <p>Employee has been <br> added successfully.</p>
-        </div>
-    </div>
-
     @push('scripts')
 
     <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
@@ -139,10 +129,10 @@
 
                 success: function(response) {
                     if (response.status == 200) {
-                        $('#successModal').css('display', 'flex');
+                        toastr.success('Employee has been added successfully.');
                         setTimeout(function() {
                             goBack();
-                        }, 2000);
+                        }, 1000);
                     } else {
                         alert(response.message);
                     }

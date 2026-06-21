@@ -119,10 +119,12 @@
 
                     <select id="meeting_status_filter" class="filter-select">
                         <option value="">Meeting Status</option>
-                        <option value="Done" {{ request('meeting_status') == 'Done' ? 'selected' : '' }}>Meeting Happened
-                        </option>
-                        <option value="Failed" {{ request('meeting_status') == 'Failed' ? 'selected' : '' }}>Meeting Not
-                            Happened</option>
+                        @if(request('meeting_status') == 'Done')
+                            <option value="Done" selected>Meeting Happened</option>
+                        @endif
+                        @if(request('meeting_status') == 'Failed')
+                            <option value="Failed" selected>Meeting Not Happened</option>
+                        @endif
                         <option value="Rescheduled" {{ request('meeting_status') == 'Rescheduled' ? 'selected' : '' }}>Meeting
                             Rescheduled</option>
                         <option value="Pending" {{ request('meeting_status') == 'Pending' ? 'selected' : '' }}>Pending
