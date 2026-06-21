@@ -756,8 +756,10 @@
                     "manager_id": manager_id
                 },
                 success: function (response) {
-                    alert('Manager Assigned');
-                    location.reload(true);
+                    toastr.success('Manager Assigned');
+                    setTimeout(function () {
+                        location.reload(true);
+                    }, 1000);
                 }
             });
         }
@@ -846,8 +848,10 @@
                     dataType: "json",
                     success: function (response) {
                         if (response.status == 200) {
-                            alert(response.message);
-                            location.reload(true);
+                            toastr.success(response.message);
+                            setTimeout(function () {
+                                location.reload(true);
+                            }, 1000);
                         }
                     },
                     error: function (xhr, status, error) {
