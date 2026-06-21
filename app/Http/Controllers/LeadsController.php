@@ -2750,9 +2750,8 @@ class LeadsController extends Controller
             $data = Lead::with('source')->where(['user_id' => auth()->user()->id, 'status' => '1', 'asign_to' => NULL])->whereNull('asign_to_manager')->get()->toArray();
             //dd($employees);
         } else {
-            //$employees = User::where(['user_id'=>auth()->user()->id,'is_admin'=>'1'])->get()->toArray();
-            $employees = User::where(['is_admin' => '1'])->orderBy('name')->get()->toArray();
-            $assing_checkemployees = User::where(['is_admin' => '1'])->orderBy('name')->get()->toArray();
+            $employees = User::where(['user_id' => auth()->user()->id, 'is_admin' => '1'])->orderBy('name')->get()->toArray();
+            $assing_checkemployees = User::where(['user_id' => auth()->user()->id, 'is_admin' => '1'])->orderBy('name')->get()->toArray();
             $data = Lead::with('source')->where(['asign_to_manager' => auth()->user()->id, 'status' => '1', 'asign_to' => NULL])->orWhere(['user_id' => auth()->user()->id])->get()->toArray();
         }
         //dd( $assing_checkemployees);
@@ -2774,6 +2773,32 @@ class LeadsController extends Controller
         }
 
         return redirect('leads/assign')->with('success', 'Leads Assigned Successfully.');
+
+    }
+
+    public function assignLeadsEmployee(AssignLeadRequest $request)
+    {
+        $data = array(
+            'employee_id' => $request->employee_id,
+            'lead_id' => $request->lead_id
+        );
+
+        foreach ($request->lead_id as $leadid) {
+            Lead::where('id', $leadid)->update(['asign_to' => $request->employee_id]);
+        }
+
+        return redirect('leads/assign')->with('success', 'Leads Assigned Successfully.');
+
+    }
+
+    public function assignHalfLeadsEmployee(Request $request)
+    {
+        $employee_id = $request->employee_id;
+        $lead_id = $request->lead_id;
+        $source_id = $request->source_id;
+
+        Lead::where('source_id', $source_id)->update(['asign_to' => $request->employee_id]);
+        return redirect('leads/assign_lead_emp')->with('success', 'Leads Assigned Successfully.');
 
     }
 

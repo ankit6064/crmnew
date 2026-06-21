@@ -43,12 +43,13 @@
         <div class="right-side">
             <h2>Update Employee</h2>
             <div class="graph">
-                <form method="post" id="employeeForm">
+                <form method="POST" id="employeeForm" action="{{ route('employee.update', $employee->id) }}" onsubmit="event.preventDefault(); submitform();">
                     @csrf
                     @method('PUT')
 
                     <input type="hidden" id="employee_id" value="{{ $employee->id }}">
                     <input type="hidden" name="manager" id="manager" value="{{ Auth::id() }}">
+                    <input type="hidden" id="previous_url" value="{{ url()->previous() }}">
 
                     <div class="form-row">
                         <div class="form-group">
@@ -120,7 +121,7 @@
                         <button type="button" class="btn btn-save" onclick="submitform();">
                             Update
                         </button>
-                        <button type="button" class="btn btn-cancel" onclick="window.location.href='{{ route('employee.manageremployeeindex') }}'">
+                        <button type="button" class="btn btn-cancel" onclick="goBack();">
                             Cancel
                         </button>
                     </div>
@@ -169,7 +170,7 @@
                             if (response.status === 200) {
                                 $('#successModal').css('display', 'flex');
                                 setTimeout(function () {
-                                    window.location.href = "{{ route('employee.manageremployeeindex') }}";
+                                    goBack();
                                 }, 2000);
                             } else {
                                 alert(response.message || 'Something went wrong.');
@@ -179,6 +180,15 @@
                             alert('An error occurred while submitting the form.');
                         }
                     });
+                }
+
+                function goBack() {
+                    let prevUrl = $('#previous_url').val();
+                    if (prevUrl && prevUrl !== window.location.href && !prevUrl.includes('/login') && !prevUrl.includes('/check-submanager')) {
+                        window.location.href = prevUrl;
+                    } else {
+                        window.location.href = "{{ route('employee.manageremployeeindex') }}";
+                    }
                 }
 
                 // ✅ jQuery Validation with red borders

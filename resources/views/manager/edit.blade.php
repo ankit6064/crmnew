@@ -68,7 +68,7 @@
         <h2>Update Manager</h2>
 
         <div class="graph">
-            <form id="managerUpdateForm">
+            <form id="managerUpdateForm" action="{{ route('manager.update', $manager->id) }}" method="POST" onsubmit="event.preventDefault(); updateManager();">
                 @csrf
                 @method('PUT')
 

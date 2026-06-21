@@ -1,50 +1,35 @@
 @extends('layouts.admin')
 @section('content')
-<div class="row page-titles">
-    <div class="col-md-5 align-self-center">
-        <h3 class="text-themecolor">Dashboard</h3>
-    </div>
-    <div class="col-md-7 align-self-center">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-            <li class="breadcrumb-item active">Campaigns</li>
-        </ol>
-    </div>
-</div>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-outline-info">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <!-- Manager Name and Employees -->
-                    <h4 class="m-b-0 text-white">Campaigns</h4>
-                    <!-- Back Button on the Right -->
-              <!--       <a href="{{ url()->previous() }}" class="btn btn-light d-flex align-items-center">
-                        <span class="material-symbols-outlined mr-2">
-                            arrow_back
-                        </span>
-                        Back
-                    </a>
- -->                </div>
-                <div class="card-body align-right">
 
-                    <table class="table table-striped table-hover" id="employee-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Campaign</th>
-                                <th>Sub-Campaign</th>
-                                <th>Leads</th>
-                                <th>Last Login</th>
-                                <th>Comments since last session</th>
-                            </tr>
-                        </thead>
-                    </table>
+    <div class="main-right">
+        <div class="right-side">
+            <div class="row align-items-center mb-4">
+                <div class="col-md-12">
+                    <h2 class="mb-0">Campaigns</h2>
+                </div>
+            </div>
+
+            <div class="graph">
+                <div class="table">
+                    <div class="table-container">
+                        <table class="table table-striped table-hover" id="employee-table" cellspacing="0" width="100%">
+                            <thead class="thead-main">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Campaign</th>
+                                    <th>Sub-Campaign</th>
+                                    <th>Leads</th>
+                                    <th>Last Login</th>
+                                    <th>Comments since last session</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
 @endsection
 
 @push('scripts')
@@ -54,9 +39,12 @@
             var table = $('#employee-table').DataTable({
                 processing: false,
                 serverSide: true,
-                searching:false,
+                searching: true,
                 ajax: '{{ route('home_datatable') }}',
                 pageLength: 10,
+                language: {
+                    searchPlaceholder: "Search by name, campaign..."
+                },
                 columns: [
                     // {data: 'assign_to_employee', name: 'assign_to_employee'},
                     { data: 'name', name: 'name' },
@@ -80,6 +68,10 @@
                     });
 
                 }
+            });
+
+            table.on('init.dt', function () {
+                $('div.dataTables_filter input').css({ 'width': '250px', 'display': 'inline-block' });
             });
 
             // Show spinner overlay on processing start

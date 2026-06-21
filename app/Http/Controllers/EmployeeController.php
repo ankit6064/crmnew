@@ -46,16 +46,35 @@ class EmployeeController extends Controller
         if (Auth::user()->is_admin == 2) {
             return redirect()->route('employee.manageremployeeindex');
         }
-        $total = User::where('is_admin', 1)
-            ->count();
+        $total = 0;
+        $active = 0;
+        $deactive = 0;
+        if (Auth::user()->is_admin == SUBMANAGER) {
+            $total = User::where('is_admin', USER)
+                ->where('user_id', Auth::user()->id)
+                ->count();
 
-        $active = User::where('is_admin', 1)
-            ->where('is_active', 1)
-            ->count();
+            $active = User::where('is_admin', USER)
+                ->where('user_id', Auth::user()->id)
+                ->where('is_active', 1)
+                ->count();
 
-        $deactive = User::where('is_admin', 1)
-            ->where('is_active', 2)
-            ->count();
+            $deactive = User::where('is_admin', USER)
+                ->where('user_id', Auth::user()->id)
+                ->where('is_active', 2)
+                ->count();
+        } else {
+            $total = User::where('is_admin', USER)
+                ->count();
+
+            $active = User::where('is_admin', USER)
+                ->where('is_active', 1)
+                ->count();
+
+            $deactive = User::where('is_admin', USER)
+                ->where('is_active', 2)
+                ->count();
+        }
 
         return view('employee.index', compact('active', 'deactive', 'total'));
     }
@@ -76,11 +95,20 @@ class EmployeeController extends Controller
             } else {
                 $status = [2];
             }
-            $managers = User::where('is_admin', USER)
-                ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
-                ->whereIn('is_active', $status)
-                ->orderBy('created_at', 'desc')
-                ->get();
+            if (Auth::user()->is_admin == SUBMANAGER) {
+                $managers = User::where('is_admin', USER)
+                    ->where('user_id', Auth::user()->id)
+                    ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
+                    ->whereIn('is_active', $status)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            } else {
+                $managers = User::where('is_admin', USER)
+                    ->select('id', 'first_name', 'last_name', 'image', 'email', 'orignal_password', 'address', 'phone_no', 'manager_type', 'is_active')
+                    ->whereIn('is_active', $status)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
 
             return DataTables::of($managers)
                 ->editColumn('manager_type', function ($data) {
@@ -216,12 +244,9 @@ class EmployeeController extends Controller
                 'name' => $request->first_name . ' ' . $request->last_name,
                 'password' => Hash::make($request->orignal_password)
             ]);
-            // Update the manager with the validated data
+            // Update the employee with the validated data
             $employee->update($request->all());
-            if (Auth::user()->is_admin == 2) {
-
-                // return redirect()->route('employee.manageremployeeindex')->with('success', 'Employee updated successfully!');
-
+            if (Auth::user()->is_admin == 1 || Auth::user()->is_admin == 2 || Auth::user()->is_admin == 3) {
                 echo json_encode(['status' => 200, 'message' => 'Employee Details Updated']);
                 exit;
             }
@@ -309,12 +334,17 @@ class EmployeeController extends Controller
         return view('employee.manageremployeeindex', compact('employees', 'permissions', 'active', 'deactive', 'total'));
     }
 
-    public function createmanageremployees()
+    public function createmanageremployees(\Illuminate\Http\Request $request)
     {
-        $request = 'CreateEmployeeRequest';
+        $requestVar = 'CreateEmployeeRequest';
         $managers = user::where('is_admin', MANAGER)->orderBy('name')->pluck('name', 'id');
+        $managerId = $request->managerid;
         // Return the view with the employee creation form
-        return view('employee.createmanageremployee', compact('request', 'managers'));
+        return view('employee.createmanageremployee', [
+            'request' => $requestVar,
+            'managers' => $managers,
+            'managerId' => $managerId
+        ]);
     }
 
     public function storemanageremployee(CreateEmployeeRequest $request)
@@ -324,13 +354,15 @@ class EmployeeController extends Controller
             $validated = $request->validated();
             $password = Str::random(12);
 
+            $userId = $request->manager_id ?: Auth::id();
+
             // Add a new value to the request data
             $validated = array_merge($validated, [
                 'name' => $request->first_name . ' ' . $request->last_name,
                 'orignal_password' => $password,
                 'password' => Hash::make($password),
                 'is_admin' => USER,
-                'user_id' => Auth::id()
+                'user_id' => $userId
             ]);
             // Create the new employee
             User::create($validated);
@@ -1593,7 +1625,7 @@ class EmployeeController extends Controller
         }
 
         $filePath = storage_path('app/public/' . $momReport->mom_file_path);
-        
+
         if (!file_exists($filePath)) {
             return redirect()->back()->with('error', 'File not found');
         }
@@ -1692,16 +1724,16 @@ class EmployeeController extends Controller
         $lastname = $data->prospect_last_name;
         $path = "storage/app/public/Excel" . date("-d-m-Y") . "/" . $source_name . ' performance ' . time() . $id . "/";
         $filename = $firstname . $lastname . date("-d-m-Y");
-        
+
         try {
             File::makeDirectory($path, $mode = 0777, true, true);
             $htd->createDoc("$view", $path . $filename);
-            
+
             $filePath = $path . $filename . '.doc';
             if (!file_exists($filePath)) {
                 return redirect()->back()->with('error', 'File not found');
             }
-            
+
             $headers = array('Content-Type' => 'application/octet-stream');
             return response()->download($filePath, $filename . '.doc', $headers);
         } catch (\Exception $e) {

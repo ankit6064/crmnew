@@ -22,8 +22,8 @@ class CreateEmployeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
-            'last_name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'phone_no' => 'required|numeric',
             'email' => 'required|email|unique:users,email',
             'address' => 'nullable|string|max:255',
@@ -40,9 +40,7 @@ class CreateEmployeeRequest extends FormRequest
     {
         return [
             'first_name.required' => 'First name is required.',
-            'first_name.regex' => 'First name must contain only letters and spaces.',
             'last_name.required' => 'Last name is required.',
-            'last_name.regex' => 'Last name must contain only letters and spaces.',
             'phone_no.required' => 'Phone number is required.',
             'email.required' => 'Email is required.',
             'manager.exists' => 'The selected manager is invalid.',

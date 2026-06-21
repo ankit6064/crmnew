@@ -55,7 +55,7 @@
     {{-- Success Modal --}}
     <div class="popupcenter" id="successModal"
         style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                                background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+                                            background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
         <div class="popupp">
             <div class="success-icon">
                 <i class="fa-solid fa-circle-check"></i>
@@ -65,7 +65,7 @@
     </div>
 
     <div class="popupcenter" id="duplicateModal" style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh;
-        background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+                    background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
 
         <div class="popupp" style="background:#fff; padding:30px; border-radius:8px; text-align:center; width:350px;">
 
@@ -92,150 +92,150 @@
     <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
 
     <script>
-$(document).ready(function () {
+        $(document).ready(function () {
 
-    let skipCampaignCheck = false;
+            let skipCampaignCheck = false;
 
-    $('#campaignForm').validate({
+            $('#campaignForm').validate({
 
-        rules: {
-            source_name: {
-                required: true,
-                minlength: 2
-            },
-            description: {
-                required: true,
-                minlength: 2
-            },
-            lead_file: {
-                required: true,
-                extension: "csv|xls|xlsx"
-            }
-        },
-
-        messages: {
-            source_name: {
-                required: "Please enter a campaign name.",
-                minlength: "Campaign name must be at least 2 characters"
-            },
-            description: {
-                required: "Please enter a sub campaign name.",
-                minlength: "Sub campaign name must be at least 2 characters"
-            },
-            lead_file: {
-                required: "Please choose a file.",
-                extension: "Only CSV, XLS, or XLSX files are allowed"
-            }
-        },
-
-        errorElement: 'span',
-
-        errorPlacement: function (error, element) {
-            error.addClass('text-danger');
-
-            if (element.attr("type") === "file") {
-                error.insertAfter('#file-name');
-            } else {
-                error.insertAfter(element);
-            }
-        },
-
-        highlight: function (element) {
-            $(element).addClass('error-input');
-        },
-
-        unhighlight: function (element) {
-            $(element).removeClass('error-input');
-        },
-
-        submitHandler: function (form) {
-
-            if (skipCampaignCheck) {
-                form.submit();
-                return;
-            }
-
-            const campaignName = $('#campaign').val();
-            const description = $('#sub_campaign').val();
-
-            $.ajax({
-                url: "{{ route('sources.checkCampaignExists') }}",
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    source_name: campaignName,
-                    description: description
+                rules: {
+                    source_name: {
+                        required: true,
+                        minlength: 2
+                    },
+                    description: {
+                        required: true,
+                        minlength: 2
+                    },
+                    lead_file: {
+                        required: true,
+                        extension: "csv|xls|xlsx"
+                    }
                 },
 
-                success: function (response) {
+                messages: {
+                    source_name: {
+                        required: "Please enter a campaign name.",
+                        minlength: "Campaign name must be at least 2 characters"
+                    },
+                    description: {
+                        required: "Please enter a sub campaign name.",
+                        minlength: "Sub campaign name must be at least 2 characters"
+                    },
+                    lead_file: {
+                        required: "Please choose a file.",
+                        extension: "Only CSV, XLS, or XLSX files are allowed"
+                    }
+                },
 
-                    if (response.status == 400) {
+                errorElement: 'span',
 
-                        var validator = $('#campaignForm').validate();
-                        validator.showErrors({
-                            source_name: "Campaign already exists."
-                        });
+                errorPlacement: function (error, element) {
+                    error.addClass('text-danger');
 
+                    if (element.attr("type") === "file") {
+                        error.insertAfter('#file-name');
                     } else {
+                        error.insertAfter(element);
+                    }
+                },
 
-                        skipCampaignCheck = true;
+                highlight: function (element) {
+                    $(element).addClass('error-input');
+                },
+
+                unhighlight: function (element) {
+                    $(element).removeClass('error-input');
+                },
+
+                submitHandler: function (form) {
+
+                    if (skipCampaignCheck) {
                         form.submit();
-
+                        return;
                     }
 
-                },
+                    const campaignName = $('#campaign').val();
+                    const description = $('#sub_campaign').val();
 
-                error: function () {
-                    alert("Something went wrong while checking campaign.");
+                    $.ajax({
+                        url: "{{ route('sources.checkCampaignExists') }}",
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            source_name: campaignName,
+                            description: description
+                        },
+
+                        success: function (response) {
+
+                            if (response.status == 400) {
+
+                                var validator = $('#campaignForm').validate();
+                                validator.showErrors({
+                                    source_name: "Campaign already exists."
+                                });
+
+                            } else {
+
+                                skipCampaignCheck = true;
+                                form.submit();
+
+                            }
+
+                        },
+
+                        error: function () {
+                            alert("Something went wrong while checking campaign.");
+                        }
+
+                    });
                 }
 
             });
-        }
-
-    });
 
 
-    // File name preview
-    $('#lead_file').on('change', function () {
-        const fileName = $(this).val().split('\\').pop();
-        $('#file-name').text(fileName || 'No File Chosen');
-    });
+            // File name preview
+            $('#lead_file').on('change', function () {
+                const fileName = $(this).val().split('\\').pop();
+                $('#file-name').text(fileName || 'No File Chosen');
+            });
 
 
-    // Import Duplicate
-    $('#importDuplicateBtn').click(function () {
+            // Import Duplicate
+            $('#importDuplicateBtn').click(function () {
 
-        $('#import_duplicate').val(1);
-        skipCampaignCheck = true;
+                $('#import_duplicate').val(1);
+                skipCampaignCheck = true;
 
-        $('#duplicateModal').hide();
+                $('#duplicateModal').hide();
 
-        $('#campaignForm').submit();
+                $('#campaignForm').submit();
 
-    });
+            });
 
 
-    // Don't Import Duplicate
-    $('#skipDuplicateBtn').click(function () {
+            // Don't Import Duplicate
+            $('#skipDuplicateBtn').click(function () {
 
-        $('#import_duplicate').val(0);
-        skipCampaignCheck = true;
+                $('#import_duplicate').val(0);
+                skipCampaignCheck = true;
 
-        $('#duplicateModal').hide();
+                $('#duplicateModal').hide();
 
-        $('#campaignForm').submit();
+                $('#campaignForm').submit();
 
-    });
+            });
 
-});
-</script>
+        });
+    </script>
 
 
     <script>
         @if(session('success'))
             $(document).ready(function () {
                 setTimeout(function () {
-                    $('#successModal').css('display', 'flex');
+                    // $('#successModal').css('display', 'flex');
 
                     setTimeout(function () {
                         $('#successModal').fadeOut(300, function () {
@@ -247,16 +247,6 @@ $(document).ready(function () {
             });
         @endif
 
-        @if(session('error'))
-            $(document).ready(function () {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: '{{ session('error') }}',
-                    confirmButtonColor: '#192e62',
-                });
-            });
-        @endif
     </script>
 
 

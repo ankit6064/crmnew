@@ -198,23 +198,17 @@ class SourcesController extends Controller
     public function camp_assign(Request $request, $id)
     {
         $data = Source::where(['id' => $id])->first();
-        if (isset($request->external_manager) && $request->external_manager == true) {
-            $data->assign_to_external_manager = $request->assignedTo;
-            $data->accessible_fields = serialize(json_decode($_GET['selected_fields']));
-            $all_leads_data = Lead::where('source_id', $id)->get();
-            foreach ($all_leads_data as $leadid) {
-                Lead::where('id', $leadid->id)->update(['assign_to_external_manager' => $request->assignedTo]);
-            }
-        } else {
-            if (empty($data->assign_to_manager)) {
+        if ($data) {
+            if (isset($request->external_manager) && $request->external_manager == true) {
+                $data->assign_to_external_manager = $request->assignedTo;
+                $data->accessible_fields = serialize(json_decode($_GET['selected_fields']));
+                Lead::where('source_id', $id)->update(['assign_to_external_manager' => $request->assignedTo]);
+            } else {
                 $data->assign_to_manager = $request->assignedTo;
-                $all_leads_data = Lead::where('source_id', $id)->get();
-                foreach ($all_leads_data as $leadid) {
-                    Lead::where('id', $leadid->id)->update(['asign_to_manager' => $request->assignedTo]);
-                }
+                Lead::where('source_id', $id)->update(['asign_to_manager' => $request->assignedTo]);
             }
+            $data->save();
         }
-        $data->save();
         return redirect('sources')->with('success', 'Campaign Assigned Successfully');
     }
 
@@ -222,15 +216,12 @@ class SourcesController extends Controller
     {
         $data = Source::where(['id' => $request->campaign_id])->first();
 
-        if (empty($data->assign_to_manager)) {
+        if ($data) {
             $data->assign_to_manager = $request->manager_id;
-            $all_leads_data = Lead::where('source_id', $request->campaign_id)->get();
-            foreach ($all_leads_data as $leadid) {
-                Lead::where('id', $leadid->id)->update(['asign_to_manager' => $request->assignedTo]);
-            }
+            $data->save();
+            Lead::where('source_id', $request->campaign_id)->update(['asign_to_manager' => $request->manager_id]);
         }
 
-        $data->save();
         echo json_encode(['status' => 200, 'message' => 'Manager Assigned']);
         exit;
     }
@@ -2269,7 +2260,11 @@ class SourcesController extends Controller
         // Build tooltip HTML
         $tooltipContent = '';
         foreach ($assingData as $assign) {
-            $userName = $users[$assign->asign_to] ?? 'Unknown'; // Handle missing users
+            if (empty($assign->asign_to)) {
+                $userName = 'Unassigned';
+            } else {
+                $userName = $users[$assign->asign_to] ?? 'Unknown'; // Handle missing users
+            }
             $tooltipContent .= " <tr style='#c9d1e3:1px solid black'>
             <td style='border:1px solid #c9d1e3;text-align:center'> $userName</td>
             <td style='border:1px solid #c9d1e3;text-align:center'>$assign->totalasign_to</td>

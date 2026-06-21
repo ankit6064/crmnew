@@ -31,6 +31,8 @@
 
             <form method='post' id="employeeForm">
                 @csrf
+                <input type="hidden" name="manager_id" value="{{ $managerId ?? '' }}">
+                <input type="hidden" id="previous_url" value="{{ url()->previous() }}">
 
                 <div class="form-row">
 
@@ -86,7 +88,7 @@
 
                 <div class="btn-group">
                     <button type="button" class="btn btn-save" onclick="submitform();">Save</button>
-                    <button type="button" class="btn btn-cancel" onclick="window.location.href='{{ route('employee.manageremployeeindex') }}'">Cancel</button>
+                    <button type="button" class="btn btn-cancel" onclick="goBack();">Cancel</button>
                 </div>
 
             </form>
@@ -139,7 +141,7 @@
                     if (response.status == 200) {
                         $('#successModal').css('display', 'flex');
                         setTimeout(function() {
-                            window.location.href = "{{ route('employee.manageremployeeindex') }}";
+                            goBack();
                         }, 2000);
                     } else {
                         alert(response.message);
@@ -158,6 +160,14 @@
                     }
                 }
             });
+        }
+        function goBack() {
+            let prevUrl = $('#previous_url').val();
+            if (prevUrl && prevUrl !== window.location.href && !prevUrl.includes('/login') && !prevUrl.includes('/check-submanager')) {
+                window.location.href = prevUrl;
+            } else {
+                window.location.href = "{{ route('employee.manageremployeeindex') }}";
+            }
         }
     </script>
 
