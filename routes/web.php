@@ -205,6 +205,8 @@ Route::prefix('leads')->group(function (): void {
     Route::get('employeeclosedleads/export-csv', [SourcesController::class, 'exportClosedLeadsCsv'])->name('employeeclosedleads.export_csv');
     Route::get('employeecompletedleads', [SourcesController::class,'employeecompletedleads'])->name('employeecompletedleads');
     Route::get('employeecompletedleads/export-csv', [SourcesController::class, 'exportCompletedLeadsCsv'])->name('employeecompletedleads.export_csv');
+    Route::get('employeefailedleads', [SourcesController::class,'employeefailedleads'])->name('employeefailedleads');
+    Route::get('employeefailedleads/export-csv', [SourcesController::class, 'exportFailedLeadsCsv'])->name('employeefailedleads.export_csv');
     Route::get('meeting_scheduled', [SourcesController::class,'meeting_scheduled'])->name('meeting_scheduled');
     Route::post('update_meeting_status', [SourcesController::class,'update_meeting_status'])->name('update_meeting_status');
 

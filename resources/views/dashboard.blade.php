@@ -174,11 +174,11 @@
                 </div>
 
                 <div class="col-md-3">
-                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Done" class="stat-card-link"
+                    <a href="{{ route('employeecompletedleads') }}" class="stat-card-link"
                         style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
-                                <h4>Total Meeting Complete</h4>
+                                <h4>Total Completed Leads</h4>
                                 <div class="card-icon icon7">
                                     <i class="fas fa-clipboard-check"></i>
                                 </div>
@@ -192,11 +192,11 @@
                 </div>
 
                 <div class="col-md-3">
-                    <a href="{{ route('meeting_scheduled') }}?meeting_status=Failed" class="stat-card-link"
+                    <a href="{{ route('employeefailedleads') }}" class="stat-card-link"
                         style="text-decoration:none; color:inherit;">
                         <div class="stat-card">
                             <div class="card-header">
-                                <h4>Total Meeting Dropped</h4>
+                                <h4>Total Failed Leads</h4>
                                 <div class="card-icon icon8">
                                     <i class="fas fa-calendar-times"></i>
                                 </div>

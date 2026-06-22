@@ -2811,7 +2811,14 @@ class LeadsController extends Controller
             ->where('sources.is_active', 1);
 
         if ($status !== null) {
-            $leadsQuery->where('leads.status', $status);
+            if ($status === '5') {
+                $leadsQuery->where(function ($q) {
+                    $q->where('leads.status', '5')
+                      ->orWhere('leads.meeting_status', 'Done');
+                });
+            } else {
+                $leadsQuery->where('leads.status', $status);
+            }
         }
 
         $companyNames = (clone $leadsQuery)

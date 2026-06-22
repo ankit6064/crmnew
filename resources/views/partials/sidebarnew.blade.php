@@ -118,6 +118,7 @@
         @php
             $isLeadsActive = request()->routeIs('leads.*')
                 || request()->routeIs('employeeclosedleads')
+                || request()->routeIs('employeefailedleads')
                 || request()->routeIs('employeecompletedleads')
                 || request()->routeIs('meeting_scheduled');
         @endphp
@@ -151,6 +152,11 @@
                 <a href="{{ route('employeeclosedleads') }}"
                     class="{{ request()->routeIs('employeeclosedleads') ? 'active' : '' }}">
                     <i class="fa-solid fa-circle-xmark"></i> Emp. Closed Leads
+                </a>
+
+                <a href="{{ route('employeefailedleads') }}"
+                    class="{{ request()->routeIs('employeefailedleads') ? 'active' : '' }}">
+                    <i class="fa-solid fa-circle-minus"></i> Emp. Failed Leads
                 </a>
 
                 <a href="{{ route('employeecompletedleads') }}"
