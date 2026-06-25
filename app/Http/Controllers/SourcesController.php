@@ -1950,12 +1950,18 @@ class SourcesController extends Controller
                             </a>';
                     }
 
-                    // ⬇ Download MOM (only if status = 5 and MOM is generated)
-                    if ($row->status == 5 && isset($row->momReport) && !empty($row->momReport->mom_file_path)) {
+
+
+                    $momReport = MomReport::where('lead_id', $row->id)->orderby('id', 'desc')->first();
+
+                    if (isset($momReport) && !empty($momReport)) {
+
+                        // ⬇ Download MOM (only if status = 5 and MOM is generated)
                         $notesButton .= '
                             <a href="' . route('download-single-mom', [$row->id]) . '" class="downloadmom notes_id">
                                 <i class="fa fa-download label-new" style="color:#55ce63" data-tippy-content="Download MOM"></i>
                             </a>';
+
                     }
 
                     // ✏ Edit permission
@@ -2318,7 +2324,7 @@ class SourcesController extends Controller
 
                     $contact = json_encode($row->contact_number_1);
                     // Pass the rest of the numbers as a JSON array to the JS function
-
+    
                     return "{$firstNumber} 
             <span class='badge' 
                   style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
