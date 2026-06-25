@@ -403,18 +403,20 @@
                         <label>Reminder Time</label>
                         <input type="time" id="reminder_time" class="form-control">
 
-                        <label>Conversation Type</label>
-                        <select id="reminder_for" class="form-control">
-                            <option value="">Choose Option</option>
-                            <option value="Declined">Declined</option>
-                            <option value="DNC">DNC</option>
-                            <option value="Follow-up Call">Follow-up Call</option>
-                            <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
-                            <option value="Meeting Set-up">Meeting Set-up</option>
-                            <option value="Not Interested">Not Interested</option>
-                            <option value="Not Right Party">Not Right Party</option>
-                            <option value="Reference Shared">Reference Shared</option>
-                        </select>
+                        <div id="conversation_type_container" style="display:none;">
+                            <label>Conversation Type</label>
+                            <select id="reminder_for" class="form-control">
+                                <option value="">Choose Option</option>
+                                <option value="Declined">Declined</option>
+                                <option value="DNC">DNC</option>
+                                <option value="Follow-up Call">Follow-up Call</option>
+                                <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
+                                <option value="Meeting Set-up">Meeting Set-up</option>
+                                <option value="Not Interested">Not Interested</option>
+                                <option value="Not Right Party">Not Right Party</option>
+                                <option value="Reference Shared">Reference Shared</option>
+                            </select>
+                        </div>
 
                         <label>Note</label>
                         <textarea id="feedback" class="form-control" style="min-height:130px;"></textarea>
@@ -789,8 +791,37 @@
         // ======================================================
         //  OPEN QUICK NOTE MODAL
         // ======================================================
+        $(document).ready(function () {
+            $('#feedback').val('VM/No Response');
+            $('input[type=radio][name=conversation_type]').change(function () {
+                if (this.value == 'NoResponse') {
+                    $('#feedback').val('VM/No Response');
+                    $('#min-date').val("");
+                    $('#reminder_for').val("");
+                    $('#reminder_time').val("");
+                    $('.alert.alert-danger.print-error-msg-1').hide();
+                    $('.alert.alert-danger.print-error-msg').hide();
+                    $('#conversation_type_container').hide();
+                } else if (this.value == 'Conversation') {
+                    $('.alert.alert-danger.print-error-msg-1').hide();
+                    $('.alert.alert-danger.print-error-msg').hide();
+                    $('#feedback').val('');
+                    $('#min-date').val("");
+                    $('#reminder_for').val("");
+                    $('#reminder_time').val("");
+                    $('#conversation_type_container').show();
+                }
+            });
+        });
+
         function showaddmodal(id) {
             $('#lead_id_quick_note').val(id);
+            $('input[name="conversation_type"][value="NoResponse"]').prop('checked', true);
+            $('#min-date').val('');
+            $('#reminder_time').val('');
+            $('#reminder_for').val('');
+            $('#feedback').val('VM/No Response');
+            $('#conversation_type_container').hide();
             $('#status-modal-quicknote').modal('show');
         }
 
@@ -831,11 +862,11 @@
         });
 
 
-        // ======================================================
-        //  OPEN STATUS CHANGE MODAL
-        // ======================================================
         function showstatusmodal(id) {
             $('#lead_id').val(id);
+            $('#status-modal .print-error-msg').hide();
+            $('#status-modal .print-error-msg ul').html('');
+            $('#status').val('');
             $('#status-modal').modal('show');
         }
 
@@ -856,6 +887,13 @@
                     $('#status-modal').modal('hide');
                     $('#employee-table').DataTable().ajax.reload(null, false);
                 } else {
+                    if (res.lhs_link) {
+                        $('#status-modal .print-error-msg').show();
+                        $('#status-modal .print-error-msg ul').html(res.lhs_link);
+                    } else {
+                        $('#status-modal .print-error-msg').show();
+                        $('#status-modal .print-error-msg ul').html('<li>' + res.error + '</li>');
+                    }
                     toastr.error(res.error);
                 }
 

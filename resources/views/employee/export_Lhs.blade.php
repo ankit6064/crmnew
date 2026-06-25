@@ -76,6 +76,20 @@ text-decoration:none;
 .lead-actions a:hover{
 opacity:0.9;
 }
+
+    /* jQuery validation error styling */
+    input.error,
+    textarea.error,
+    select.error {
+        border: 1px solid #dc3545 !important;
+    }
+    label.error {
+        color: #dc3545 !important;
+        font-size: 13px !important;
+        font-weight: normal !important;
+        margin-top: 5px !important;
+        display: block !important;
+    }
 </style>
 
 <?php
@@ -108,7 +122,7 @@ if (isset($data->contact_number_2) && !empty($data->contact_number_2)) {
                 <div class="alert alert-danger">{{ Session::get('error') }}</div>
             @endif
 
-            <form method='post' action="{{ url('lhs_report_save') }}" enctype="multipart/form-data">
+            <form method='post' action="{{ url('lhs_report_save') }}" id="lhsReportForm" enctype="multipart/form-data">
                 @csrf
                 
                 <input type="hidden" name='lead_id' value="{{ $data->id }}">
@@ -322,4 +336,73 @@ if (isset($data->contact_number_2) && !empty($data->contact_number_2)) {
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#lhsReportForm').validate({
+            rules: {
+                board_no: "required",
+                employees_strength: "required",
+                revenue: "required",
+                address: "required",
+                company_desc: "required",
+                responsibilities: "required",
+                team_size: "required",
+                pain_areas: "required",
+                interest_new_initiatives: "required",
+                call_notes: "required",
+                meeting_teleconference: "required",
+                contact_decision_maker: "required",
+                meeting_date1: "required",
+                meeting_time1: "required",
+                timezone_1: "required",
+                prospect_email: {
+                    required: true,
+                    email: true
+                },
+                ea_email: {
+                    email: true
+                }
+            },
+            messages: {
+                board_no: "Please enter Board Number.",
+                employees_strength: "Please enter Employees strength.",
+                revenue: "Please enter Revenue.",
+                address: "Please enter Address.",
+                company_desc: "Please enter Company Description.",
+                responsibilities: "Please enter Responsibilities.",
+                team_size: "Please enter Team Size.",
+                pain_areas: "Please enter Pain Areas.",
+                interest_new_initiatives: "Please enter Interest/New Initiatives.",
+                call_notes: "Please enter Call Notes.",
+                meeting_teleconference: "Please select Meeting/Teleconference option.",
+                contact_decision_maker: "Please select decision maker option.",
+                meeting_date1: "Please select Meeting Date.",
+                meeting_time1: "Please select Meeting Time.",
+                timezone_1: "Please select Timezone.",
+                prospect_email: {
+                    required: "Please enter Email.",
+                    email: "Please enter a valid Email."
+                },
+                ea_email: {
+                    email: "Please enter a valid Email."
+                }
+            },
+            errorClass: 'error text-danger',
+            validClass: 'valid',
+            highlight: function (element) {
+                $(element).addClass('error').removeClass('valid');
+            },
+            unhighlight: function (element) {
+                $(element).removeClass('error').addClass('valid');
+            },
+            errorPlacement: function (error, element) {
+                error.insertAfter(element);
+            }
+        });
+    });
+</script>
+@endpush
 @endsection

@@ -51,7 +51,7 @@
     <div class="main-right">
         <div class="right-side submanager completed-leads closed-leads">
 
-        <div class="row">
+            <div class="row">
                 <div class="row align-items-center mb-3">
                     <div class="col-md-8">
                         <h2 class="mb-0">Leads Listing - {{ $source->source_name }}</h2>
@@ -72,11 +72,11 @@
 
                 <!-- Filters -->
                 <!-- <div class="row">
-                                        <div class="add-submanager">
-                                            <input type="search" id="global_filter" name="search" placeholder="search...">
-                                        </div>
+                                            <div class="add-submanager">
+                                                <input type="search" id="global_filter" name="search" placeholder="search...">
+                                            </div>
 
-                                    </div> -->
+                                        </div> -->
                 <div class="filter-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
 
                     <!-- Company Filter -->
@@ -156,24 +156,40 @@
 
                     <!-- Reminder Fields -->
                     <div class="form-group">
-                        <label>Reminder Date</label>
-                        <input type="date" id="min-date" class="form-control">
+                        <div id="conversation_type_container" style="display:none;">
+                            <label>Conversation Type</label>
+                            <select id="reminder_for" class="form-control" onchange="checktype();">
+                                <option value="">Choose Option</option>
+                                <option value="Callback">Callback</option>
+                                <option value="Declined">Declined</option>
+                                <option value="DNC">DNC</option>
+                                <option value="Follow-up Call">Follow-up Call</option>
+                                <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
+                                <option value="Meeting Set-up">Meeting Set-up</option>
+                                <option value="Not Interested">Not Interested</option>
+                                <option value="Not Right Party">Not Right Party</option>
+                                <option value="Reference Shared">Reference Shared</option>
+                            </select>
+                        </div>
 
-                        <label>Reminder Time</label>
-                        <input type="time" id="reminder_time" class="form-control">
+                        <div id="reminderdatetime">
+                            <label>Reminder Date</label>
+                            <input type="date" id="min-date" class="form-control">
 
-                        <label>Conversation Type</label>
-                        <select id="reminder_for" class="form-control">
-                            <option value="">Choose Option</option>
-                            <option value="Declined">Declined</option>
-                            <option value="DNC">DNC</option>
-                            <option value="Follow-up Call">Follow-up Call</option>
-                            <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
-                            <option value="Meeting Set-up">Meeting Set-up</option>
-                            <option value="Not Interested">Not Interested</option>
-                            <option value="Not Right Party">Not Right Party</option>
-                            <option value="Reference Shared">Reference Shared</option>
-                        </select>
+                            <label>Reminder Time</label>
+                            <input type="time" id="reminder_time" class="form-control">
+                        </div>
+
+                        <div id="callbackdatetime" style="display:none;">
+                            <label>Callback Date</label>
+                            <input type="date" id="callback_date" class="form-control">
+
+                            <label>Callback Time</label>
+                            <input type="time" id="callback_time" class="form-control">
+                        </div>
+
+                        <label>Phone Number</label>
+                        <input type="tel" id="phone_number" class="form-control" placeholder="Phone Number">
 
                         <label>Note</label>
                         <textarea id="feedback" class="form-control" style="min-height:130px;"></textarea>
@@ -371,7 +387,7 @@
                 initComplete: function () {
                     var api = this.api();
                     var searchInput = $('div.dataTables_filter input');
-                    
+
                     // Style the label container to align items nicely
                     $('div.dataTables_filter label').css({
                         'display': 'inline-flex',
@@ -426,8 +442,69 @@
         // ======================================================
         function showaddmodal(id) {
             $('#lead_id_quick_note').val(id);
+            
+            // Default radio button to VM/No Response
+            $('input[name="conversation_type"][value="NoResponse"]').prop('checked', true);
+            
+            $('#min-date').val('');
+            $('#reminder_time').val('');
+            $('#reminder_for').val('');
+            $('#feedback').val('VM/No Response');
+            $('#phone_number').val('');
+            $('#callback_date').val('');
+            $('#callback_time').val('');
+            
+            // Hide Conversation Type dropdown, reset datetime fields
+            $('#conversation_type_container').hide();
+            $('#reminderdatetime').show();
+            $('#callbackdatetime').hide();
+            
             $('#status-modal-quicknote').modal('show');
         }
+
+        function checktype() {
+            var remindfor = $('#reminder_for').val();
+            if (remindfor == 'Callback') {
+                $('#reminderdatetime').css('display', 'none');
+                $('#callbackdatetime').css('display', 'block');
+            } else {
+                $('#reminderdatetime').css('display', 'block');
+                $('#callbackdatetime').css('display', 'none');
+            }
+        }
+
+        $(document).ready(function () {
+            $('#feedback').val('VM/No Response');
+
+            $('input[type=radio][name=conversation_type]').change(function () {
+                if (this.value == 'NoResponse') {
+                    $('#feedback').val('VM/No Response');
+                    $('#min-date').val("");
+                    $('#reminder_for').val("");
+                    $('#reminder_time').val("");
+                    $('#phone_number').val('');
+                    $('#callback_date').val('');
+                    $('#callback_time').val('');
+                    
+                    // Hide Conversation Type dropdown, show standard reminder fields
+                    $('#conversation_type_container').hide();
+                    $('#reminderdatetime').show();
+                    $('#callbackdatetime').hide();
+                } else if (this.value == 'Conversation') {
+                    $('#feedback').val('');
+                    $('#phone_number').val('');
+                    $('#min-date').val("");
+                    $('#reminder_for').val("");
+                    $('#reminder_time').val("");
+                    $('#callback_date').val('');
+                    $('#callback_time').val('');
+                    
+                    // Show Conversation Type dropdown
+                    $('#conversation_type_container').show();
+                    checktype();
+                }
+            });
+        });
 
 
         // ======================================================
@@ -436,16 +513,20 @@
         $('#save-data-quick-note').click(function () {
 
             let lead_id = $('#lead_id_quick_note').val();
+            let source_id = $('#source_id').val();
             let reminder_date = $('#min-date').val();
             let reminder_time = $('#reminder_time').val();
             let reminder_for = $('#reminder_for').val();
             let feedback = $('#feedback').val();
+            let phone_number = $('#phone_number').val();
+            let callback_date = $('#callback_date').val();
+            let callback_time = $('#callback_time').val();
             let type = $('input[name=conversation_type]:checked').val();
 
             let _token = $('meta[name="csrf-token"]').attr('content');
 
             $.post("{{ url('leads/add_note') }}", {
-                lead_id, reminder_date, reminder_time, reminder_for, feedback, type, _token
+                lead_id, source_id, reminder_date, reminder_time, reminder_for, feedback, type, phone_number, callback_date, callback_time, _token
             }, function (res) {
 
                 if (res.success) {
@@ -471,6 +552,9 @@
         // ======================================================
         function showstatusmodal(id) {
             $('#lead_id').val(id);
+            $('#status-modal .print-error-msg').hide();
+            $('#status-modal .print-error-msg ul').html('');
+            $('#status').val('');
             $('#status-modal').modal('show');
         }
 
@@ -491,6 +575,13 @@
                     $('#status-modal').modal('hide');
                     location.reload();
                 } else {
+                    if (res.lhs_link) {
+                        $('#status-modal .print-error-msg').show();
+                        $('#status-modal .print-error-msg ul').html(res.lhs_link);
+                    } else {
+                        $('#status-modal .print-error-msg').show();
+                        $('#status-modal .print-error-msg ul').html('<li>' + res.error + '</li>');
+                    }
                     toastr.error(res.error);
                 }
 
@@ -507,9 +598,9 @@
             $.get("{{ url('leads/notes_view') }}/" + id, function (res) {
                 $('#notes_data').html(res.table);
                 $('#largeModal').modal('show');
-            }).fail(function() {
+            }).fail(function () {
                 toastr.error('Something went wrong', 'Error!');
-            }).always(function() {
+            }).always(function () {
                 $('#spinner-overlay').hide();
             });
         }
@@ -578,7 +669,7 @@
                 numList = numbers.split(/[,\s;]+/);
             }
             numList = numList.map(n => n.trim()).filter(n => n.length > 0);
-            
+
             let rowHtml = '<table class="table table-bordered table-striped text-center" style="margin-top: 10px; width: 100%;">';
             rowHtml += '<thead>';
             rowHtml += '  <tr>';
@@ -587,8 +678,8 @@
             rowHtml += '  </tr>';
             rowHtml += '</thead>';
             rowHtml += '<tbody>';
-            
-            numList.forEach(function(num) {
+
+            numList.forEach(function (num) {
                 let dialNum = num.replace(/[^0-9+]/g, '');
                 rowHtml += '  <tr>';
                 rowHtml += '    <td>';

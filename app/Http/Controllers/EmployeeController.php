@@ -1090,7 +1090,7 @@ class EmployeeController extends Controller
                 $timeZone1 = '';
             } else {
                 $timeZone1 = $request->timezone_1;
-                if (!empty($timeZone1)) {
+                if (!empty($timeZone1) && !empty($request->meeting_time1)) {
                     $meeting_time = $request->meeting_time1;
                     $converted = $this->convertAbbreviationToIST($meeting_time, $timeZone1);
                     // dd($converted);
@@ -1149,17 +1149,17 @@ class EmployeeController extends Controller
                 'employees_strength' => 'required',
                 'revenue' => 'required',
                 'address' => 'required',
-                'website' => 'required',
-                'prospect_vertical' => 'required',
-                'prospects_level' => 'required',
+                'website' => 'nullable',
+                'prospect_vertical' => 'nullable',
+                'prospects_level' => 'nullable',
                 'company_desc' => 'required',
                 'responsibilities' => 'required',
                 'team_size' => 'required',
-                'opt_in_status' => 'required',
+                'opt_in_status' => 'nullable',
                 'pain_areas' => 'required',
                 'interest_new_initiatives' => 'required',
-                'budget' => 'required',
-                'defined_agenda' => 'required',
+                'budget' => 'nullable',
+                'defined_agenda' => 'nullable',
                 'call_notes' => 'required',
                 'meeting_date1' => 'required',
                 //'meeting_date2' =>               'required',
@@ -1168,15 +1168,15 @@ class EmployeeController extends Controller
                 'timezone_1' => 'required',
                 //'timezone_2' =>                  'required',
                 //'ext_if_any' =>                  'required',
-                'ea_name' => 'required',
-                'ea_email' => 'required|email',
+                'ea_name' => 'nullable',
+                'ea_email' => 'nullable|email',
                 'prospect_email' => 'required|email',
-                'ea_phone_no' => 'required|numeric',
+                'ea_phone_no' => 'nullable',
                 'meeting_teleconference' => 'required|in:Face to Face meeting,Teleconference',
                 'contact_decision_maker' => 'required|in:Yes,No',
-                'influencers_decision_making_process' => 'required',
-                'company_already_affiliated' => 'required',
-                'upload_file' => 'required'
+                'influencers_decision_making_process' => 'nullable',
+                'company_already_affiliated' => 'nullable',
+                'upload_file' => 'nullable'
             ], $customMessages);
             Lead::where('id', $request->lead_id)->update(['status' => $request->status, 'is_notify' => 1, 'is_read' => 1]);
 
@@ -1268,17 +1268,17 @@ class EmployeeController extends Controller
             'employees_strength' => 'required',
             'revenue' => 'required',
             'address' => 'required',
-            'website' => 'required',
-            'prospect_vertical' => 'required',
-            'prospects_level' => 'required',
+            'website' => 'nullable',
+            'prospect_vertical' => 'nullable',
+            'prospects_level' => 'nullable',
             'company_desc' => 'required',
             'responsibilities' => 'required',
             'team_size' => 'required',
             'pain_areas' => 'required',
-            'opt_in_status' => 'required',
+            'opt_in_status' => 'nullable',
             'interest_new_initiatives' => 'required',
-            'budget' => 'required',
-            'defined_agenda' => 'required',
+            'budget' => 'nullable',
+            'defined_agenda' => 'nullable',
             'call_notes' => 'required',
             'meeting_date1' => 'required',
             //'meeting_date2' =>               'required',
@@ -1292,8 +1292,8 @@ class EmployeeController extends Controller
             //'ea_phone_no' =>                 'required|numeric',
             'meeting_teleconference' => 'required|in:Face to Face meeting,Teleconference',
             'contact_decision_maker' => 'required|in:Yes,No',
-            'influencers_decision_making_process' => 'required',
-            'company_already_affiliated' => 'required',
+            'influencers_decision_making_process' => 'nullable',
+            'company_already_affiliated' => 'nullable',
             'prospect_email' => 'required',
 
         ]);

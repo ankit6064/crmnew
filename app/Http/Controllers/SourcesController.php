@@ -836,7 +836,7 @@ class SourcesController extends Controller
     {
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
-            $query = Lead::with('source')
+            $query = Lead::with(['source', 'latestNote'])
                 ->where('asign_to', auth()->user()->id)
                 ->where('source_id', $id);
 
@@ -870,7 +870,7 @@ class SourcesController extends Controller
                     return $row->source->name ?? 'N/A'; // Example: Adjust 'name' as per your source model
                 })
                 ->addColumn('action', function ($row) {
-                    $notedetails = Note::where('lead_id', $row->id)->orderByDesc('id')->first();
+                    $notedetails = $row->latestNote;
 
                     $notesButton = '';
 
@@ -1006,18 +1006,19 @@ class SourcesController extends Controller
                 ->make(true);
         }
 
-        // $comapnyName = Lead::with('source')->where(['status' => '4', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('company_name', 'asc')->groupBy('company_name')->get();
-
-
-        $comapnyName = Lead::with('source')
-            ->whereIn('status', [1, 4])
+        $comapnyName = Lead::whereIn('status', [1, 4])
             ->where('asign_to', auth()->user()->id)
             ->where('source_id', $id)
+            ->select('company_name')
             ->orderBy('company_name', 'asc')
             ->groupBy('company_name')
             ->get();
 
-        $timeZone = Lead::with('source')->where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])->orderBy('timezone', 'asc')->groupBy('timezone')->get();
+        $timeZone = Lead::where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])
+            ->select('timezone')
+            ->orderBy('timezone', 'asc')
+            ->groupBy('timezone')
+            ->get();
         $source = Source::where('id', $id)->first();
 
         return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone', 'source'));

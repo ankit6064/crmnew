@@ -276,23 +276,25 @@
 
                             <div class="form-group" id="status" name="status">
 
-                                <label class="control-label">Conversation Type</label>
+                                <div id="conversation_type_container" style="display:none;">
+                                    <label class="control-label">Conversation Type</label>
 
-                                <select id="reminder_for" class="form-control required" name="reminder_for"
-                                    onchange="checktype();">
+                                    <select id="reminder_for" class="form-control required" name="reminder_for"
+                                        onchange="checktype();">
 
-                                    <option value="">Choose Conversation Type</option>
-                                    <option value="Callback">Callback</option>
-                                    <option value="Declined">Declined</option>
-                                    <option value="DNC">DNC</option>
-                                    <option value="Follow-up Call">Follow-up Call</option>
-                                    <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
-                                    <option value="Meeting Set-up">Meeting Set-up</option>
-                                    <option value="Not Interested">Not Interested</option>
-                                    <option value="Not Right Party">Not Right Party</option>
-                                    <option value="Reference Shared">Reference Shared</option>
+                                        <option value="">Choose Conversation Type</option>
+                                        <option value="Callback">Callback</option>
+                                        <option value="Declined">Declined</option>
+                                        <option value="DNC">DNC</option>
+                                        <option value="Follow-up Call">Follow-up Call</option>
+                                        <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
+                                        <option value="Meeting Set-up">Meeting Set-up</option>
+                                        <option value="Not Interested">Not Interested</option>
+                                        <option value="Not Right Party">Not Right Party</option>
+                                        <option value="Reference Shared">Reference Shared</option>
 
-                                </select>
+                                    </select>
+                                </div>
 
                                 <div id="reminderdatetime">
 
@@ -764,8 +766,14 @@
                         $('#min-date').val("");
                         $('#reminder_for').val("");
                         $('#reminder_time').val("");
+                        $('#phone_number').val('');
+                        $('#callback_date').val('');
+                        $('#callback_time').val('');
                         $('.alert.alert-danger.print-error-msg-1').hide();
                         $('.alert.alert-danger.print-error-msg').hide();
+                        $('#conversation_type_container').hide();
+                        $('#reminderdatetime').show();
+                        $('#callbackdatetime').hide();
                     } else if (this.value == 'Conversation') {
                         $('.alert.alert-danger.print-error-msg-1').hide();
                         $('.alert.alert-danger.print-error-msg').hide();
@@ -773,6 +781,11 @@
                         $('#min-date').val("");
                         $('#reminder_for').val("");
                         $('#reminder_time').val("");
+                        $('#phone_number').val('');
+                        $('#callback_date').val('');
+                        $('#callback_time').val('');
+                        $('#conversation_type_container').show();
+                        checktype();
                     }
                 });
             });
@@ -781,6 +794,17 @@
         <script>
             function showaddmodal(id) {
                 $('#lead_id_quick_note').val(id);
+                $('input[name="conversation_type"][value="NoResponse"]').prop('checked', true);
+                $('#min-date').val('');
+                $('#reminder_time').val('');
+                $('#reminder_for').val('');
+                $('#feedback').val('VM/No Response');
+                $('#phone_number').val('');
+                $('#callback_date').val('');
+                $('#callback_time').val('');
+                $('#conversation_type_container').hide();
+                $('#reminderdatetime').show();
+                $('#callbackdatetime').hide();
                 $('#status-modal-quicknote').modal('show');
             }
 
@@ -851,8 +875,10 @@
 
             function showstatusmodal(id) {
                 $('#lead_id').val(id);
+                $('#status-modal .print-error-msg').hide();
+                $('#status-modal .print-error-msg ul').html('');
+                $('#status').val('');
                 $('#status-modal').modal('show');
-
             }
 
             $('.close-status-modal').on('click', function (event) {
@@ -908,12 +934,15 @@
                                 }
 
                             } else {
-                                printErrorMsg(response.lhs_link);
+                                if (response.lhs_link) {
+                                    $('#status-modal .print-error-msg').show();
+                                    $('#status-modal .print-error-msg ul').html(response.lhs_link);
+                                } else {
+                                    $('#status-modal .print-error-msg').show();
+                                    $('#status-modal .print-error-msg ul').html('<li>' + response.error + '</li>');
+                                }
 
-                                //$('.error').text(response.error);
                                 toastr.error(response.error, 'Error!');
-                                // location.reload(true);
-                                // toastr.error('errors messages');
                             }
 
                         },

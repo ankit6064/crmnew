@@ -213,22 +213,24 @@ th[data-orderable="false"]::after {
                                             <label class="control-label">Reminder Time</label>
                                             <input type="time" class="form-control" id="reminder_time"
                                                 name="reminder_time">
-                                            <label class="control-label">Conversation Type</label>
-                                            {{-- <input type="text" class="form-control required"
-                                                placeholder="Reminder Type" id="reminder_for" name="reminder_for"
-                                                value="{{ old('reminder_for') }}"> --}}
-                                            <select id="reminder_for" class="form-control required" name="reminder_for">
-                                                <option value="">Choose Conversation Type</option>
-                                                <option value="Declined">Declined</option>
-                                                <option value="DNC">DNC</option>
-                                                <option value="Follow-up Call">Follow-up Call</option>
-                                                <option value="Follow-up Email/Info Requested">Follow-up Email/Info
-                                                    Requested</option>
-                                                <option value="Meeting Set-up">Meeting Set-up</option>
-                                                <option value="Not Interested">Not Interested</option>
-                                                <option value="Not Right Party">Not Right Party</option>
-                                                <option value="Reference Shared">Reference Shared</option>
-                                            </select>
+                                            <div id="conversation_type_container" style="display:none;">
+                                                <label class="control-label">Conversation Type</label>
+                                                {{-- <input type="text" class="form-control required"
+                                                    placeholder="Reminder Type" id="reminder_for" name="reminder_for"
+                                                    value="{{ old('reminder_for') }}"> --}}
+                                                <select id="reminder_for" class="form-control required" name="reminder_for">
+                                                    <option value="">Choose Conversation Type</option>
+                                                    <option value="Declined">Declined</option>
+                                                    <option value="DNC">DNC</option>
+                                                    <option value="Follow-up Call">Follow-up Call</option>
+                                                    <option value="Follow-up Email/Info Requested">Follow-up Email/Info
+                                                        Requested</option>
+                                                    <option value="Meeting Set-up">Meeting Set-up</option>
+                                                    <option value="Not Interested">Not Interested</option>
+                                                    <option value="Not Right Party">Not Right Party</option>
+                                                    <option value="Reference Shared">Reference Shared</option>
+                                                </select>
+                                            </div>
                                             <div class="alert alert-danger print-error-msg-1" style="display:none">
                                                 <ul class="custom_text-1"></ul>
                                             </div>
@@ -559,6 +561,7 @@ th[data-orderable="false"]::after {
                     $('#reminder_time').val("");
                     $('.alert.alert-danger.print-error-msg-1').hide();
                     $('.alert.alert-danger.print-error-msg').hide();
+                    $('#conversation_type_container').hide();
                 } else if (this.value == 'Conversation') {
                     $('.alert.alert-danger.print-error-msg-1').hide();
                     $('.alert.alert-danger.print-error-msg').hide();
@@ -566,6 +569,7 @@ th[data-orderable="false"]::after {
                     $('#min-date').val("");
                     $('#reminder_for').val("");
                     $('#reminder_time').val("");
+                    $('#conversation_type_container').show();
                 }
             });
         });
@@ -574,6 +578,12 @@ th[data-orderable="false"]::after {
     <script>
         function showaddmodal(id) {
             $('#lead_id_quick_note').val(id);
+            $('input[name="conversation_type"][value="NoResponse"]').prop('checked', true);
+            $('#min-date').val('');
+            $('#reminder_time').val('');
+            $('#reminder_for').val('');
+            $('#feedback').val('VM/No Response');
+            $('#conversation_type_container').hide();
             $('#status-modal-quicknote').modal('show');
         }
 
@@ -587,8 +597,10 @@ th[data-orderable="false"]::after {
 
         function showstatusmodal(id) {
             $('#lead_id').val(id);
+            $('#status-modal .print-error-msg').hide();
+            $('#status-modal .print-error-msg ul').html('');
+            $('#status').val('');
             $('#status-modal').modal('show');
-
         }
 
         $('.close-status-modal').on('click', function (event) {
@@ -641,32 +653,22 @@ th[data-orderable="false"]::after {
                                 $("#ajaxform")[0].reset();
                                 //}else{
                                 // printErrorMsg(response.error);
-                            }
+                                }
 
                         } else {
-                            printErrorMsg(response.lhs_link);
+                            if (response.lhs_link) {
+                                $('#status-modal .print-error-msg').show();
+                                $('#status-modal .print-error-msg ul').html(response.lhs_link);
+                            } else {
+                                $('#status-modal .print-error-msg').show();
+                                $('#status-modal .print-error-msg ul').html('<li>' + response.error + '</li>');
+                            }
 
-                            //$('.error').text(response.error);
                             toastr.error(response.error, 'Error!');
-                            // location.reload(true);
-                            // toastr.error('errors messages');
                         }
 
                     },
                 });
-
-
-                function printErrorMsg(msg) {
-                    console.log(msg);
-                    $(".print-error-msg").find("ul").html('');
-                    $(".print-error-msg").css('display', 'block');
-                    //$.each( msg, function( key, value ) {
-                    $(".print-error-msg").find("ul").append('<li>' + msg + '</li>');
-                    // });
-                }
-
-
-            });
 
         });
 
