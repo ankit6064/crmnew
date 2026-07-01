@@ -701,12 +701,12 @@
                             // timer: 2000,
                             showConfirmButton: true
                         });
-                        
+
                         // Dynamically update the count cards
                         $('.filter-card[data-filter="total"] .card-body h2').text(response.total);
                         $('.filter-card[data-filter="active"] .card-body h2').text(response.active);
                         $('.filter-card[data-filter="inactive"] .card-body h2').text(response.inactive);
-                        
+
                         // Redraw table dynamically
                         $('#employee-table').DataTable().draw(false);
                     } else {

@@ -573,9 +573,9 @@ class SourcesController extends Controller
         $leads = Lead::where('source_id', $id)
             ->where('status', '<>', '3')
             ->select('id', 'company_name')
-            ->selectRaw(' SUM( CASE WHEN status = 1 THEN 1 ELSE 0 END) AS pending_leads ')
-            ->selectRaw(' SUM( CASE WHEN status = 2 THEN 1 ELSE 0 END) AS failed_leads ')
-            ->selectRaw(' SUM( CASE WHEN status = 4 THEN 1 ELSE 0 END) AS inprogress_leads ')
+            ->selectRaw(" SUM( CASE WHEN status = '1' THEN 1 ELSE 0 END) AS pending_leads ")
+            ->selectRaw(" SUM( CASE WHEN status = '2' THEN 1 ELSE 0 END) AS failed_leads ")
+            ->selectRaw(" SUM( CASE WHEN status = '4' THEN 1 ELSE 0 END) AS inprogress_leads ")
             ->selectRaw(' COUNT(source_id) as total_leads')
             ->groupBy('company_name')
             ->get();
@@ -741,19 +741,21 @@ class SourcesController extends Controller
                 ['company_name', '=', $companyName],
                 ['asign_to', '=', $assignedUserId],
             ])->whereIn('status', $leadsType)->pluck('id');
-            // Assign request user to leads
-            $result = Lead::whereIn('id', $leadsToAssign)->update(['asign_to' => $userId]);
-            if ($result) {
-                return [
-                    'status' => true,
-                    'message' => 'Leads assigned successfully.'
-                ];
-            } else {
+
+            if ($leadsToAssign->isEmpty()) {
                 return [
                     'status' => false,
-                    'message' => 'Something went wrong. Please try after sometime.'
+                    'message' => 'No matching leads found to assign.'
                 ];
             }
+
+            // Assign request user to leads
+            $result = Lead::whereIn('id', $leadsToAssign)->update(['asign_to' => $userId]);
+
+            return [
+                'status' => true,
+                'message' => 'Leads assigned successfully.'
+            ];
         } else {
             return [
                 'status' => false,
@@ -771,8 +773,9 @@ class SourcesController extends Controller
         $assignedLeadsUsers = Lead::where([
             ['source_id', "=", $request->sourceId],
             ['company_name', "=", $request->companyName],
-            ['status', "<>", config('constants.LEADS_STATUS.CLOSED')],
+            ['status', "<>", LEAD_STATUS_CLOSED],
         ])
+            ->whereNotNull('asign_to')
             ->select('asign_to')
             ->groupBy('asign_to')
             ->with([

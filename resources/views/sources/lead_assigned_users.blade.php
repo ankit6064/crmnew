@@ -9,16 +9,18 @@
         <tbody>
             @if(!empty($assignedLeadsUsers))
                 @foreach ($assignedLeadsUsers as $key => $assignedLeadsUser)
-                    <tr>          
-                        <td style="white-space: pre-wrap" width="200"> {{ $assignedLeadsUser->user->user_name }}</td>
-                        <td>                          
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="selectedUser" id="selectedUser_{{$key}}" value="{{ $assignedLeadsUser->asign_to }}" data-user = "{{ $assignedLeadsUser->asign_to }}">
-                                <label class="form-check-label" for="selectedUser_{{$key}}">
-                                </label>
-                            </div>                   
-                        </td>              
-                    </tr>            
+                    @if($assignedLeadsUser->user)
+                        <tr>          
+                            <td style="white-space: pre-wrap" width="200"> {{ $assignedLeadsUser->user->user_name }}</td>
+                            <td>                          
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="selectedUser" id="selectedUser_{{$key}}" value="{{ $assignedLeadsUser->asign_to }}" data-user = "{{ $assignedLeadsUser->asign_to }}">
+                                    <label class="form-check-label" for="selectedUser_{{$key}}">
+                                    </label>
+                                </div>                   
+                            </td>              
+                        </tr>            
+                    @endif
                 @endforeach
             @else
                 <tr>          
