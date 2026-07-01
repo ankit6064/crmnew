@@ -224,7 +224,32 @@ class LeadsController extends Controller
     }
     public function assign_lead_emp($id = null)
     {
-        $employees = User::where(['user_id' => auth()->user()->id, 'is_admin' => '1', 'is_active' => 1])->orderBy('name')->get()->toArray();
+        if (is_null(auth()->user()->is_admin)) {
+            $employees = User::whereIn('is_admin', [1, 3])
+                ->where('is_active', 1)
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->orderBy('name')
+                ->get()
+                ->toArray();
+        } else {
+            $submanager_ids = User::where('user_id', auth()->user()->id)
+                ->where('is_admin', 3)
+                ->pluck('id')
+                ->toArray();
+
+            $allowed_parent_ids = array_merge([auth()->user()->id], $submanager_ids);
+
+            $employees = User::whereIn('is_admin', [1, 3])
+                ->whereIn('user_id', $allowed_parent_ids)
+                ->where('is_active', 1)
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->orderBy('name')
+                ->get()
+                ->toArray();
+        }
+
         $sources = Source::where(function ($query) {
             $query->where(['user_id' => auth()->user()->id])
                 ->orWhere(['assign_to_manager' => auth()->user()->id]);
@@ -310,29 +335,57 @@ class LeadsController extends Controller
 
         // ===================== ASSIGN BLOCK =====================
         $assignBlock = '
-        <div class="form-group">
-            <label>Enter Assign Leads Count</label>
-            <div class="input-box">
-                <input type="text" id="assign_count" value="' . $unassigned_leads . '" readonly>
-                <i class="fa-solid fa-pen-to-square edit-icon"></i>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Enter Assign Leads Count</label>
+                <div class="input-box" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="text" id="assign_count" data-max="' . $unassigned_leads . '" value="' . $unassigned_leads . '" readonly style="flex: 1; margin-bottom: 0;">
+                    <div style="display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+                        <input type="checkbox" id="edit_count_chk" style="cursor: pointer; width: 16px; height: 16px; margin: 0; padding: 0;">
+                        <label for="edit_count_chk" style="margin-bottom: 0; cursor: pointer; color: #000; font-size: 14px; font-weight: 500;">Edit</label>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <div class="form-group">
-            <label>Select Employee</label>
-            <select id="employee_id" class="form-control">
-                <option value="">Select Employee</option>';
-
-        $employees = User::where('is_admin', '!=', 1)->get();
+ 
+            <div class="form-group">
+                <label>Select Employee</label>
+                <select id="employee_id" class="form-control">
+                    <option value="">Select Employee</option>';
+ 
+        if (is_null(auth()->user()->is_admin)) {
+            $employees = User::whereIn('is_admin', [1, 3])
+                ->where('is_active', 1)
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->orderBy('name')
+                ->get();
+        } else {
+            $submanager_ids = User::where('user_id', auth()->user()->id)
+                ->where('is_admin', 3)
+                ->pluck('id')
+                ->toArray();
+ 
+            $allowed_parent_ids = array_merge([auth()->user()->id], $submanager_ids);
+ 
+            $employees = User::whereIn('is_admin', [1, 3])
+                ->whereIn('user_id', $allowed_parent_ids)
+                ->where('is_active', 1)
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->orderBy('name')
+                ->get();
+        }
+ 
         foreach ($employees as $emp) {
             $assignBlock .= '<option value="' . $emp->id . '">' . $emp->name . '</option>';
         }
-
+ 
         $assignBlock .= '</select>
         <div class="error_msg" style="color:red;margin-top:5px;"></div>
         </div>
-
-        <div class="btn-group">
+        </div>
+ 
+        <div class="btn-group" style="margin-top: 15px;">
             <button type="button" id="assignLeadBtn" class="btn btn-save">Assign Leads</button>
         </div>';
 
@@ -391,15 +444,17 @@ class LeadsController extends Controller
                     <td>' . $row->completed . '</td>
                     <td>' . $row->failed . '</td>
                     <td>' . $emp_name . '</td>
-                    <td>
-                        <button class="btn-action Withdraw" 
-                            data-camp="' . $camp_id . '" 
-                            data-emp="' . $row->asign_to . '">Withdraw</button>
+                    <td class="actions">
+                        <div class="action-buttons">
+                            <button class="btn-action Withdraw" 
+                                data-camp="' . $camp_id . '" 
+                                data-emp="' . $row->asign_to . '">Withdraw</button>
 
-                        <button class="btn-action Reassign"
-                            data-camp="' . $camp_id . '" 
-                            data-assign="' . $row->asign_to . '" 
-                            data-count="' . $row->total . '">Reassign</button>
+                            <button class="btn-action Reassign"
+                                data-camp="' . $camp_id . '" 
+                                data-assign="' . $row->asign_to . '" 
+                                data-count="' . $row->total . '">Reassign</button>
+                        </div>
                     </td>
                 </tr>';
             }
