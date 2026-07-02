@@ -2094,12 +2094,12 @@ class EmployeeController extends Controller
             $phone = substr($phone, 1);
         }
 
-        $server = env('DIALER_SERVER', 'http://server');
+        $server = env('DIALER_SERVER', 'http://192.168.31.150');
         $source = env('DIALER_SOURCE', 'test');
 
         // Vicidial API Login
-        $apiUser = env('DIALER_API_USER', $dialer->dialer_id);
-        $apiPass = env('DIALER_API_PASS', $dialer->dialer_password);
+        $apiUser = env('DIALER_API_USER', '84MLKwnh');
+        $apiPass = env('DIALER_API_PASS', 'Md7WKyGF');
 
         $agentUser = $dialer->dialer_id;
         $dialPrefix = env('DIALER_PREFIX', '88');
@@ -2112,12 +2112,12 @@ class EmployeeController extends Controller
             'agent_user' => $agentUser,
             'function' => 'external_dial',
             'value' => $phone,
-            'phone_code' => '1', // +1 static
+            'phone_code' => '+1', // +1 static
             'search' => 'YES',
             'preview' => 'NO',
             'focus' => 'YES',
-            'dial_prefix' => $dialPrefix,
-            'group_alias' => $groupAlias,
+            'dial_prefix' => $dialPrefix
+            // 'group_alias' => $groupAlias,
         ];
 
         $url = rtrim($server, '/') . '/agc/api.php';
