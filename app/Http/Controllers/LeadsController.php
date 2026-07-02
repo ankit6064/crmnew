@@ -351,7 +351,7 @@ class LeadsController extends Controller
                 <label>Select Employee</label>
                 <select id="employee_id" class="form-control">
                     <option value="">Select Employee</option>';
- 
+
         if (is_null(auth()->user()->is_admin)) {
             $employees = User::whereIn('is_admin', [1, 3])
                 ->where('is_active', 1)
@@ -364,9 +364,9 @@ class LeadsController extends Controller
                 ->where('is_admin', 3)
                 ->pluck('id')
                 ->toArray();
- 
+
             $allowed_parent_ids = array_merge([auth()->user()->id], $submanager_ids);
- 
+
             $employees = User::whereIn('is_admin', [1, 3])
                 ->whereIn('user_id', $allowed_parent_ids)
                 ->where('is_active', 1)
@@ -375,11 +375,11 @@ class LeadsController extends Controller
                 ->orderBy('name')
                 ->get();
         }
- 
+
         foreach ($employees as $emp) {
             $assignBlock .= '<option value="' . $emp->id . '">' . $emp->name . '</option>';
         }
- 
+
         $assignBlock .= '</select>
         <div class="error_msg" style="color:red;margin-top:5px;"></div>
         </div>
@@ -1824,6 +1824,83 @@ class LeadsController extends Controller
             ]);
         }
 
+        // Hangup logic on dialer success note submission
+        if ($request->is_dial_note) {
+            // Record call hangup log
+            \App\Models\DialerLog::create([
+                'employee_id' => Auth::id(),
+                'lead_id' => $leadId,
+                'phone_number' => $request->phone_number,
+                'event' => 'hangup'
+            ]);
+
+            $user = Auth::user();
+            $dialer = $user ? $user->dialer : null;
+            if ($dialer && !empty($dialer->dialer_id)) {
+                $agentUser = $dialer->dialer_id;
+                $server = env('DIALER_SERVER', 'http://192.168.31.150');
+                $source = env('DIALER_SOURCE', 'test');
+                $apiUser = env('DIALER_API_USER', '84MLKwnh');
+                $apiPass = env('DIALER_API_PASS', 'Md7WKyGF');
+
+                $url = rtrim($server, '/') . '/agc/api.php';
+                $params = [
+                    'source' => $source,
+                    'user' => $apiUser,
+                    'pass' => $apiPass,
+                    'agent_user' => $agentUser,
+                    'function' => 'external_hangup',
+                    'value' => '1'
+                ];
+
+                try {
+                    \Log::info('Triggering Hangup URL: ' . $url . '?' . http_build_query($params));
+                    $response = \Illuminate\Support\Facades\Http::get($url, $params);
+                    \Log::info('Hangup Response: ' . $response->body());
+                } catch (\Exception $e) {
+                    \Log::error('Hangup API Error: ' . $e->getMessage());
+                }
+
+                // 2. Trigger Status API
+                $statusValue = '';
+                if ($request->type === 'NoResponse') {
+                    $statusValue = 'NoResponse';
+                } else {
+                    $statusValue = $request->reminder_for === 'Callback' ? 'CALLBK' : $request->reminder_for;
+                }
+
+                $callbackDatetime = '';
+                $callbackType = '';
+                $callbackComments = '';
+
+                if ($request->reminder_for === 'Callback' && !empty($request->callback_date) && !empty($request->callback_time)) {
+                    $callbackDatetime = $request->callback_date . ' ' . $request->callback_time;
+                    $callbackType = 'USERONLY';
+                    $callbackComments = $request->feedback ?? '';
+                }
+
+                $paramsStatus = [
+                    'source' => $source,
+                    'user' => $apiUser,
+                    'pass' => $apiPass,
+                    'agent_user' => $agentUser,
+                    'function' => 'external_status',
+                    'value' => $statusValue,
+                    'callback_datetime' => $callbackDatetime,
+                    'callback_type' => $callbackType,
+                    'callback_comments' => $callbackComments
+                ];
+
+                try {
+                    \Log::info('Triggering Status URL: ' . $url . '?' . http_build_query($paramsStatus));
+                    $responseStatus = \Illuminate\Support\Facades\Http::get($url, $paramsStatus);
+                    \Log::info('Status Response: ' . $responseStatus->body());
+                } catch (\Exception $e) {
+                    \Log::error('Status API Error: ' . $e->getMessage());
+                }
+            }
+        }
+
         return response()->json(['success' => 'Note Added Successfully']);
     }
 
@@ -2869,7 +2946,7 @@ class LeadsController extends Controller
             if ($status === '5') {
                 $leadsQuery->where(function ($q) {
                     $q->where('leads.status', '5')
-                      ->orWhere('leads.meeting_status', 'Done');
+                        ->orWhere('leads.meeting_status', 'Done');
                 });
             } else {
                 $leadsQuery->where('leads.status', $status);

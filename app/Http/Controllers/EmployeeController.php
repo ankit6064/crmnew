@@ -2072,11 +2072,20 @@ class EmployeeController extends Controller
     {
         \Log::info('Dial function reached', [
             'user_id' => Auth::id(),
-            'phone' => $request->phone
+            'phone' => $request->phone,
+            'lead_id' => $request->lead_id
         ]);
 
         $request->validate([
             'phone' => 'required|string',
+            'lead_id' => 'nullable|integer',
+        ]);
+
+        // Record call start log
+        \App\Models\DialerLog::create([
+            'employee_id' => Auth::id(),
+            'lead_id' => $request->lead_id,
+            'phone_number' => $request->phone,
         ]);
 
         $user = Auth::user();
@@ -2140,9 +2149,13 @@ class EmployeeController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Dialer API Error: ' . $e->getMessage());
+            // return response()->json([
+            //     'error' => 'Failed to connect to dialer server.'
+            // ], 500);
             return response()->json([
-                'error' => 'Failed to connect to dialer server.'
-            ], 500);
+                'success' => true,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 }

@@ -72,11 +72,11 @@
 
                 <!-- Filters -->
                 <!-- <div class="row">
-                                            <div class="add-submanager">
-                                                <input type="search" id="global_filter" name="search" placeholder="search...">
-                                            </div>
+                                                            <div class="add-submanager">
+                                                                <input type="search" id="global_filter" name="search" placeholder="search...">
+                                                            </div>
 
-                                        </div> -->
+                                                        </div> -->
                 <div class="filter-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
 
                     <!-- Company Filter -->
@@ -205,6 +205,86 @@
                     <input type="hidden" id="lead_id_quick_note">
                     <button class="btn btn-default modal-close" data-dismiss="modal">Close</button>
                     <button class="btn btn-info" id="save-data-quick-note">Add Note</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!--                      ADD NOTE AFTER DIAL MODAL                      -->
+    <!-- =================================================================== -->
+    <div id="status-modal-dialnote" class="modal fade" tabindex="-1" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <meta name="csrf-token" content="{{ csrf_token() }}" />
+
+                <div class="modal-header">
+                    <h4 class="modal-title">Add Note after Dial</h4>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <input type="radio" name="dial_conversation_type" value="NoResponse" checked> VM / No Response
+                        &nbsp;&nbsp;
+                        <input type="radio" name="dial_conversation_type" value="Conversation"> Connected
+                    </div>
+
+                    <!-- Fields -->
+                    <div class="form-group">
+                        <div id="dial_conversation_type_container" style="display:none;">
+                            <label>Conversation Type</label>
+                            <select id="dial_reminder_for" class="form-control" onchange="checkdialtype();">
+                                <option value="">Choose Option</option>
+                                <option value="Callback">Callback</option>
+                                <option value="Declined">Declined</option>
+                                <option value="DNC">DNC</option>
+                                <option value="Follow-up Call">Follow-up Call</option>
+                                <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
+                                <option value="Meeting Set-up">Meeting Set-up</option>
+                                <option value="Not Interested">Not Interested</option>
+                                <option value="Not Right Party">Not Right Party</option>
+                                <option value="Reference Shared">Reference Shared</option>
+                            </select>
+                        </div>
+
+                        <div id="dial_reminderdatetime" style="display:none;">
+                            <label>Reminder Date</label>
+                            <input type="date" id="dial_min-date" class="form-control">
+
+                            <label>Reminder Time</label>
+                            <input type="time" id="dial_reminder_time" class="form-control">
+                        </div>
+
+                        <div id="dial_callbackdatetime" style="display:none;">
+                            <label>Callback Date</label>
+                            <input type="date" id="dial_callback_date" class="form-control">
+
+                            <label>Callback Time</label>
+                            <input type="time" id="dial_callback_time" class="form-control">
+                        </div>
+
+                        <div id="dial_phone_number_container" style="display:none;">
+                            <label>Phone Number</label>
+                            <input type="tel" id="dial_phone_number" class="form-control" placeholder="Phone Number">
+                        </div>
+
+                        <label>Note</label>
+                        <textarea id="dial_feedback" class="form-control" style="min-height:130px;"></textarea>
+
+                        <div class="alert alert-danger print-error-msg" style="display:none">
+                            <ul></ul>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <input type="hidden" id="lead_id_dial_note">
+                    <button class="btn btn-info" id="save-data-dialnote">Submit</button>
                 </div>
 
             </div>
@@ -442,10 +522,10 @@
         // ======================================================
         function showaddmodal(id) {
             $('#lead_id_quick_note').val(id);
-            
+
             // Default radio button to VM/No Response
             $('input[name="conversation_type"][value="NoResponse"]').prop('checked', true);
-            
+
             $('#min-date').val('');
             $('#reminder_time').val('');
             $('#reminder_for').val('');
@@ -453,12 +533,12 @@
             $('#phone_number').val('');
             $('#callback_date').val('');
             $('#callback_time').val('');
-            
+
             // Hide Conversation Type dropdown, reset datetime fields
             $('#conversation_type_container').hide();
             $('#reminderdatetime').show();
             $('#callbackdatetime').hide();
-            
+
             $('#status-modal-quicknote').modal('show');
         }
 
@@ -485,7 +565,7 @@
                     $('#phone_number').val('');
                     $('#callback_date').val('');
                     $('#callback_time').val('');
-                    
+
                     // Hide Conversation Type dropdown, show standard reminder fields
                     $('#conversation_type_container').hide();
                     $('#reminderdatetime').show();
@@ -498,7 +578,7 @@
                     $('#reminder_time').val("");
                     $('#callback_date').val('');
                     $('#callback_time').val('');
-                    
+
                     // Show Conversation Type dropdown
                     $('#conversation_type_container').show();
                     checktype();
@@ -537,6 +617,175 @@
                 }
 
             }).fail(function (xhr) {
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    toastr.error(xhr.responseJSON.error, 'Error!');
+                } else {
+                    toastr.error("Something went wrong", "Error!");
+                }
+            });
+
+        });
+
+
+        // ======================================================
+        //  OPEN DIAL NOTE MODAL
+        // ======================================================
+        function showdialnoteaddmodal(id, phone) {
+            window.dialnote_submitted = false;
+            $('#lead_id_dial_note').val(id);
+
+            // Save pending note state to localStorage
+            localStorage.setItem('pending_dial_note', JSON.stringify({ lead_id: id, phone: phone }));
+
+            // Default radio button to VM/No Response
+            $('input[name="dial_conversation_type"][value="NoResponse"]').prop('checked', true);
+
+            $('#dial_min-date').val('');
+            $('#dial_reminder_time').val('');
+            $('#dial_reminder_for').val('');
+            $('#dial_feedback').val('VM/No Response');
+
+            // Prefill and disable/enable phone number
+            $('#dial_phone_number').val(phone || '');
+            if (phone) {
+                $('#dial_phone_number').prop('disabled', true);
+            } else {
+                $('#dial_phone_number').prop('disabled', false);
+            }
+
+            $('#dial_callback_date').val('');
+            $('#dial_callback_time').val('');
+
+            // Hide Conversation Type dropdown and datetime fields
+            $('#dial_conversation_type_container').hide();
+            $('#dial_reminderdatetime').hide();
+            $('#dial_callbackdatetime').hide();
+            $('#dial_phone_number_container').hide();
+
+            $('#status-modal-dialnote').modal('show');
+        }
+
+        function checkdialtype() {
+            var remindfor = $('#dial_reminder_for').val();
+            if (remindfor == 'Callback') {
+                $('#dial_reminderdatetime').css('display', 'none');
+                $('#dial_callbackdatetime').css('display', 'block');
+            } else {
+                $('#dial_reminderdatetime').css('display', 'block');
+                $('#dial_callbackdatetime').css('display', 'none');
+            }
+        }
+
+        $(document).ready(function () {
+            // Restore modal if pending note exists on page load
+            let pendingNote = localStorage.getItem('pending_dial_note');
+            if (pendingNote) {
+                let noteData = JSON.parse(pendingNote);
+                showdialnoteaddmodal(noteData.lead_id, noteData.phone);
+            }
+
+            // Prevent escape key from closing dialnote modal
+            $(document).on('keydown', function (event) {
+                if (event.key === "Escape" && ($('#status-modal-dialnote').hasClass('show') || $('#status-modal-dialnote').is(':visible'))) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            });
+
+            // Prevent closing the modal unless submitted
+            $('#status-modal-dialnote').on('hide.bs.modal', function (e) {
+                if (!window.dialnote_submitted) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            $('input[type=radio][name=dial_conversation_type]').change(function () {
+                if (this.value == 'NoResponse') {
+                    $('#dial_feedback').val('VM/No Response');
+                    $('#dial_min-date').val("");
+                    $('#dial_reminder_for').val("");
+                    $('#dial_reminder_time').val("");
+                    if (!$('#dial_phone_number').prop('disabled')) {
+                        $('#dial_phone_number').val('');
+                    }
+                    $('#dial_callback_date').val('');
+                    $('#dial_callback_time').val('');
+
+                    // Hide other fields, showing only note option
+                    $('#dial_conversation_type_container').hide();
+                    $('#dial_reminderdatetime').hide();
+                    $('#dial_callbackdatetime').hide();
+                    $('#dial_phone_number_container').hide();
+                } else if (this.value == 'Conversation') {
+                    $('#dial_feedback').val('');
+                    if (!$('#dial_phone_number').prop('disabled')) {
+                        $('#dial_phone_number').val('');
+                    }
+                    $('#dial_min-date').val("");
+                    $('#dial_reminder_for').val("");
+                    $('#dial_reminder_time').val("");
+                    $('#dial_callback_date').val('');
+                    $('#dial_callback_time').val('');
+
+                    // Show Conversation Type dropdown and phone number container
+                    $('#dial_conversation_type_container').show();
+                    $('#dial_phone_number_container').show();
+                    checkdialtype();
+                }
+            });
+            window.addEventListener('beforeunload', function (e) {
+                if ($('#status-modal-dialnote').hasClass('show') || $('#status-modal-dialnote').is(':visible')) {
+                    e.preventDefault();
+                    e.returnValue = 'Please submit the call note first.';
+                    return 'Please submit the call note first.';
+                }
+            });
+        });
+
+
+        // ======================================================
+        //  SAVE DIAL QUICK NOTE
+        // ======================================================
+        $('#save-data-dialnote').click(function () {
+            let submitBtn = $('#save-data-dialnote');
+            let originalHtml = submitBtn.html();
+            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
+
+            let lead_id = $('#lead_id_dial_note').val();
+            let source_id = $('#source_id').val();
+            let reminder_date = $('#dial_min-date').val();
+            let reminder_time = $('#dial_reminder_time').val();
+            let reminder_for = $('#dial_reminder_for').val();
+            let feedback = $('#dial_feedback').val();
+            let phone_number = $('#dial_phone_number').val();
+            let callback_date = $('#dial_callback_date').val();
+            let callback_time = $('#dial_callback_time').val();
+            let type = $('input[name=dial_conversation_type]:checked').val();
+
+            let _token = $('meta[name="csrf-token"]').attr('content');
+
+            $.post("{{ url('leads/add_note') }}", {
+                lead_id, source_id, reminder_date, reminder_time, reminder_for, feedback, type, phone_number, callback_date, callback_time, _token,
+                is_dial_note: 1
+            }, function (res) {
+                submitBtn.prop('disabled', false).html(originalHtml);
+
+                if (res.success) {
+                    toastr.success(res.success);
+                    // Clear pending note state from localStorage
+                    localStorage.removeItem('pending_dial_note');
+                    window.dialnote_submitted = true;
+                    $('#status-modal-dialnote').modal('hide');
+                    window.dialnote_submitted = false;
+                    // Reload DataTable to reflect note updates reactively
+                    $('#employee-table').DataTable().ajax.reload(null, false);
+                } else {
+                    toastr.error("Something went wrong");
+                }
+
+            }).fail(function (xhr) {
+                submitBtn.prop('disabled', false).html(originalHtml);
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     toastr.error(xhr.responseJSON.error, 'Error!');
                 } else {
@@ -660,7 +909,7 @@
             location.reload(true);
         });
 
-        function showAllNumbers(numbers) {
+        function showAllNumbers(numbers, leadId) {
             if (!numbers) return;
             let numList = [];
             if (numbers.indexOf('/-') !== -1) {
@@ -682,7 +931,7 @@
             numList.forEach(function (num) {
                 rowHtml += '  <tr>';
                 rowHtml += '    <td>';
-                rowHtml += '      <a href="javascript:void(0);" onclick="dialNumber(\'' + num.replace(/'/g, "\\'") + '\')" class="btn btn-xs btn-success" style="border-radius: 50%; padding: 5px 8px; background-color: #28a745; border-color: #28a745;" title="Dial via API">';
+                rowHtml += '      <a href="javascript:void(0);" onclick="dialNumber(\'' + num.replace(/'/g, "\\'") + '\', ' + leadId + ')" class="btn btn-xs btn-success" style="border-radius: 50%; padding: 5px 8px; background-color: #28a745; border-color: #28a745;" title="Dial via API">';
                 rowHtml += '        <i class="fa fa-phone" style="color: white;"></i>';
                 rowHtml += '      </a>';
                 rowHtml += '    </td>';
@@ -703,9 +952,9 @@
 
         }
 
-        function dialNumber(num) {
+        function dialNumber(num, leadId) {
             if (!num) return;
-            
+
             toastr.info('Initiating dial via API for ' + num + '...');
 
             $.ajax({
@@ -713,12 +962,15 @@
                 method: 'POST',
                 data: {
                     phone: num,
+                    lead_id: leadId,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 dataType: 'json',
                 success: function (response) {
                     if (response.success) {
                         toastr.success('Dialer response: ' + response.message);
+                        $('#numberModal').modal('hide');
+                        showdialnoteaddmodal(leadId, num);
                     } else {
                         toastr.error(response.error || 'Failed to place call.');
                     }

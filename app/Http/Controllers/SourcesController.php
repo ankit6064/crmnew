@@ -963,7 +963,7 @@ class SourcesController extends Controller
                     return "{$firstNumber} 
             <span class='badge' 
                   style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
-                  onclick='showAllNumbers({$contact})'>
+                  onclick='showAllNumbers({$contact}, {$row->id})'>
                   {$badgeText}
             </span>";
                 })
@@ -993,7 +993,7 @@ class SourcesController extends Controller
                     return "{$firstNumber} 
             <span class='badge' 
                   style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
-                  onclick='showAllNumbers({$contact})'>
+                  onclick='showAllNumbers({$contact}, {$row->id})'>
                   {$badgeText}
             </span>";
                 })
