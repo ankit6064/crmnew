@@ -957,18 +957,14 @@ class SourcesController extends Controller
                     }
 
                     $firstNumber = $numbers[0];
-                    if ($count <= 1) {
-                        return $firstNumber;
-                    }
-
                     $contact = json_encode($row->contact_number_1);
-                    // Pass the rest of the numbers as a JSON array to the JS function
+                    $badgeText = $count <= 1 ? 'Dial' : '+ show more';
     
                     return "{$firstNumber} 
             <span class='badge' 
                   style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
                   onclick='showAllNumbers({$contact})'>
-                  + show more
+                  {$badgeText}
             </span>";
                 })
                 ->editColumn('contact_number_2', function ($row) {
@@ -991,18 +987,14 @@ class SourcesController extends Controller
                     }
 
                     $firstNumber = $numbers[0];
-                    if ($count <= 1) {
-                        return $firstNumber;
-                    }
-
                     $contact = json_encode($row->contact_number_2);
-                    // Pass the rest of the numbers as a JSON array to the JS function
+                    $badgeText = $count <= 1 ? 'Dial' : '+ show more';
     
                     return "{$firstNumber} 
             <span class='badge' 
                   style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
                   onclick='showAllNumbers({$contact})'>
-                  + show more
+                  {$badgeText}
             </span>";
                 })
                 ->rawColumns(['action', 'prospect_first_name', 'contact_number_1', 'contact_number_2']) // To render HTML in the actions column

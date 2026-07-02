@@ -84,6 +84,26 @@
                         </div>
                     </div>
 
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Dialer ID</label>
+                            <input type="text" id="dialer_id" name="dialer_id" class="form-control"
+                                placeholder="Enter Dialer ID" value="{{ old('dialer_id') }}">
+                            @error('dialer_id')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label>Dialer Password</label>
+                            <input type="text" id="dialer_password" name="dialer_password" class="form-control"
+                                placeholder="Enter Dialer Password" value="{{ old('dialer_password') }}">
+                            @error('dialer_password')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div class="btn-group">
                         <button type="submit" class="btn btn-save">Save</button>
                         <button type="button" class="btn btn-cancel" onclick="window.location.href='{{ route('employee.index') }}'">Cancel</button>

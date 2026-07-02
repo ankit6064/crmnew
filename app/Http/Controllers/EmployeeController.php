@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\EmployeeDialer;
 use App\Models\Source;
 use App\Models\SubmanagerPermissions;
 use App\Models\conversationType;
@@ -33,6 +34,7 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 use App\Models\RestrictEmployeelogin;
 use DateTimeZone;
+use Illuminate\Support\Facades\Http;
 
 class EmployeeController extends Controller
 {
@@ -188,6 +190,12 @@ class EmployeeController extends Controller
             // Create the new employee
             $user = User::create($validated);
 
+            // Save employee dialer details
+            $user->dialer()->create([
+                'dialer_id' => $request->dialer_id,
+                'dialer_password' => $request->dialer_password,
+            ]);
+
             // Redirect with success message
             return redirect()->route('employee.index')->with('success', 'Employee created successfully.');
         } catch (\Exception $e) {
@@ -246,6 +254,16 @@ class EmployeeController extends Controller
             ]);
             // Update the employee with the validated data
             $employee->update($request->all());
+
+            // Update or create the dialer record
+            $employee->dialer()->updateOrCreate(
+                ['employee_id' => $employee->id],
+                [
+                    'dialer_id' => $request->dialer_id,
+                    'dialer_password' => $request->dialer_password,
+                ]
+            );
+
             if (is_null(Auth::user()->is_admin) || Auth::user()->is_admin == 1 || Auth::user()->is_admin == 2 || Auth::user()->is_admin == 3) {
                 echo json_encode(['status' => 200, 'message' => 'Employee Details Updated']);
                 exit;
@@ -368,7 +386,14 @@ class EmployeeController extends Controller
                 'user_id' => $userId
             ]);
             // Create the new employee
-            User::create($validated);
+            $user = User::create($validated);
+
+            // Save employee dialer details
+            $user->dialer()->create([
+                'dialer_id' => $request->dialer_id,
+                'dialer_password' => $request->dialer_password,
+            ]);
+
             $logs = new Logs();
             $logs->user_id = Auth::id();
             $logs->description = 'A new employee ' . $request->first_name . ' ' . $request->last_name . ' is added.';
@@ -2038,13 +2063,86 @@ class EmployeeController extends Controller
             $logs->description = $logMessage;
             $logs->type = 16;
             $logs->save();
-
         }
         echo json_encode(['status' => 200, 'message' => 'Sub Manager Created']);
         exit;
     }
 
+    public function dial(Request $request)
+    {
+        \Log::info('Dial function reached', [
+            'user_id' => Auth::id(),
+            'phone' => $request->phone
+        ]);
 
+        $request->validate([
+            'phone' => 'required|string',
+        ]);
 
+        $user = Auth::user();
+        $dialer = $user->dialer;
 
+        if (!$dialer || empty($dialer->dialer_id)) {
+            return response()->json([
+                'error' => 'Dialer credentials not configured. Please set them in your employee profile.'
+            ], 422);
+        }
+
+        // Clean phone number (digits only)
+        $phone = preg_replace('/\D/', '', $request->phone);
+        if (strlen($phone) === 11 && str_starts_with($phone, '1')) {
+            $phone = substr($phone, 1);
+        }
+
+        $server = env('DIALER_SERVER', 'http://server');
+        $source = env('DIALER_SOURCE', 'test');
+
+        // Vicidial API Login
+        $apiUser = env('DIALER_API_USER', $dialer->dialer_id);
+        $apiPass = env('DIALER_API_PASS', $dialer->dialer_password);
+
+        $agentUser = $dialer->dialer_id;
+        $dialPrefix = env('DIALER_PREFIX', '88');
+        $groupAlias = env('DIALER_GROUP_ALIAS', 'DEFAULT');
+
+        $params = [
+            'source' => $source,
+            'user' => $apiUser,
+            'pass' => $apiPass,
+            'agent_user' => $agentUser,
+            'function' => 'external_dial',
+            'value' => $phone,
+            'phone_code' => '1', // +1 static
+            'search' => 'YES',
+            'preview' => 'NO',
+            'focus' => 'YES',
+            'dial_prefix' => $dialPrefix,
+            'group_alias' => $groupAlias,
+        ];
+
+        $url = rtrim($server, '/') . '/agc/api.php';
+        $fullUrl = $url . '?' . http_build_query($params);
+        \Log::info('Dialer API Hitting URL: ' . $fullUrl);
+
+        try {
+            $response = Http::get($url, $params);
+
+            if ($response->successful()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $response->body()
+                ]);
+            }
+
+            return response()->json([
+                'error' => 'Dialer API returned status code: ' . $response->status()
+            ], 500);
+
+        } catch (\Exception $e) {
+            \Log::error('Dialer API Error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to connect to dialer server.'
+            ], 500);
+        }
+    }
 }

@@ -86,6 +86,26 @@
 
                 </div>
 
+                <div class="form-row">
+
+                    <!-- Dialer ID -->
+                    <div class="form-group">
+                        <label>Dialer ID</label>
+                        <input type="text" id="dialer_id" name="dialer_id" class="form-control"
+                               placeholder="Enter Dialer ID" value="{{ old('dialer_id') }}">
+                        <span class="text-danger error-text dialer_id_error"></span>
+                    </div>
+
+                    <!-- Dialer Password -->
+                    <div class="form-group">
+                        <label>Dialer Password</label>
+                        <input type="text" id="dialer_password" name="dialer_password" class="form-control"
+                               placeholder="Enter Dialer Password" value="{{ old('dialer_password') }}">
+                        <span class="text-danger error-text dialer_password_error"></span>
+                    </div>
+
+                </div>
+
                 <div class="btn-group">
                     <button type="button" class="btn btn-save" onclick="submitform();">Save</button>
                     <button type="button" class="btn btn-cancel" onclick="goBack();">Cancel</button>

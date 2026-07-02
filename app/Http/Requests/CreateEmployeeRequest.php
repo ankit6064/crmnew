@@ -28,6 +28,8 @@ class CreateEmployeeRequest extends FormRequest
             'email' => 'required|email|unique:users,email',
             'address' => 'nullable|string|max:255',
             'manager' => 'nullable|exists:users,id',
+            'dialer_id' => 'nullable|string|max:255',
+            'dialer_password' => 'nullable|string|max:255',
         ];
     }
 

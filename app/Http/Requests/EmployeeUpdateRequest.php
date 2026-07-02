@@ -31,6 +31,8 @@ class EmployeeUpdateRequest extends FormRequest
             'email' => 'required|email|unique:users,email,' . $employeeId,  // Ensure email is unique except for the current employee
             'address' => 'nullable|string|max:255',
             'manager' => 'nullable|exists:users,id', // Only managers that exist in the users table
+            'dialer_id' => 'nullable|string|max:255',
+            'dialer_password' => 'nullable|string|max:255',
         ];
     }
 

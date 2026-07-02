@@ -680,10 +680,9 @@
             rowHtml += '<tbody>';
 
             numList.forEach(function (num) {
-                let dialNum = num.replace(/[^0-9+]/g, '');
                 rowHtml += '  <tr>';
                 rowHtml += '    <td>';
-                rowHtml += '      <a href="tel:' + dialNum + '" class="btn btn-xs btn-success" style="border-radius: 50%; padding: 5px 8px; background-color: #28a745; border-color: #28a745;">';
+                rowHtml += '      <a href="javascript:void(0);" onclick="dialNumber(\'' + num.replace(/'/g, "\\'") + '\')" class="btn btn-xs btn-success" style="border-radius: 50%; padding: 5px 8px; background-color: #28a745; border-color: #28a745;" title="Dial via API">';
                 rowHtml += '        <i class="fa fa-phone" style="color: white;"></i>';
                 rowHtml += '      </a>';
                 rowHtml += '    </td>';
@@ -702,6 +701,36 @@
         function closemodal() {
             $('#numberModal').modal('hide');
 
+        }
+
+        function dialNumber(num) {
+            if (!num) return;
+            
+            toastr.info('Initiating dial via API for ' + num + '...');
+
+            $.ajax({
+                url: "{{ route('employee.dial') }}",
+                method: 'POST',
+                data: {
+                    phone: num,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success('Dialer response: ' + response.message);
+                    } else {
+                        toastr.error(response.error || 'Failed to place call.');
+                    }
+                },
+                error: function (xhr) {
+                    let errorMsg = 'An error occurred while trying to dial.';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    }
+                    toastr.error(errorMsg, 'Dialer Error');
+                }
+            });
         }
 
         $('.modal-close').on('click', function (event) {

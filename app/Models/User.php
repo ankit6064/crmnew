@@ -79,6 +79,11 @@ class User extends Authenticatable
         return $this->hasMany(Lead::class, 'assign_to');
     }
 
+    public function dialer()
+    {
+        return $this->hasOne(EmployeeDialer::class, 'employee_id');
+    }
+
     public function getIsAdminAttribute($value)
     {
         if (session()->has('login_role') && auth()->check() && auth()->id() === $this->id) {
