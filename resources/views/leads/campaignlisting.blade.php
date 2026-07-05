@@ -228,15 +228,17 @@
                 <div class="modal-body">
 
                     <div class="form-group">
-                        <input type="radio" name="dial_conversation_type" value="NoResponse" checked> VM / No Response
-                        &nbsp;&nbsp;
-                        <input type="radio" name="dial_conversation_type" value="Conversation"> Connected
+                        <label for="dial_conversation_type">Call Outcome</label>
+                        <select name="dial_conversation_type" id="dial_conversation_type" class="form-control">
+                            <option value="NoResponse">VM / No Response</option>
+                            <option value="Conversation">Connected</option>
+                        </select>
                     </div>
 
                     <!-- Fields -->
                     <div class="form-group">
                         <div id="dial_conversation_type_container" style="display:none;">
-                            <label>Conversation Type</label>
+                            <label>Conversation Type <span class="text-danger">*</span></label>
                             <select id="dial_reminder_for" class="form-control" onchange="checkdialtype();">
                                 <option value="">Choose Option</option>
                                 <option value="Callback">Callback</option>
@@ -637,8 +639,8 @@
             // Save pending note state to localStorage
             localStorage.setItem('pending_dial_note', JSON.stringify({ lead_id: id, phone: phone }));
 
-            // Default radio button to VM/No Response
-            $('input[name="dial_conversation_type"][value="NoResponse"]').prop('checked', true);
+            // Default dropdown to VM/No Response
+            $('#dial_conversation_type').val('NoResponse');
 
             $('#dial_min-date').val('');
             $('#dial_reminder_time').val('');
@@ -656,11 +658,11 @@
             $('#dial_callback_date').val('');
             $('#dial_callback_time').val('');
 
-            // Hide Conversation Type dropdown and datetime fields
+            // Hide Conversation Type dropdown and datetime fields, but show phone number
             $('#dial_conversation_type_container').hide();
             $('#dial_reminderdatetime').hide();
             $('#dial_callbackdatetime').hide();
-            $('#dial_phone_number_container').hide();
+            $('#dial_phone_number_container').show();
 
             $('#status-modal-dialnote').modal('show');
         }
@@ -700,7 +702,7 @@
                 }
             });
 
-            $('input[type=radio][name=dial_conversation_type]').change(function () {
+            $('#dial_conversation_type').change(function () {
                 if (this.value == 'NoResponse') {
                     $('#dial_feedback').val('VM/No Response');
                     $('#dial_min-date').val("");
@@ -712,11 +714,11 @@
                     $('#dial_callback_date').val('');
                     $('#dial_callback_time').val('');
 
-                    // Hide other fields, showing only note option
+                    // Hide other fields, showing only note option and phone number
                     $('#dial_conversation_type_container').hide();
                     $('#dial_reminderdatetime').hide();
                     $('#dial_callbackdatetime').hide();
-                    $('#dial_phone_number_container').hide();
+                    $('#dial_phone_number_container').show();
                 } else if (this.value == 'Conversation') {
                     $('#dial_feedback').val('');
                     if (!$('#dial_phone_number').prop('disabled')) {
@@ -761,7 +763,13 @@
             let phone_number = $('#dial_phone_number').val();
             let callback_date = $('#dial_callback_date').val();
             let callback_time = $('#dial_callback_time').val();
-            let type = $('input[name=dial_conversation_type]:checked').val();
+            let type = $('#dial_conversation_type').val();
+
+            if (type === 'Conversation' && !reminder_for) {
+                toastr.error("Conversation Type is required", "Validation Error");
+                submitBtn.prop('disabled', false).html(originalHtml);
+                return false;
+            }
 
             let _token = $('meta[name="csrf-token"]').attr('content');
 
