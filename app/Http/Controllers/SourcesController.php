@@ -949,7 +949,17 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
+                    
+                    // Remove all hyphens from each number
+                    $numbers = array_map(function ($num) {
+                        return str_replace('-', '', $num);
+                    }, $numbers);
+
+                    // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+                    $numbers = array_values(array_filter($numbers, function ($num) {
+                        return preg_match('/\d/', $num);
+                    }));
+
                     $count = count($numbers);
 
                     if ($count == 0) {
@@ -957,7 +967,7 @@ class SourcesController extends Controller
                     }
 
                     $firstNumber = $numbers[0];
-                    $contact = json_encode($row->contact_number_1);
+                    $contact = json_encode(implode(', ', $numbers));
                     $badgeText = $count <= 1 ? 'Dial' : '+ show more';
     
                     return "{$firstNumber} 
@@ -979,7 +989,17 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_2);
                     }
                     $numbers = array_map('trim', $numbers);
-                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
+                    
+                    // Remove all hyphens from each number
+                    $numbers = array_map(function ($num) {
+                        return str_replace('-', '', $num);
+                    }, $numbers);
+
+                    // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+                    $numbers = array_values(array_filter($numbers, function ($num) {
+                        return preg_match('/\d/', $num);
+                    }));
+
                     $count = count($numbers);
 
                     if ($count == 0) {
@@ -987,7 +1007,7 @@ class SourcesController extends Controller
                     }
 
                     $firstNumber = $numbers[0];
-                    $contact = json_encode($row->contact_number_2);
+                    $contact = json_encode(implode(', ', $numbers));
                     $badgeText = $count <= 1 ? 'Dial' : '+ show more';
     
                     return "{$firstNumber} 
@@ -1200,7 +1220,17 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
+                    
+                    // Remove all hyphens from each number
+                    $numbers = array_map(function ($num) {
+                        return str_replace('-', '', $num);
+                    }, $numbers);
+
+                    // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+                    $numbers = array_values(array_filter($numbers, function ($num) {
+                        return preg_match('/\d/', $num);
+                    }));
+
                     $count = count($numbers);
 
                     if ($count == 0) {
@@ -1212,7 +1242,7 @@ class SourcesController extends Controller
                         return $firstNumber;
                     }
 
-                    $contact = json_encode($row->contact_number_1);
+                    $contact = json_encode(implode(', ', $numbers));
                     // Pass the rest of the numbers as a JSON array to the JS function
     
                     return "{$firstNumber} 
@@ -2045,7 +2075,17 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
+                    
+                    // Remove all hyphens from each number
+                    $numbers = array_map(function ($num) {
+                        return str_replace('-', '', $num);
+                    }, $numbers);
+
+                    // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+                    $numbers = array_values(array_filter($numbers, function ($num) {
+                        return preg_match('/\d/', $num);
+                    }));
+
                     $count = count($numbers);
 
                     if ($count == 0) {
@@ -2057,7 +2097,7 @@ class SourcesController extends Controller
                         return $firstNumber;
                     }
 
-                    $contact = json_encode($row->contact_number_1);
+                    $contact = json_encode(implode(', ', $numbers));
                     // Pass the rest of the numbers as a JSON array to the JS function
     
                     return "{$firstNumber} 
@@ -2306,7 +2346,17 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    $numbers = array_values(array_filter($numbers)); // Remove empty strings and reset keys
+                    
+                    // Remove all hyphens from each number
+                    $numbers = array_map(function ($num) {
+                        return str_replace('-', '', $num);
+                    }, $numbers);
+
+                    // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+                    $numbers = array_values(array_filter($numbers, function ($num) {
+                        return preg_match('/\d/', $num);
+                    }));
+
                     $count = count($numbers);
 
                     if ($count == 0) {
@@ -2318,7 +2368,7 @@ class SourcesController extends Controller
                         return $firstNumber;
                     }
 
-                    $contact = json_encode($row->contact_number_1);
+                    $contact = json_encode(implode(', ', $numbers));
                     // Pass the rest of the numbers as a JSON array to the JS function
     
                     return "{$firstNumber} 
