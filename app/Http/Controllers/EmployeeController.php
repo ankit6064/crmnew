@@ -2111,7 +2111,7 @@ class EmployeeController extends Controller
         $apiPass = env('DIALER_API_PASS', 'Md7WKyGF');
 
         $agentUser = $dialer->dialer_id;
-        $dialPrefix = env('DIALER_PREFIX', '88');
+        $dialPrefix = env('DIALER_PREFIX', '1010214323');
         $groupAlias = env('DIALER_GROUP_ALIAS', 'DEFAULT');
 
         $params = [
