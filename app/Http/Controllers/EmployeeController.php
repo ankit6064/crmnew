@@ -2125,7 +2125,7 @@ class EmployeeController extends Controller
             'pass' => $apiPass,
             'agent_user' => $agentUser,
             'function' => 'external_dial',
-            'value' => $phone,
+            'value' => $request->phone,
             'phone_code' => '+1', // +1 static
             'search' => 'YES',
             'preview' => 'NO',
