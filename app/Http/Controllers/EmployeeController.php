@@ -2081,11 +2081,17 @@ class EmployeeController extends Controller
             'lead_id' => 'nullable|integer',
         ]);
 
+        // Clean phone number (digits only) and ensure static 1
+        $phone = preg_replace('/\D/', '', $request->phone);
+        if (!str_starts_with($phone, '1')) {
+            $phone = '1' . $phone;
+        }
+
         // Record call start log
         $dialerLog = \App\Models\DialerLog::create([
             'employee_id' => Auth::id(),
             'lead_id' => $request->lead_id,
-            'phone_number' => $request->phone,
+            'phone_number' => $phone,
         ]);
 
         $user = Auth::user();
@@ -2099,12 +2105,6 @@ class EmployeeController extends Controller
             return response()->json([
                 'error' => 'Dialer credentials not configured. Please set them in your employee profile.'
             ], 422);
-        }
-
-        // Clean phone number (digits only)
-        $phone = preg_replace('/\D/', '', $request->phone);
-        if (strlen($phone) === 11 && str_starts_with($phone, '1')) {
-            $phone = substr($phone, 1);
         }
 
         $server = env('DIALER_SERVER', 'http://192.168.31.150');

@@ -1787,6 +1787,14 @@ class LeadsController extends Controller
 
     public function add_note(Request $request)
     {
+        if ($request->has('phone_number') && !empty($request->phone_number)) {
+            $phone_number = preg_replace('/\D/', '', $request->phone_number);
+            if (!str_starts_with($phone_number, '1')) {
+                $phone_number = '1' . $phone_number;
+            }
+            $request->merge(['phone_number' => $phone_number]);
+        }
+
         $leadId = $request->lead_id;
         $userId = auth()->id();
 
