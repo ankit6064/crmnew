@@ -12,7 +12,10 @@ class DialerLog extends Model
         'employee_id',
         'lead_id',
         'phone_number',
-        'event'
+        'event',
+        'request_data',
+        'note_details',
+        'response'
     ];
 
     public function employee()

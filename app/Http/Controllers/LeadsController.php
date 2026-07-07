@@ -1857,11 +1857,14 @@ class LeadsController extends Controller
         // Hangup logic on dialer success note submission
         if ($request->is_dial_note) {
             // Record call hangup log
-            \App\Models\DialerLog::create([
+            $dialerLog = \App\Models\DialerLog::create([
                 'employee_id' => Auth::id(),
                 'lead_id' => $leadId,
                 'phone_number' => $request->phone_number,
-                'event' => 'hangup'
+                'event' => 'hangup',
+                'note_details' => json_encode($request->only([
+                    'type', 'reminder_for', 'feedback', 'phone_number', 'callback_date', 'callback_time', 'reminder_date', 'reminder_time'
+                ]), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
             ]);
 
             $user = Auth::user();
@@ -1883,12 +1886,15 @@ class LeadsController extends Controller
                     'value' => '1'
                 ];
 
+                $hangupRes = '';
                 try {
                     \Log::info('Triggering Hangup URL: ' . $url . '?' . http_build_query($params));
                     $response = \Illuminate\Support\Facades\Http::get($url, $params);
-                    \Log::info('Hangup Response: ' . $response->body());
+                    $hangupRes = 'Hangup Response: ' . $response->body();
+                    \Log::info($hangupRes);
                 } catch (\Exception $e) {
-                    \Log::error('Hangup API Error: ' . $e->getMessage());
+                    $hangupRes = 'Hangup API Error: ' . $e->getMessage();
+                    \Log::error($hangupRes);
                 }
 
                 // 2. Trigger Status API
@@ -1921,13 +1927,33 @@ class LeadsController extends Controller
                     'callback_comments' => $callbackComments
                 ];
 
+                $statusRes = '';
                 try {
                     \Log::info('Triggering Status URL: ' . $url . '?' . http_build_query($paramsStatus));
                     $responseStatus = \Illuminate\Support\Facades\Http::get($url, $paramsStatus);
-                    \Log::info('Status Response: ' . $responseStatus->body());
+                    $statusRes = 'Status Response: ' . $responseStatus->body();
+                    \Log::info($statusRes);
                 } catch (\Exception $e) {
-                    \Log::error('Status API Error: ' . $e->getMessage());
+                    $statusRes = 'Status API Error: ' . $e->getMessage();
+                    \Log::error($statusRes);
                 }
+
+                // Update DialerLog with responses and requests
+                $dialerLog->update([
+                    'request_data' => json_encode([
+                        'hangup_api' => [
+                            'url' => $url,
+                            'params' => $params,
+                            'full_url' => $url . '?' . http_build_query($params)
+                        ],
+                        'status_api' => [
+                            'url' => $url,
+                            'params' => $paramsStatus,
+                            'full_url' => $url . '?' . http_build_query($paramsStatus)
+                        ]
+                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+                    'response' => $hangupRes . ' | ' . $statusRes
+                ]);
             }
         }
 

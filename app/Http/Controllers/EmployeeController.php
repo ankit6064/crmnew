@@ -2082,7 +2082,7 @@ class EmployeeController extends Controller
         ]);
 
         // Record call start log
-        \App\Models\DialerLog::create([
+        $dialerLog = \App\Models\DialerLog::create([
             'employee_id' => Auth::id(),
             'lead_id' => $request->lead_id,
             'phone_number' => $request->phone,
@@ -2092,6 +2092,10 @@ class EmployeeController extends Controller
         $dialer = $user->dialer;
 
         if (!$dialer || empty($dialer->dialer_id)) {
+            $dialerLog->update([
+                'event' => 'error',
+                'response' => 'Dialer credentials not configured. Please set them in your employee profile.'
+            ]);
             return response()->json([
                 'error' => 'Dialer credentials not configured. Please set them in your employee profile.'
             ], 422);
@@ -2133,22 +2137,42 @@ class EmployeeController extends Controller
         $fullUrl = $url . '?' . http_build_query($params);
         \Log::info('Dialer API Hitting URL: ' . $fullUrl);
 
+        $dialerLog->update([
+            'request_data' => json_encode([
+                'url' => $url,
+                'params' => $params,
+                'full_url' => $fullUrl
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        ]);
+
         try {
             $response = Http::get($url, $params);
 
             if ($response->successful()) {
+                $dialerLog->update([
+                    'event' => 'success',
+                    'response' => $response->body()
+                ]);
                 return response()->json([
                     'success' => true,
                     'message' => $response->body()
                 ]);
             }
 
+            $dialerLog->update([
+                'event' => 'failed',
+                'response' => 'Dialer API returned status code: ' . $response->status() . ' - ' . $response->body()
+            ]);
             return response()->json([
                 'error' => 'Dialer API returned status code: ' . $response->status()
             ], 500);
 
         } catch (\Exception $e) {
             \Log::error('Dialer API Error: ' . $e->getMessage());
+            $dialerLog->update([
+                'event' => 'error',
+                'response' => $e->getMessage()
+            ]);
             // return response()->json([
             //     'error' => 'Failed to connect to dialer server.'
             // ], 500);
