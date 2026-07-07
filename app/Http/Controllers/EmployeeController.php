@@ -2081,17 +2081,18 @@ class EmployeeController extends Controller
             'lead_id' => 'nullable|integer',
         ]);
 
-        // Clean phone number (digits only) and ensure static 1
-        $phone = preg_replace('/\D/', '', $request->phone);
-        if (!str_starts_with($phone, '1')) {
-            $phone = '1' . $phone;
-        }
+        // // Clean phone number (digits only) and ensure static 1
+        // $phone = preg_replace('/\D/', '', $request->phone);
+        // if (!str_starts_with($phone, '1')) {
+        //     $phone = '1' . $phone;
+        // }
+
 
         // Record call start log
         $dialerLog = \App\Models\DialerLog::create([
             'employee_id' => Auth::id(),
             'lead_id' => $request->lead_id,
-            'phone_number' => $phone,
+            'phone_number' => $request->phone,
         ]);
 
         $user = Auth::user();

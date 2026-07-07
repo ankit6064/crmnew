@@ -1908,9 +1908,34 @@ class LeadsController extends Controller
                 // 2. Trigger Status API
                 $statusValue = '';
                 if ($request->type === 'NoResponse') {
-                    $statusValue = 'NoResponse';
+                    $statusValue = 'VM';
                 } else {
-                    $statusValue = $request->reminder_for === 'Callback' ? 'CALLBK' : $request->reminder_for;
+                    switch ($request->reminder_for) {
+                        case 'Callback':
+                            $statusValue = 'Callba';
+                            break;
+                        case 'Declined':
+                            $statusValue = 'Declin';
+                            break;
+                        case 'Follow-up Call':
+                            $statusValue = 'FUPC';
+                            break;
+                        case 'Follow-up Email/Info Requested':
+                            $statusValue = 'FUPEIN';
+                            break;
+                        case 'Meeting Set-up':
+                            $statusValue = 'MSUP';
+                            break;
+                        case 'Not Right Party':
+                            $statusValue = 'NGP';
+                            break;
+                        case 'Reference Shared':
+                            $statusValue = 'Rs';
+                            break;
+                        default:
+                            $statusValue = $request->reminder_for;
+                            break;
+                    }
                 }
 
                 $callbackDatetime = '';
