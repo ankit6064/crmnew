@@ -185,7 +185,7 @@ class SourcesController extends Controller
         $logs->source_id = $source->id;
         $logs->save();
 
-        return redirect()->route('sources.create')->with('success', 'Campaign added successfully');
+        return redirect()->route('leads.assign_lead_emp', ['id' => $source->id])->with('success', 'Campaign added successfully');
     }
 
 

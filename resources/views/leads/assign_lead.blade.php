@@ -18,7 +18,7 @@
                             <select id="source_id" class="form-control">
                                 <option value="">Select Campaign</option>
                                 @foreach($sources as $src)
-                                    <option value="{{ $src['id']}}">{{ $src['source_name'] }} ({{ $src['description'] }})
+                                    <option value="{{ $src['id']}}" {{ (isset($selectedSource) && $selectedSource == $src['id']) ? 'selected' : '' }}>{{ $src['source_name'] }} ({{ $src['description'] }})
                                     </option>
                                 @endforeach
                             </select>
@@ -117,6 +117,9 @@
             }
 
             $(document).on("change", "#source_id", getCampaignData);
+
+            // Load campaign data on page load if pre-selected
+            getCampaignData();
 
             // ================= TOGGLE EDIT COUNT =================
             $(document).on("change", "#edit_count_chk", function () {

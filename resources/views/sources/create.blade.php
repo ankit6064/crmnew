@@ -54,8 +54,9 @@
 
 
 
-    <div class="popupcenter" id="duplicateModal" style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh;
-                    background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div class="popupcenter" id="duplicateModal"
+        style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh;
+                                        background-color: rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
 
         <div class="popupp" style="background:#fff; padding:30px; border-radius:8px; text-align:center; width:350px;">
 
