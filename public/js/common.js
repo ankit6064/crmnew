@@ -87,4 +87,65 @@ $(function () {
             var i = $(this).val();
             $(this).next(".custom-file-label").html(i);
         });
+
+    // Intercept DataTables search inputs globally to only trigger search after 2+ characters
+    $(document).on('init.dt', function (e, settings) {
+        var api = new $.fn.dataTable.Api(settings);
+        var $input = $('div.dataTables_filter input', api.table().container());
+        
+        // Unbind the default instant search handler
+        $input.off('keyup.DT search.DT input.DT paste.DT cut.DT');
+        
+        // Bind the custom 2+ characters search handler
+        $input.on('keyup.DT search.DT input.DT paste.DT cut.DT', function (event) {
+            var val = this.value;
+            var currentSearch = api.search();
+            var searchTriggered = false;
+            
+            if (val.length >= 2) {
+                if (val !== currentSearch) {
+                    api.search(val).draw();
+                    searchTriggered = true;
+                }
+            } else {
+                // If search is cleared or less than 2 chars, reset search if there was a previous search active
+                if (currentSearch !== '') {
+                    api.search('').draw();
+                    searchTriggered = true;
+                }
+            }
+            
+            // Prevent event from bubbling up to document keyup handlers (like showing spinner overlay)
+            // if we didn't actually trigger a new search/draw.
+            if (!searchTriggered) {
+                event.stopPropagation();
+            }
+        });
+
+        // Also handle custom #global_filter inputs if they exist
+        var $globalFilter = $('#global_filter');
+        if ($globalFilter.length) {
+            var ns = '.globalFilter_' + settings.sTableId;
+            $globalFilter.off('keyup' + ns + ' keypress' + ns + ' input' + ns + ' paste' + ns + ' cut' + ns);
+            var lastGlobalSearch = $globalFilter.val() || '';
+            $globalFilter.on('keyup' + ns + ' keypress' + ns + ' input' + ns + ' paste' + ns + ' cut' + ns, function (event) {
+                // Ignore enter key in keypress to prevent form submission if wrapped in form
+                if (event.type === 'keypress' && event.which === 13) {
+                    event.preventDefault();
+                }
+                var val = this.value;
+                if (val.length >= 2) {
+                    if (val !== lastGlobalSearch) {
+                        lastGlobalSearch = val;
+                        api.ajax.reload();
+                    }
+                } else {
+                    if (lastGlobalSearch !== '') {
+                        lastGlobalSearch = '';
+                        api.ajax.reload();
+                    }
+                }
+            });
+        }
+    });
 });
