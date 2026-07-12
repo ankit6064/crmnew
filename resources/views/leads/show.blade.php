@@ -117,15 +117,77 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Contact No</label>
-                            <input type="text" id="contact_number_1" name="contact_number_1"
-                                value="{{ $data['contact_number_1'] }}" readonly>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="contact_number_1" name="contact_number_1"
+                                    value="{{ $data['contact_number_1'] }}" readonly style="flex: 1;">
+                                <?php
+                                    $contact1 = $data['contact_number_1'] ?? '';
+                                    $numbers1 = [];
+                                    if (!empty($contact1)) {
+                                        if (strpos($contact1, '/-') !== false) {
+                                            $numbers1 = explode('/-', $contact1);
+                                        } else {
+                                            $numbers1 = preg_split('/[,\s;]+/', $contact1);
+                                        }
+                                        $numbers1 = array_map('trim', $numbers1);
+                                        $numbers1 = array_map(function ($num) {
+                                            return str_replace('-', '', $num);
+                                        }, $numbers1);
+                                        $numbers1 = array_values(array_filter($numbers1, function ($num) {
+                                            return preg_match('/\d/', $num);
+                                        }));
+                                    }
+                                    $count1 = count($numbers1);
+                                ?>
+                                @if ($count1 > 0)
+                                    @php
+                                        $badgeText1 = $count1 <= 1 ? 'Dial' : '+ show more';
+                                    @endphp
+                                    <span class="badge" 
+                                          style="cursor:pointer; background-color:#192e62; color:#fff; padding: 10px 15px; font-size: 12px; font-weight: 500; border-radius: 4px; display: inline-block; white-space: nowrap;" 
+                                          onclick="showAllNumbers('{{ implode(', ', $numbers1) }}', {{ $data['id'] }})">
+                                          {{ $badgeText1 }}
+                                    </span>
+                                @endif
+                            </div>
                             <small class="text-danger error">{{ $errors->first('contact_number_1') }}</small>
                         </div>
 
                         <div class="form-group">
                             <label>Second Contact No</label>
-                            <input type="text" id="contact_number_2" name="contact_number_2"
-                                value="{{ $data['contact_number_2'] }}" readonly>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="contact_number_2" name="contact_number_2"
+                                    value="{{ $data['contact_number_2'] }}" readonly style="flex: 1;">
+                                <?php
+                                    $contact2 = $data['contact_number_2'] ?? '';
+                                    $numbers2 = [];
+                                    if (!empty($contact2)) {
+                                        if (strpos($contact2, '/-') !== false) {
+                                            $numbers2 = explode('/-', $contact2);
+                                        } else {
+                                            $numbers2 = preg_split('/[,\s;]+/', $contact2);
+                                        }
+                                        $numbers2 = array_map('trim', $numbers2);
+                                        $numbers2 = array_map(function ($num) {
+                                            return str_replace('-', '', $num);
+                                        }, $numbers2);
+                                        $numbers2 = array_values(array_filter($numbers2, function ($num) {
+                                            return preg_match('/\d/', $num);
+                                        }));
+                                    }
+                                    $count2 = count($numbers2);
+                                ?>
+                                @if ($count2 > 0)
+                                    @php
+                                        $badgeText2 = $count2 <= 1 ? 'Dial' : '+ show more';
+                                    @endphp
+                                    <span class="badge" 
+                                          style="cursor:pointer; background-color:#192e62; color:#fff; padding: 10px 15px; font-size: 12px; font-weight: 500; border-radius: 4px; display: inline-block; white-space: nowrap;" 
+                                          onclick="showAllNumbers('{{ implode(', ', $numbers2) }}', {{ $data['id'] }})">
+                                          {{ $badgeText2 }}
+                                    </span>
+                                @endif
+                            </div>
                             <small class="text-danger error">{{ $errors->first('contact_number_2') }}</small>
                         </div>
                     </div>
@@ -520,6 +582,96 @@
         </div>
     </div>
 
+    <!-- View Contact Numbers Modal -->
+    <div class="modal fade" id="numberModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background: #192e62; color: #fff; padding: 10px 15px;">
+                    <h6 class="modal-title" style="color: white; margin: 0; font-weight: 600;">Contact Numbers</h6>
+                    <button type="button" class="close" data-dismiss="modal" style="color: #fff; opacity: 1; border: none; background: transparent; font-size: 24px;"
+                        onclick="closemodal();">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="padding: 15px;">
+                    <div id="numberRow" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Note After Dial Modal -->
+    <div id="status-modal-dialnote" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialNoteModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <meta name="csrf-token" content="{{ csrf_token() }}" />
+                <div class="modal-header" style="background: #0d3a6b; color: white;">
+                    <h4 class="modal-title" style="color: white;">Add Note after Dial</h4>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <div class="form-group">
+                        <label for="dial_conversation_type" class="control-label">Call Outcome</label>
+                        <select name="dial_conversation_type" id="dial_conversation_type" class="form-control">
+                            <option value="NoResponse">VM / No Response</option>
+                            <option value="Conversation">Connected</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <div id="dial_conversation_type_container" style="display:none;">
+                            <label class="control-label">Conversation Type <span class="text-danger">*</span></label>
+                            <select id="dial_reminder_for" class="form-control" onchange="checkdialtype();">
+                                <option value="">Choose Option</option>
+                                <option value="Callback">Callback</option>
+                                <option value="Declined">Declined</option>
+                                <option value="DNC">DNC</option>
+                                <option value="Follow-up Call">Follow-up Call</option>
+                                <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
+                                <option value="Meeting Set-up">Meeting Set-up</option>
+                                <option value="Not Interested">Not Interested</option>
+                                <option value="Not Right Party">Not Right Party</option>
+                                <option value="Reference Shared">Reference Shared</option>
+                            </select>
+                        </div>
+
+                        <div id="dial_reminderdatetime" style="display:none; margin-top: 10px;">
+                            <label class="control-label">Reminder Date</label>
+                            <input type="date" id="dial_min-date" class="form-control">
+
+                            <label class="control-label" style="margin-top: 10px;">Reminder Time</label>
+                            <input type="time" id="dial_reminder_time" class="form-control">
+                        </div>
+
+                        <div id="dial_callbackdatetime" style="display:none; margin-top: 10px;">
+                            <label class="control-label">Callback Date</label>
+                            <input type="date" id="dial_callback_date" class="form-control">
+
+                            <label class="control-label" style="margin-top: 10px;">Callback Time</label>
+                            <input type="time" id="dial_callback_time" class="form-control">
+                        </div>
+
+                        <div id="dial_phone_number_container" style="display:none; margin-top: 10px;">
+                            <label class="control-label">Phone Number</label>
+                            <input type="tel" id="dial_phone_number" class="form-control" placeholder="Phone Number">
+                        </div>
+
+                        <label class="control-label" style="margin-top: 10px;">Note</label>
+                        <textarea id="dial_feedback" class="form-control" style="min-height:130px;"></textarea>
+
+                        <div class="alert alert-danger print-error-msg" style="display:none; margin-top: 10px;">
+                            <ul></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
+                    <input type="hidden" id="lead_id_dial_note">
+                    <button class="btn btn-info waves-effect waves-light" id="save-data-dialnote">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
@@ -743,6 +895,248 @@
 
             $('.close-status-modal').on('click', function (event) {
                 $('#status-modal').modal('hide');
+            });
+
+            // Contact Numbers Modal and Dial Functionality
+            function showAllNumbers(numbers, leadId) {
+                if (!numbers) return;
+                let numList = [];
+                if (numbers.indexOf('/-') !== -1) {
+                    numList = numbers.split('/-');
+                } else {
+                    numList = numbers.split(/[,\s;]+/);
+                }
+                numList = numList.map(n => n.trim()).filter(n => n.length > 0);
+
+                let rowHtml = '<table class="table table-bordered table-striped text-center" style="margin-top: 10px; width: 100%;">';
+                rowHtml += '<thead>';
+                rowHtml += '  <tr>';
+                rowHtml += '    <th style="text-align: center; width: 80px;">Dial</th>';
+                rowHtml += '    <th style="text-align: center;">Phone Number</th>';
+                rowHtml += '  </tr>';
+                rowHtml += '</thead>';
+                rowHtml += '<tbody>';
+
+                numList.forEach(function (num) {
+                    rowHtml += '  <tr>';
+                    rowHtml += '    <td>';
+                    rowHtml += '      <a href="javascript:void(0);" onclick="dialNumber(\'' + num.replace(/'/g, "\\'") + '\', ' + leadId + ')" class="btn btn-xs btn-success" style="border-radius: 50%; padding: 5px 8px; background-color: #28a745; border-color: #28a745;" title="Dial via API">';
+                    rowHtml += '        <i class="fa fa-phone" style="color: white;"></i>';
+                    rowHtml += '      </a>';
+                    rowHtml += '    </td>';
+                    rowHtml += '    <td style="font-size: 15px; font-weight: 500; vertical-align: middle; text-align: left; padding-left: 15px;">' + num + '</td>';
+                    rowHtml += '  </tr>';
+                });
+                rowHtml += '</tbody>';
+                rowHtml += '</table>';
+
+                $('#numberRow').css('display', 'block').html(rowHtml);
+                $('#numberModal').modal('show');
+            }
+
+            function closemodal() {
+                $('#numberModal').modal('hide');
+            }
+
+            function dialNumber(num, leadId) {
+                if (!num) return;
+
+                toastr.info('Initiating dial via API for ' + num + '...');
+
+                $.ajax({
+                    url: "{{ route('employee.dial') }}",
+                    method: 'POST',
+                    data: {
+                        phone: num,
+                        lead_id: leadId,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success('Dialer response: ' + response.message);
+                            $('#numberModal').modal('hide');
+                            showdialnoteaddmodal(leadId, num);
+                        } else {
+                            toastr.error(response.error || 'Failed to place call.');
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMsg = 'An error occurred while trying to dial.';
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            errorMsg = xhr.responseJSON.error;
+                        }
+                        toastr.error(errorMsg, 'Dialer Error');
+                    }
+                });
+            }
+
+            function showdialnoteaddmodal(id, phone) {
+                window.dialnote_submitted = false;
+                $('#lead_id_dial_note').val(id);
+
+                // Save pending note state to localStorage
+                localStorage.setItem('pending_dial_note', JSON.stringify({ lead_id: id, phone: phone }));
+
+                // Default dropdown to VM/No Response
+                $('#dial_conversation_type').val('NoResponse');
+
+                $('#dial_min-date').val('');
+                $('#dial_reminder_time').val('');
+                $('#dial_reminder_for').val('');
+                $('#dial_feedback').val('VM/No Response');
+
+                // Prefill and disable/enable phone number
+                $('#dial_phone_number').val(phone || '');
+                if (phone) {
+                    $('#dial_phone_number').prop('disabled', true);
+                } else {
+                    $('#dial_phone_number').prop('disabled', false);
+                }
+
+                $('#dial_callback_date').val('');
+                $('#dial_callback_time').val('');
+
+                // Hide Conversation Type dropdown and datetime fields, but show phone number
+                $('#dial_conversation_type_container').hide();
+                $('#dial_reminderdatetime').hide();
+                $('#dial_callbackdatetime').hide();
+                $('#dial_phone_number_container').show();
+
+                $('#status-modal-dialnote').modal('show');
+            }
+
+            function checkdialtype() {
+                var remindfor = $('#dial_reminder_for').val();
+                if (remindfor == 'Callback') {
+                    $('#dial_reminderdatetime').css('display', 'none');
+                    $('#dial_callbackdatetime').css('display', 'block');
+                } else {
+                    $('#dial_reminderdatetime').css('display', 'block');
+                    $('#dial_callbackdatetime').css('display', 'none');
+                }
+            }
+
+            $(document).ready(function () {
+                // Restore modal if pending note exists on page load
+                let pendingNote = localStorage.getItem('pending_dial_note');
+                if (pendingNote) {
+                    let noteData = JSON.parse(pendingNote);
+                    showdialnoteaddmodal(noteData.lead_id, noteData.phone);
+                }
+
+                // Prevent escape key from closing dialnote modal
+                $(document).on('keydown', function (event) {
+                    if (event.key === "Escape" && ($('#status-modal-dialnote').hasClass('show') || $('#status-modal-dialnote').is(':visible'))) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                });
+
+                // Prevent closing the modal unless submitted
+                $('#status-modal-dialnote').on('hide.bs.modal', function (e) {
+                    if (!window.dialnote_submitted) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+
+                $('#dial_conversation_type').change(function () {
+                    if (this.value == 'NoResponse') {
+                        $('#dial_feedback').val('VM/No Response');
+                        $('#dial_min-date').val("");
+                        $('#dial_reminder_for').val("");
+                        $('#dial_reminder_time').val("");
+                        if (!$('#dial_phone_number').prop('disabled')) {
+                            $('#dial_phone_number').val('');
+                        }
+                        $('#dial_callback_date').val('');
+                        $('#dial_callback_time').val('');
+
+                        // Hide other fields, showing only note option and phone number
+                        $('#dial_conversation_type_container').hide();
+                        $('#dial_reminderdatetime').hide();
+                        $('#dial_callbackdatetime').hide();
+                        $('#dial_phone_number_container').show();
+                    } else if (this.value == 'Conversation') {
+                        $('#dial_feedback').val('');
+                        if (!$('#dial_phone_number').prop('disabled')) {
+                            $('#dial_phone_number').val('');
+                        }
+                        $('#dial_min-date').val("");
+                        $('#dial_reminder_for').val("");
+                        $('#dial_reminder_time').val("");
+                        $('#dial_callback_date').val('');
+                        $('#dial_callback_time').val('');
+
+                        // Show Conversation Type dropdown and phone number container
+                        $('#dial_conversation_type_container').show();
+                        $('#dial_phone_number_container').show();
+                        checkdialtype();
+                    }
+                });
+
+                window.addEventListener('beforeunload', function (e) {
+                    if ($('#status-modal-dialnote').hasClass('show') || $('#status-modal-dialnote').is(':visible')) {
+                        e.preventDefault();
+                        e.returnValue = 'Please submit the call note first.';
+                        return 'Please submit the call note first.';
+                    }
+                });
+
+                // Save dial quick note
+                $('#save-data-dialnote').click(function () {
+                    let submitBtn = $('#save-data-dialnote');
+                    let originalHtml = submitBtn.html();
+                    submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
+
+                    let lead_id = $('#lead_id_dial_note').val();
+                    let source_id = "{{ $data->source_id ?? $data['source_id'] ?? '' }}";
+                    let reminder_date = $('#dial_min-date').val();
+                    let reminder_time = $('#dial_reminder_time').val();
+                    let reminder_for = $('#dial_reminder_for').val();
+                    let feedback = $('#dial_feedback').val();
+                    let phone_number = $('#dial_phone_number').val();
+                    let callback_date = $('#dial_callback_date').val();
+                    let callback_time = $('#dial_callback_time').val();
+                    let type = $('#dial_conversation_type').val();
+
+                    if (type === 'Conversation' && !reminder_for) {
+                        toastr.error("Conversation Type is required", "Validation Error");
+                        submitBtn.prop('disabled', false).html(originalHtml);
+                        return false;
+                    }
+
+                    let _token = $('meta[name="csrf-token"]').attr('content');
+
+                    $.post("{{ url('leads/add_note') }}", {
+                        lead_id, source_id, reminder_date, reminder_time, reminder_for, feedback, type, phone_number, callback_date, callback_time, _token,
+                        is_dial_note: 1
+                    }, function (res) {
+                        submitBtn.prop('disabled', false).html(originalHtml);
+
+                        if (res.success) {
+                            toastr.success(res.success);
+                            // Clear pending note state from localStorage
+                            localStorage.removeItem('pending_dial_note');
+                            window.dialnote_submitted = true;
+                            $('#status-modal-dialnote').modal('hide');
+                            window.dialnote_submitted = false;
+                            // Reload page to reflect note updates reactively
+                            location.reload(true);
+                        } else {
+                            toastr.error("Something went wrong");
+                        }
+
+                    }).fail(function (xhr) {
+                        submitBtn.prop('disabled', false).html(originalHtml);
+                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                            toastr.error(xhr.responseJSON.error, 'Error!');
+                        } else {
+                            toastr.error("Something went wrong", "Error!");
+                        }
+                    });
+                });
             });
         </script>
 
