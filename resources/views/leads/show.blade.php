@@ -613,7 +613,7 @@
                 <div class="modal-body" style="padding: 20px;">
                     <div class="form-group">
                         <label class="control-label">Email</label>
-                        <input type="text" class="form-control" value="{{ $data['prospect_email'] }}" readonly>
+                        <input type="text" class="form-control" value="{{ $data['prospect_email'] }}" disabled>
                     </div>
                     <div class="form-group">
                         <label for="dial_conversation_type" class="control-label">Call Outcome</label>
