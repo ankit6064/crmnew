@@ -505,6 +505,7 @@
                             aria-hidden="true" style="color:black">×</button>
                     </div>
                     <div class="modal-body">
+                    
                         <div class="form-group responseconvers" style="display: flex; gap: 20px;">
                             <div>
                                 <input type="radio" class="conversation_type" id="NoResponse" name="conversation_type"
@@ -610,6 +611,10 @@
                     <h4 class="modal-title" style="color: white;">Add Note after Dial</h4>
                 </div>
                 <div class="modal-body" style="padding: 20px;">
+                    <div class="form-group">
+                        <label class="control-label">Email</label>
+                        <input type="text" class="form-control" value="{{ $data['prospect_email'] }}" readonly>
+                    </div>
                     <div class="form-group">
                         <label for="dial_conversation_type" class="control-label">Call Outcome</label>
                         <select name="dial_conversation_type" id="dial_conversation_type" class="form-control">
