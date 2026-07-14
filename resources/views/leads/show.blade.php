@@ -612,10 +612,6 @@
                 </div>
                 <div class="modal-body" style="padding: 20px;">
                     <div class="form-group">
-                        <label class="control-label">Email</label>
-                        <input type="text" class="form-control" value="{{ $data['prospect_email'] }}" disabled>
-                    </div>
-                    <div class="form-group">
                         <label for="dial_conversation_type" class="control-label">Call Outcome</label>
                         <select name="dial_conversation_type" id="dial_conversation_type" class="form-control">
                             <option value="NoResponse">VM / No Response</option>
@@ -656,6 +652,10 @@
                             <input type="time" id="dial_callback_time" class="form-control">
                         </div>
 
+                        <div class="form-group">
+                            <label class="control-label">Email</label>
+                            <input type="text" class="form-control" value="{{ $data['prospect_email'] }}" disabled>
+                        </div>
                         <div id="dial_phone_number_container" style="display:none; margin-top: 10px;">
                             <label class="control-label">Phone Number</label>
                             <input type="tel" id="dial_phone_number" class="form-control" placeholder="Phone Number">
