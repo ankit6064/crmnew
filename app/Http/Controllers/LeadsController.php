@@ -2847,7 +2847,11 @@ class LeadsController extends Controller
 
     public function showlead($id)
     {
-        $data = Lead::where(['id' => $id])->with('source')->with('notes')->with('user')->first()->toArray();
+        $lead = Lead::where(['id' => $id])->with('source')->with('notes')->with('user')->first();
+        if (!$lead) {
+            abort(404, 'Lead not found');
+        }
+        $data = $lead->toArray();
         $record = Lead::where(['id' => $id])->with('notes')->orderBy('updated_at', 'DESC')->first();
         $lead_ID = $id;
         //dd( $record);

@@ -737,7 +737,7 @@
                 }
             });
             window.addEventListener('beforeunload', function (e) {
-                if ($('#status-modal-dialnote').hasClass('show') || $('#status-modal-dialnote').is(':visible')) {
+                if (!window.dialnote_submitted && ($('#status-modal-dialnote').hasClass('show') || $('#status-modal-dialnote').is(':visible'))) {
                     e.preventDefault();
                     e.returnValue = 'Please submit the call note first.';
                     return 'Please submit the call note first.';
@@ -749,7 +749,8 @@
         // ======================================================
         //  SAVE DIAL QUICK NOTE
         // ======================================================
-        $('#save-data-dialnote').click(function () {
+        $('#save-data-dialnote').off('click').on('click', function (event) {
+            event.preventDefault();
             let submitBtn = $('#save-data-dialnote');
             let originalHtml = submitBtn.html();
             submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
@@ -785,9 +786,8 @@
                     localStorage.removeItem('pending_dial_note');
                     window.dialnote_submitted = true;
                     $('#status-modal-dialnote').modal('hide');
-                    window.dialnote_submitted = false;
-                    // Reload DataTable to reflect note updates reactively
-                    $('#employee-table').DataTable().ajax.reload(null, false);
+                    // Reload page to reflect note updates reactively
+                    location.reload(true);
                 } else {
                     toastr.error("Something went wrong");
                 }
