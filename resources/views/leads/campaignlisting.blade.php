@@ -786,8 +786,8 @@
                     localStorage.removeItem('pending_dial_note');
                     window.dialnote_submitted = true;
                     $('#status-modal-dialnote').modal('hide');
-                    // Reload page to reflect note updates reactively
-                    location.reload(true);
+                    // Reload DataTable to reflect note updates reactively without refreshing the page
+                    $('#employee-table').DataTable().ajax.reload(null, false);
                 } else {
                     toastr.error("Something went wrong");
                 }
