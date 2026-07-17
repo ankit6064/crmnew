@@ -214,8 +214,30 @@
 
                         <div class="form-group">
                             <label>LinkedIn Address</label>
-                            <input type="text" id="linkedin_address" name="linkedin_address"
-                                value="{{ $data['linkedin_address'] }}" readonly>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="linkedin_address" name="linkedin_address"
+                                    value="{{ $data['linkedin_address'] }}" readonly style="flex: 1;">
+                                <?php
+                                    $linkedin = trim($data['linkedin_address'] ?? '');
+                                    $hasLinkedin = !empty($linkedin) && strtolower($linkedin) !== 'na' && strtolower($linkedin) !== 'n/a';
+                                ?>
+                                @if ($hasLinkedin)
+                                    @php
+                                        $linkedinUrl = $linkedin;
+                                        if (strpos($linkedinUrl, 'http://') !== 0 && strpos($linkedinUrl, 'https://') !== 0) {
+                                            $linkedinUrl = 'https://' . $linkedinUrl;
+                                        }
+                                    @endphp
+                                    <a href="{{ $linkedinUrl }}" 
+                                       target="_blank" 
+                                       class="badge" 
+                                       style="cursor:pointer; background-color:#192e62; color:#fff; padding: 10px 15px; font-size: 12px; font-weight: 500; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; text-decoration: none; transition: background-color 0.2s;"
+                                       onmouseover="this.style.backgroundColor='#122147'"
+                                       onmouseout="this.style.backgroundColor='#192e62'">
+                                       <i class="fa-brands fa-linkedin" style="font-size: 14px; color: #fff;"></i> View LinkedIn
+                                    </a>
+                                @endif
+                            </div>
                             <small class="text-danger error">{{ $errors->first('linkedin_address') }}</small>
                         </div>
 
