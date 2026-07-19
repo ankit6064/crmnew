@@ -279,7 +279,7 @@
             data: 'orignal_password',
             name: 'orignal_password',
             orderable: false,
-            render: function(data) {
+            render: function (data) {
               if (!data || data === 'N/A') return "N/A";
               return `<span>${data}</span> <i class="fa-regular fa-copy copy-password-btn" data-password="${data}" style="cursor: pointer; margin-left: 5px; color: #192e62;" title="Copy Password"></i>`;
             }
@@ -335,7 +335,7 @@
         }).then((result) => {
           if (result.isConfirmed) {
             $.ajax({
-              url: `/employee/${employeeId}`,
+              url: "{{ route('employee.destroy', ':id') }}".replace(':id', employeeId),
               type: 'POST',
               data: { _token: $('meta[name="csrf-token"]').attr('content') },
               success: function () {

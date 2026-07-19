@@ -322,8 +322,9 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: `/employee/${employeeId}`,
+                            url: "{{ route('employee.destroy', ':id') }}".replace(':id', employeeId),
                             type: 'POST',
+                            data: { _token: $('meta[name="csrf-token"]').attr('content') },
                             success: function () {
                                 Swal.fire('Deleted!', 'The employee has been deleted.', 'success');
                                 table.draw();

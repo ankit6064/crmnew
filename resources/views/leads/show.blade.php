@@ -234,8 +234,7 @@
                                        style="cursor:pointer; background-color:#192e62; color:#fff; padding: 10px 15px; font-size: 12px; font-weight: 500; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; text-decoration: none; transition: background-color 0.2s;"
                                        onmouseover="this.style.backgroundColor='#122147'"
                                        onmouseout="this.style.backgroundColor='#192e62'">
-                                       <i class="fa-brands fa-linkedin" style="font-size: 14px; color: #fff;"></i> View LinkedIn
-                                    </a>
+                                       <i class="fa-brands fa-linkedin" style="font-size: 14px; color: #fff;"></i></a>
                                 @endif
                             </div>
                             <small class="text-danger error">{{ $errors->first('linkedin_address') }}</small>

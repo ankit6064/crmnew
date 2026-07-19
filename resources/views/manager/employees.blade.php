@@ -358,8 +358,9 @@
                 if (result.isConfirmed) {
                     // Perform the AJAX request to delete the manager
                     $.ajax({
-                        url: `/employee/${employeeId}`, // Adjust this URL to match your route
-                        type: 'POST', // Use GET request for deletion
+                        url: "{{ route('employee.destroy', ':id') }}".replace(':id', employeeId),
+                        type: 'POST',
+                        data: { _token: $('meta[name="csrf-token"]').attr('content') },
                         success: function (response) {
                             // Handle successful response (e.g., show a success message)
                             Swal.fire(
