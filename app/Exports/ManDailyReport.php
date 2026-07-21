@@ -316,7 +316,7 @@ class ManDailyReport
             $lead->feedback,
             $lead->reminder_for,
             date('d/m/Y', strtotime($lead->note_updated_at)),
-            date('h:i a', strtotime($lead->note_updated_at)),
+            date('H:i', strtotime($lead->note_updated_at)),
             $lead->phone_number,
         ];
     }
