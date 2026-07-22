@@ -315,12 +315,12 @@ class EmployeeController extends Controller
                 $q->where('user_id', Auth::id())
                     ->whereIn('is_admin', [USER, SUBMANAGER]);
             })
-            ->orWhereIn('user_id', function ($subquery) {
-                $subquery->select('id')
-                    ->from('users')
-                    ->where('user_id', Auth::id())
-                    ->where('is_admin', SUBMANAGER);
-            });
+                ->orWhereIn('user_id', function ($subquery) {
+                    $subquery->select('id')
+                        ->from('users')
+                        ->where('user_id', Auth::id())
+                        ->where('is_admin', SUBMANAGER);
+                });
         })
             ->whereNotNull('name')
             ->where('is_active', 1)
@@ -339,12 +339,12 @@ class EmployeeController extends Controller
                 $q->where('user_id', Auth::id())
                     ->whereIn('is_admin', [USER, SUBMANAGER]);
             })
-            ->orWhereIn('user_id', function ($subquery) {
-                $subquery->select('id')
-                    ->from('users')
-                    ->where('user_id', Auth::id())
-                    ->where('is_admin', SUBMANAGER);
-            });
+                ->orWhereIn('user_id', function ($subquery) {
+                    $subquery->select('id')
+                        ->from('users')
+                        ->where('user_id', Auth::id())
+                        ->where('is_admin', SUBMANAGER);
+                });
         })
             ->whereNotNull('name')
             ->count();
@@ -354,12 +354,12 @@ class EmployeeController extends Controller
                 $q->where('user_id', Auth::id())
                     ->whereIn('is_admin', [USER, SUBMANAGER]);
             })
-            ->orWhereIn('user_id', function ($subquery) {
-                $subquery->select('id')
-                    ->from('users')
-                    ->where('user_id', Auth::id())
-                    ->where('is_admin', SUBMANAGER);
-            });
+                ->orWhereIn('user_id', function ($subquery) {
+                    $subquery->select('id')
+                        ->from('users')
+                        ->where('user_id', Auth::id())
+                        ->where('is_admin', SUBMANAGER);
+                });
         })
             ->whereNotNull('name')
             ->where('is_active', 1)
@@ -370,12 +370,12 @@ class EmployeeController extends Controller
                 $q->where('user_id', Auth::id())
                     ->whereIn('is_admin', [USER, SUBMANAGER]);
             })
-            ->orWhereIn('user_id', function ($subquery) {
-                $subquery->select('id')
-                    ->from('users')
-                    ->where('user_id', Auth::id())
-                    ->where('is_admin', SUBMANAGER);
-            });
+                ->orWhereIn('user_id', function ($subquery) {
+                    $subquery->select('id')
+                        ->from('users')
+                        ->where('user_id', Auth::id())
+                        ->where('is_admin', SUBMANAGER);
+                });
         })
             ->whereNotNull('name')
             ->where('is_active', 2)
@@ -460,23 +460,23 @@ class EmployeeController extends Controller
                     $q->where('user_id', Auth::id())
                         ->whereIn('is_admin', [USER, SUBMANAGER]);
                 })
-                ->orWhereIn('user_id', function ($subquery) {
-                    $subquery->select('id')
-                        ->from('users')
-                        ->where('user_id', Auth::id())
-                        ->where('is_admin', SUBMANAGER);
-                });
+                    ->orWhereIn('user_id', function ($subquery) {
+                        $subquery->select('id')
+                            ->from('users')
+                            ->where('user_id', Auth::id())
+                            ->where('is_admin', SUBMANAGER);
+                    });
             })
                 ->whereNotNull('name')
                 ->whereIn('is_active', $status)
                 ->select('users.*')
-                ->selectSub(function ($query) {
-                    $query->selectRaw('count(distinct source_id)')
-                        ->from('leads')
-                        ->join('sources', 'sources.id', '=', 'leads.source_id')
-                        ->whereColumn('leads.asign_to', 'users.id')
-                        ->where('sources.is_active', 1);
-                }, 'total_campaigns_count')
+                // ->selectSub(function ($query) {
+                //     $query->selectRaw('count(distinct source_id)')
+                //         ->from('leads')
+                //         ->join('sources', 'sources.id', '=', 'leads.source_id')
+                //         ->whereColumn('leads.asign_to', 'users.id')
+                //         ->where('sources.is_active', 1);
+                // }, 'total_campaigns_count')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -501,10 +501,10 @@ class EmployeeController extends Controller
                     $status = '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checked . '>';
                     return $status;
                 })
-                ->addColumn('totalcampaigns', function ($data) {
-                    $totalcampaigns = $data->total_campaigns_count ?? 0;
-                    return '<p  class="view_emp" title="View Campagins" onclick="viewCampaigns(' . $data->id . ')">' . $totalcampaigns . '</p>';
-                })
+                // ->addColumn('totalcampaigns', function ($data) {
+                //     $totalcampaigns = $data->total_campaigns_count ?? 0;
+                //     return '<p  class="view_emp" title="View Campagins" onclick="viewCampaigns(' . $data->id . ')">' . $totalcampaigns . '</p>';
+                // })
                 ->addColumn('actions', function ($data) {
 
                     // Edit
