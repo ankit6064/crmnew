@@ -173,7 +173,7 @@
                 @if(isset($employees) && !empty($employees))
                   <div class="row">
                     @foreach($employees as $emp)
-                      <div class="col-md-4">
+                      <div class="col-md-4 employee-checkbox-col" data-emp-id="{{ $emp->id }}">
                         <div class="card mb-3">
                           <div class="card-body">
                             <div class="form-check">
@@ -388,6 +388,11 @@
         contentType: false,
         dataType: "json",
         success: function () {
+          // Hide the selected submanager's name from the assignable employees list
+          $('.employee-checkbox-col').show();
+          var submanagerid = $("#manageremployeeid").val();
+          $(`.employee-checkbox-col[data-emp-id="${submanagerid}"]`).hide();
+
           $('#assignsubmanager').modal('hide');
           $('#assignempmanager').modal('show');
         }
@@ -463,5 +468,18 @@
 
     }
     function closemodalemp() { $('#assignempmanager').modal('hide'); location.reload(); }
+
+    $('#assignempmanager').on('show.bs.modal', function () {
+      // Hide the selected submanager's name from the assignable employees list
+      var submanagerid = $.trim($("#manageremployeeid").val());
+      $('.employee-checkbox-col').each(function() {
+        var empId = $(this).attr('data-emp-id');
+        if (empId == submanagerid) {
+          $(this).hide();
+        } else {
+          $(this).show();
+        }
+      });
+    });
   </script>
 @endpush
