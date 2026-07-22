@@ -2806,7 +2806,7 @@ class LeadsController extends Controller
                 $conversationType = $notesCountObj->first('reminder_for')->reminder_for;
                 $html = '';
                 $hostname = env('APP_URL');
-                $Current_url = $hostname . "/employee/lhs_report/" . $request->lead_id . "?status=" . $request->status;
+                $Current_url = $hostname . "employee/lhs_report/" . $request->lead_id . "?status=" . $request->status;
                 $html = '<li class="error_list"><span class="tab">Please add  LHS Report first.</span><a href="' . $Current_url . '" ><span class="tab">Click here to add Lhs Report</span></a></li>';
                 return response()->json(['error' => 'Please add LHS Report first.', 'lhs_link' => $html]);
             }
