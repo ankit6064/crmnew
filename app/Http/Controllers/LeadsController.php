@@ -1067,7 +1067,7 @@ class LeadsController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    
+
                     // Remove all hyphens from each number
                     $numbers = array_map(function ($num) {
                         return str_replace('-', '', $num);
@@ -1243,7 +1243,7 @@ class LeadsController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    
+
                     // Remove all hyphens from each number
                     $numbers = array_map(function ($num) {
                         return str_replace('-', '', $num);
@@ -1435,7 +1435,7 @@ class LeadsController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    
+
                     // Remove all hyphens from each number
                     $numbers = array_map(function ($num) {
                         return str_replace('-', '', $num);
@@ -1871,7 +1871,14 @@ class LeadsController extends Controller
                 'phone_number' => $request->phone_number,
                 'event' => 'hangup',
                 'note_details' => json_encode($request->only([
-                    'type', 'reminder_for', 'feedback', 'phone_number', 'callback_date', 'callback_time', 'reminder_date', 'reminder_time'
+                    'type',
+                    'reminder_for',
+                    'feedback',
+                    'phone_number',
+                    'callback_date',
+                    'callback_time',
+                    'reminder_date',
+                    'reminder_time'
                 ]), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
             ]);
 
@@ -2798,9 +2805,8 @@ class LeadsController extends Controller
             } else {
                 $conversationType = $notesCountObj->first('reminder_for')->reminder_for;
                 $html = '';
-                // $hostname = Config::get('app.url');
-                $hostnameNew = "http://127.0.0.1:8000";//Config::get('app.url');
-                $Current_url = $hostnameNew . "/employee/lhs_report/" . $request->lead_id . "?status=" . $request->status;
+                $hostname = env('APP_URL');
+                $Current_url = $hostname . "/employee/lhs_report/" . $request->lead_id . "?status=" . $request->status;
                 $html = '<li class="error_list"><span class="tab">Please add  LHS Report first.</span><a href="' . $Current_url . '" ><span class="tab">Click here to add Lhs Report</span></a></li>';
                 return response()->json(['error' => 'Please add LHS Report first.', 'lhs_link' => $html]);
             }

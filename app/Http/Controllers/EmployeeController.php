@@ -311,10 +311,19 @@ class EmployeeController extends Controller
     public function manageremployeeindex()
     {
         $employees = User::where(function ($query) {
-            $query->where('is_admin', USER)
-                ->orWhere('is_admin', SUBMANAGER);
+            $query->where(function ($q) {
+                $q->where('user_id', Auth::id())
+                    ->whereIn('is_admin', [USER, SUBMANAGER]);
+            })
+            ->orWhereIn('user_id', function ($subquery) {
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', Auth::id())
+                    ->where('is_admin', SUBMANAGER);
+            });
         })
-            ->where('user_id', Auth::id())
+            ->whereNotNull('name')
+            ->where('is_active', 1)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -326,28 +335,51 @@ class EmployeeController extends Controller
         }
 
         $total = User::where(function ($query) {
-            $query->where('is_admin', USER)
-                ->orWhere('is_admin', SUBMANAGER);
+            $query->where(function ($q) {
+                $q->where('user_id', Auth::id())
+                    ->whereIn('is_admin', [USER, SUBMANAGER]);
+            })
+            ->orWhereIn('user_id', function ($subquery) {
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', Auth::id())
+                    ->where('is_admin', SUBMANAGER);
+            });
         })
-            ->where('user_id', Auth::id())
+            ->whereNotNull('name')
             ->count();
 
         $active = User::where(function ($query) {
-            $query->where('is_admin', USER)
-                ->orWhere('is_admin', SUBMANAGER);
+            $query->where(function ($q) {
+                $q->where('user_id', Auth::id())
+                    ->whereIn('is_admin', [USER, SUBMANAGER]);
+            })
+            ->orWhereIn('user_id', function ($subquery) {
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', Auth::id())
+                    ->where('is_admin', SUBMANAGER);
+            });
         })
-            ->where('user_id', Auth::id())
+            ->whereNotNull('name')
             ->where('is_active', 1)
             ->count();
 
         $deactive = User::where(function ($query) {
-            $query->where('is_admin', USER)
-                ->orWhere('is_admin', SUBMANAGER);
+            $query->where(function ($q) {
+                $q->where('user_id', Auth::id())
+                    ->whereIn('is_admin', [USER, SUBMANAGER]);
+            })
+            ->orWhereIn('user_id', function ($subquery) {
+                $subquery->select('id')
+                    ->from('users')
+                    ->where('user_id', Auth::id())
+                    ->where('is_admin', SUBMANAGER);
+            });
         })
-            ->where('user_id', Auth::id())
+            ->whereNotNull('name')
             ->where('is_active', 2)
             ->count();
-
 
         return view('employee.manageremployeeindex', compact('employees', 'permissions', 'active', 'deactive', 'total'));
     }
@@ -424,13 +456,32 @@ class EmployeeController extends Controller
                 $status = [2];
             }
             $managers = User::where(function ($query) {
-                $query->where('is_admin', USER)
-                    ->orWhere('is_admin', SUBMANAGER);
+                $query->where(function ($q) {
+                    $q->where('user_id', Auth::id())
+                        ->whereIn('is_admin', [USER, SUBMANAGER]);
+                })
+                ->orWhereIn('user_id', function ($subquery) {
+                    $subquery->select('id')
+                        ->from('users')
+                        ->where('user_id', Auth::id())
+                        ->where('is_admin', SUBMANAGER);
+                });
             })
-                ->where('user_id', Auth::id())
+                ->whereNotNull('name')
                 ->whereIn('is_active', $status)
+                ->select('users.*')
+                ->selectSub(function ($query) {
+                    $query->selectRaw('count(distinct source_id)')
+                        ->from('leads')
+                        ->join('sources', 'sources.id', '=', 'leads.source_id')
+                        ->whereColumn('leads.asign_to', 'users.id')
+                        ->where('sources.is_active', 1);
+                }, 'total_campaigns_count')
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+
+
 
             return DataTables::of($managers)
                 ->addColumn('disable_login', function ($data) {
@@ -451,15 +502,7 @@ class EmployeeController extends Controller
                     return $status;
                 })
                 ->addColumn('totalcampaigns', function ($data) {
-                    // Count users where user_id matches the current data id
-                    $totalcampaigns = Source::where(function ($q) use ($data) {
-                        $q->where('user_id', $data->id)
-                            ->orWhere('assign_to_manager', $data->id);
-                    })
-                        ->where('is_active', 1)
-                        ->count();
-
-
+                    $totalcampaigns = $data->total_campaigns_count ?? 0;
                     return '<p  class="view_emp" title="View Campagins" onclick="viewCampaigns(' . $data->id . ')">' . $totalcampaigns . '</p>';
                 })
                 ->addColumn('actions', function ($data) {
