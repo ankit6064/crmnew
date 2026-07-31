@@ -16,6 +16,8 @@ class ManDailyReport
     protected $emp_id;
     protected $date_from;
     protected $date_to;
+    protected $filter_by;
+    protected $reminder_for_conversation;
     protected $onlyConversation;
 
     function __construct($camp_id, $emp_id, $date_from, $date_to, $par = null, $par1 = null, $onlyConversation = null)
@@ -24,6 +26,8 @@ class ManDailyReport
         $this->emp_id = $emp_id;
         $this->date_from = $date_from;
         $this->date_to = $date_to;
+        $this->filter_by = $par;
+        $this->reminder_for_conversation = $par1;
         $this->onlyConversation = $onlyConversation;
     }
 
@@ -251,14 +255,22 @@ class ManDailyReport
                 'notes.phone_number'
             );
 
-        // Admin restriction
-        if (Auth::user()->is_admin == 3) {
-            $employee_ids = User::where([
-                'user_id' => auth()->user()->id,
-                'is_admin' => '1'
-            ])->pluck('id');
+        // Role-based restrictions (only if a user is authenticated, i.e., web request)
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->is_admin == 1) {
+                // Employee role: restricted to their own leads
+                $query->where('leads.asign_to', $user->id);
+            } elseif ($user->is_admin == 3 || $user->is_admin == 2) {
+                // Sub-manager (3) / Manager (2) role: restricted to their managed employee IDs
+                $employee_ids = User::where([
+                    'user_id' => $user->id,
+                    'is_admin' => '1'
+                ])->pluck('id');
 
-            $query->whereIn('leads.asign_to', $employee_ids);
+                $query->whereIn('leads.asign_to', $employee_ids);
+            }
+            // Super Admin ($user->is_admin == null) has no restrictions
         }
 
         // Employee filter
@@ -276,9 +288,26 @@ class ManDailyReport
             $query->whereBetween('notes.updated_at', [$date_from_new, $date_to_new]);
         }
 
-        // Only conversation filter
+        // Conversation type filter
+        if ($this->filter_by) {
+            if ($this->filter_by == 1) {
+                $query->whereNull('notes.reminder_for');
+            } elseif ($this->filter_by == 2) {
+                if (!empty($this->reminder_for_conversation)) {
+                    $query->where('notes.reminder_for', $this->reminder_for_conversation);
+                } else {
+                    $query->whereNotNull('notes.reminder_for');
+                }
+            }
+        }
+
+        // Only conversation filter (fallback for scheduler/legacy)
         if (!empty($this->onlyConversation)) {
-            $query->where('notes.reminder_for', $this->onlyConversation);
+            if ($this->onlyConversation === true || $this->onlyConversation === 1 || $this->onlyConversation === '1') {
+                $query->whereNotNull('notes.reminder_for');
+            } else {
+                $query->where('notes.reminder_for', $this->onlyConversation);
+            }
         }
 
         return $query->orderBy('notes.updated_at', 'desc');
