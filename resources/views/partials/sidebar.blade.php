@@ -268,7 +268,7 @@
                             </div>
                         </li>
 
-                        @if(auth()->user()->is_admin == MANAGER)
+                        @if(auth()->user()->is_admin == MANAGER || auth()->user()->is_admin == SUBMANAGER)
                         <li>
                             <a class="waves-effect waves-dark" href="{{ url('man_daily_report') }}" aria-expanded="false">
                                 <i class="fa fa-id-card-o"></i><span class="hide-menu">Daily Report</span>

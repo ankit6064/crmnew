@@ -181,7 +181,7 @@
 
 
         <!-- Daily Report -->
-        @if(auth()->user()->is_admin == MANAGER)
+        @if(auth()->user()->is_admin == MANAGER || auth()->user()->is_admin == SUBMANAGER)
         <a href="{{ url('man_daily_report') }}" class="{{ request()->is('man_daily_report*') ? 'active' : '' }} menu-link">
             <i class="fa-solid fa-file-lines"></i> Daily Report
         </a>
