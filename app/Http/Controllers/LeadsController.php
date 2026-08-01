@@ -2948,6 +2948,7 @@ class LeadsController extends Controller
         $data->prospect_email = $input['prospect_email'];
         $data->contact_number_1 = $input['contact_number_1'];
         $data->timezone = $input['timezone'];
+        $data->location = $input['location'] ?? null;
         $data->save();
 
         $logs = new Logs();

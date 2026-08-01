@@ -177,6 +177,17 @@
                     </div>
                 </div>
 
+                <!-- Row 8 -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="location"
+                               name="location"
+                               value="{{ $data->location }}">
+                        <small class="text-danger error">{{ $errors->first('location') }}</small>
+                    </div>
+                </div>
+
                 <!-- Buttons -->
                 <div class="btn-group">
                     <button type="submit" class="btn btn-save">Save</button>

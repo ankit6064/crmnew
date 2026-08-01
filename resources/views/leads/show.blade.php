@@ -265,6 +265,15 @@
                         </div>
                     </div>
 
+                    <!-- Row 8 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="location" name="location" value="{{ $data['location'] }}" readonly>
+                            <small class="text-danger error">{{ $errors->first('location') }}</small>
+                        </div>
+                    </div>
+
                 </form>
 
                 <div class="form-group">
