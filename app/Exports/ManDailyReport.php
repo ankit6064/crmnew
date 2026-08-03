@@ -263,10 +263,20 @@ class ManDailyReport
                 $query->where('leads.asign_to', $user->id);
             } elseif ($user->is_admin == 3 || $user->is_admin == 2) {
                 // Sub-manager (3) / Manager (2) role: restricted to their managed employee IDs
-                $employee_ids = User::where([
-                    'user_id' => $user->id,
-                    'is_admin' => '1'
-                ])->pluck('id');
+                $employee_ids = User::where(function ($query) use ($user) {
+                    $query->where(function ($q) use ($user) {
+                        $q->where('user_id', $user->id)
+                            ->whereIn('is_admin', [USER, SUBMANAGER]);
+                    })
+                    ->orWhereIn('user_id', function ($subquery) use ($user) {
+                        $subquery->select('id')
+                            ->from('users')
+                            ->where('user_id', $user->id)
+                            ->where('is_admin', SUBMANAGER);
+                    });
+                })
+                ->where('is_active', 1)
+                ->pluck('id');
 
                 $query->whereIn('leads.asign_to', $employee_ids);
             }
