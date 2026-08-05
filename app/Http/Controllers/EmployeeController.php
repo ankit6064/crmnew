@@ -695,17 +695,17 @@ class EmployeeController extends Controller
                     $q->where('user_id', auth()->user()->id)
                         ->whereIn('is_admin', [USER, SUBMANAGER]);
                 })
-                ->orWhereIn('user_id', function ($subquery) {
-                    $subquery->select('id')
-                        ->from('users')
-                        ->where('user_id', auth()->user()->id)
-                        ->where('is_admin', SUBMANAGER);
-                });
+                    ->orWhereIn('user_id', function ($subquery) {
+                        $subquery->select('id')
+                            ->from('users')
+                            ->where('user_id', auth()->user()->id)
+                            ->where('is_admin', SUBMANAGER);
+                    });
             })
-            ->where('is_active', 1)
-            ->orderBy('name')
-            ->get()
-            ->toArray();
+                ->where('is_active', 1)
+                ->orderBy('name')
+                ->get()
+                ->toArray();
             $employee_ids = array_column($employees, 'id');
             if ($employee_ids == NULL) {
                 $campaigns = Source::orderBy('source_name')->get()->unique('source_name')->values()->toArray();
@@ -956,15 +956,15 @@ class EmployeeController extends Controller
                     $q->where('user_id', auth()->user()->id)
                         ->whereIn('is_admin', [USER, SUBMANAGER]);
                 })
-                ->orWhereIn('user_id', function ($subquery) {
-                    $subquery->select('id')
-                        ->from('users')
-                        ->where('user_id', auth()->user()->id)
-                        ->where('is_admin', SUBMANAGER);
-                });
+                    ->orWhereIn('user_id', function ($subquery) {
+                        $subquery->select('id')
+                            ->from('users')
+                            ->where('user_id', auth()->user()->id)
+                            ->where('is_admin', SUBMANAGER);
+                    });
             })
-            ->where('is_active', 1)
-            ->pluck('id');
+                ->where('is_active', 1)
+                ->pluck('id');
             // dd($employee_ids);
             $query = Lead::select(
                 'leads.id as lead_id',
@@ -1092,17 +1092,17 @@ class EmployeeController extends Controller
                         $q->where('user_id', auth()->user()->id)
                             ->whereIn('is_admin', [USER, SUBMANAGER]);
                     })
-                    ->orWhereIn('user_id', function ($subquery) {
-                        $subquery->select('id')
-                            ->from('users')
-                            ->where('user_id', auth()->user()->id)
-                            ->where('is_admin', SUBMANAGER);
-                    });
+                        ->orWhereIn('user_id', function ($subquery) {
+                            $subquery->select('id')
+                                ->from('users')
+                                ->where('user_id', auth()->user()->id)
+                                ->where('is_admin', SUBMANAGER);
+                        });
                 })
-                ->where('is_active', 1)
-                ->orderBy('name')
-                ->get()
-                ->toArray();
+                    ->where('is_active', 1)
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
                 $employee_ids = array_column($employees, 'id');
                 $campaigns = Source::join('relations', 'relations.assign_to_cam', '=', 'sources.id')
                     ->whereIN('relations.assign_to_employee', $employee_ids)->orderBy('source_name')
@@ -1836,7 +1836,7 @@ class EmployeeController extends Controller
         $view = view("lhs_report")->with(['data' => $data]);
         $firstname = $data->prospect_first_name;
         $lastname = $data->prospect_last_name;
-        $path = "storage/app/public/Excel" . date("-d-m-Y") . "/" . $source_name . ' performance ' . time() . $id . "/";
+        $path = storage_path("app/public/Excel" . date("-d-m-Y") . "/" . $source_name . ' performance ' . time() . $id . "/");
         $filename = $firstname . $lastname . date("-d-m-Y");
 
         try {
@@ -1851,6 +1851,7 @@ class EmployeeController extends Controller
             $headers = array('Content-Type' => 'application/octet-stream');
             return response()->download($filePath, $filename . '.doc', $headers);
         } catch (\Exception $e) {
+            \Log::error('Error in wordEmployeeDownSingle: ' . $e->getMessage(), ['exception' => $e]);
             return redirect()->back()->with('error', 'File not found');
         }
     }
