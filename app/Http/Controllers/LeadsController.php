@@ -1803,9 +1803,9 @@ class LeadsController extends Controller
             ->latest('created_at')
             ->value('created_at');
 
-        if ($lastCreatedAt && now()->diffInSeconds($lastCreatedAt) < 30) {
+        if ($lastCreatedAt && now()->diffInSeconds($lastCreatedAt) < 15) {
             return response()->json([
-                'error' => 'Please wait 30 seconds before adding another note.'
+                'error' => 'Please wait 15 seconds before adding another note.'
             ], 400);
         }
 
