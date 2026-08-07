@@ -840,6 +840,7 @@ class SourcesController extends Controller
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
             $query = Lead::with(['source', 'latestNote'])
+                ->where('status', '!=', LEAD_STATUS_FAILED)
                 ->where('asign_to', auth()->user()->id)
                 ->where('source_id', $id);
 
