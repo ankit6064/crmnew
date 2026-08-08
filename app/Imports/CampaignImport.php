@@ -112,6 +112,22 @@ class CampaignImport
                     Lead::create($fillable);
                     continue;
                 }
+
+                // Check if the same lead already exists in the current sub-campaign
+                $existsInSubCampaign = Lead::where('linkedin_address', $fillable['linkedin_address'])
+                    ->where('source_id', $this->source_id)
+                    ->first();
+
+                if ($existsInSubCampaign) {
+                    $userdetails = User::find($existsInSubCampaign->asign_to);
+
+                    $fillable['employee_name'] = $userdetails
+                        ? $this->cleanValue($userdetails->first_name . ' ' . $userdetails->last_name)
+                        : '';
+
+                    $this->appendToCsvFile($this->source_id, $fillable, $key - 2);
+                    continue;
+                }
     
                 $exists = Lead::where('linkedin_address', $fillable['linkedin_address'])
                     ->whereIn('source_id', $sourceids)

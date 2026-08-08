@@ -470,15 +470,21 @@ class EmployeeController extends Controller
                 ->whereNotNull('name')
                 ->whereIn('is_active', $status)
                 ->select('users.*')
-                // ->selectSub(function ($query) {
-                //     $query->selectRaw('count(distinct source_id)')
-                //         ->from('leads')
-                //         ->join('sources', 'sources.id', '=', 'leads.source_id')
-                //         ->whereColumn('leads.asign_to', 'users.id')
-                //         ->where('sources.is_active', 1);
-                // }, 'total_campaigns_count')
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            // Pre-fetch campaign counts for active sources to prevent slow subqueries on 660k+ leads table
+            $managerIds = $managers->pluck('id')->toArray();
+            $activeSourceIds = Source::where('is_active', 1)->pluck('id')->toArray();
+            $campaignCounts = [];
+            if (!empty($managerIds) && !empty($activeSourceIds)) {
+                $campaignCounts = Lead::whereIn('asign_to', $managerIds)
+                    ->whereIn('source_id', $activeSourceIds)
+                    ->groupBy('asign_to')
+                    ->select('asign_to', DB::raw('count(distinct source_id) as campaign_count'))
+                    ->pluck('campaign_count', 'asign_to')
+                    ->toArray();
+            }
 
 
 
@@ -501,10 +507,10 @@ class EmployeeController extends Controller
                     $status = '<input data-sid = "' . $data->source_id . '"  data-id = "' . $data->id . '" class="switchery" type="checkbox" id="togglebtn" ' . $checked . '>';
                     return $status;
                 })
-                // ->addColumn('totalcampaigns', function ($data) {
-                //     $totalcampaigns = $data->total_campaigns_count ?? 0;
-                //     return '<p  class="view_emp" title="View Campagins" onclick="viewCampaigns(' . $data->id . ')">' . $totalcampaigns . '</p>';
-                // })
+                ->addColumn('totalcampaigns', function ($data) use ($campaignCounts) {
+                    $totalcampaigns = $campaignCounts[$data->id] ?? 0;
+                    return '<p  class="view_emp" title="View Campagins" onclick="viewCampaigns(' . $data->id . ')">' . $totalcampaigns . '</p>';
+                })
                 ->addColumn('actions', function ($data) {
 
                     // Edit
@@ -2059,9 +2065,8 @@ class EmployeeController extends Controller
     {
         $userId = $request->managerid; // or pass via request if needed
 
-        $campaigns = Source::where(function ($q) use ($userId) {
-            $q->where('user_id', $userId)
-                ->orWhere('assign_to_manager', $userId);
+        $campaigns = Source::whereHas('leads', function ($q) use ($userId) {
+            $q->where('asign_to', $userId);
         })
             ->where('is_active', 1)
             ->get();

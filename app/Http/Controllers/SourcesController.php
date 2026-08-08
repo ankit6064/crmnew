@@ -840,7 +840,7 @@ class SourcesController extends Controller
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
             $query = Lead::with(['source', 'latestNote'])
-                ->where('status', '!=', LEAD_STATUS_FAILED)
+                ->whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
                 ->where('asign_to', auth()->user()->id)
                 ->where('source_id', $id);
 
@@ -1022,7 +1022,7 @@ class SourcesController extends Controller
                 ->make(true);
         }
 
-        $comapnyName = Lead::whereIn('status', [1, 4])
+        $comapnyName = Lead::whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
             ->where('asign_to', auth()->user()->id)
             ->where('source_id', $id)
             ->select('company_name')
@@ -1030,7 +1030,9 @@ class SourcesController extends Controller
             ->groupBy('company_name')
             ->get();
 
-        $timeZone = Lead::where(['status' => '1', 'asign_to' => auth()->user()->id, 'source_id' => $id])
+        $timeZone = Lead::whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
+            ->where('asign_to', auth()->user()->id)
+            ->where('source_id', $id)
             ->select('timezone')
             ->orderBy('timezone', 'asc')
             ->groupBy('timezone')
