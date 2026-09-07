@@ -80,6 +80,16 @@
         .graph tbody tr.odd td:last-child {
             display: flex;
         }
+        .graph.custom-submanager table tr td:first-child i {
+    margin-left: 7px;
+}
+.graph.custom-submanager table tr td:last-child {
+    justify-content: center;
+    padding: 19px !important;
+}
+.graph.custom-submanager tr th:last-child {
+    text-align: center;
+}
     </style>
 
     <div class="main-right">
@@ -195,6 +205,7 @@
                         <table class="table table-striped table-hover" id="employee-table">
                             <thead class="thead-main">
                                 <tr>
+                                    <th>Actions </th>
                                     <th>First Name</th>
                                     <th>Last Name</th>
                                     <th>Email</th>
@@ -202,7 +213,6 @@
                                     <th>Phone</th>
                                     <th>Assigned Emp</th>
                                     <th>Assigned Cmp</th>
-                                    <th>Actions </th>
                                 </tr>
                             </thead>
                         </table>
@@ -249,6 +259,7 @@
                 },
                 pageLength: 10,
                 columns: [
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false },
                     { data: 'first_name', name: 'first_name', render: data => data || "N/A" },
                     { data: 'last_name', name: 'last_name', render: data => data || "N/A" },
                     { data: 'email', name: 'email', orderable: false, render: data => data || "N/A" },
@@ -263,8 +274,7 @@
                     },
                     { data: 'phone_no', name: 'phone_no', orderable: false, render: data => data || "N/A" },
                     { data: 'totalemployees', name: 'totalemployees', orderable: false, searchable: false, render: data => data || "0" },
-                    { data: 'totalcampaigns', name: 'totalcampaigns', orderable: false, searchable: false, render: data => data || "0" },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                    { data: 'totalcampaigns', name: 'totalcampaigns', orderable: false, searchable: false, render: data => data || "0" }
                 ],
                 drawCallback: function () {
                     $('.switchery').each(function () {

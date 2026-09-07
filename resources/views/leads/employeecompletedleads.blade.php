@@ -100,6 +100,67 @@
         .daterangepicker .applyBtn:hover {
             background-color: #3c3293 !important;
         }
+
+        /*-15-08-2026-*/
+        .right-side.submanager.completed-leads input#daterange, select#campaign_name, select#company_s, select#closedon, select#company_time {
+            min-width: 100% !important;
+        }
+        .right-side.submanager.completed-leads input#daterange {
+            background: transparent;
+            box-shadow: 0px -1px 9px #dddddd70;
+        }
+        .right-side.submanager.completed-leads .filter-actions button {
+        width: 100%;
+        }
+        .right-side.submanager.completed-leads button#export_csv {
+        background: #0d3a6b;
+        }
+        .right-side.submanager.completed-leads table tr td:first-child a {
+            color: #000;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            padding-top: 0;
+            padding-right: 0;
+        }
+        .right-side.submanager.completed-leads button#export_csv:hover {
+            color: #fff;
+        }
+        .right-side.submanager.completed-leads table tr td:first-child {
+            display:flex;
+        }
+        .right-side.submanager.completed-leads tr td:nth-child(5) {
+            display: table-cell !important;
+        }
+        .right-side.submanager.completed-leads tr td:nth-child(6) {
+           display: flex;
+        }
+        .right-side.submanager.completed-leads tr td:nth-child(6) a {
+            color: #000;
+            padding-left: 0;
+            margin-bottom: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .right-side.submanager.completed-leads tr td:nth-child(6) i.fa-brands.fa-linkedin {
+            color: #0A66C2;
+            font-size: 20px;
+        }
+        .right-side.submanager.completed-leads tr td:nth-child(4) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads tr td:nth-child(6) a:hover {
+            background: none;
+        }
+
+        .right-side.submanager.completed-leads thead.thead-main tr th:nth-child(6) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads tr td:nth-child(8) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads span.badge {
+            padding: 8px 10px;
+        }
     </style>
 @endpush
 
@@ -465,6 +526,7 @@
                             <table id="employee-table">
                                 <thead class="thead-main">
                                     <tr>
+                                        <th>Actions</th>
                                         <th>Campaign Name</th>
                                         <th>Sub Campaign Name</th>
                                         <th>Company Name</th>
@@ -475,7 +537,6 @@
                                         <th>Email Id</th>
                                         <th>Phone Number</th>
                                         <th>Completed On</th>
-                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -547,6 +608,7 @@
                         }
                     },
                     columns: [
+                        { data: 'action', orderable: false, searchable: false },
                         { data: 'source_name', name: 'sources.source_name', orderable: true, searchable: false },
                         { data: 'description', name: 'sources.description', orderable: true },
                         { data: 'company_name', name: 'leads.company_name', orderable: true },
@@ -556,8 +618,7 @@
                         { data: 'designation', orderable: false },
                         { data: 'prospect_email', orderable: false },
                         { data: 'contact_number_1', orderable: false },
-                        { data: 'updated_at_new', orderable: true },
-                        { data: 'action', orderable: false, searchable: false }
+                        { data: 'updated_at_new', orderable: true }
                     ],
                     drawCallback: function () {
                         // Initialize Tippy tooltips for the action icons on hover

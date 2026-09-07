@@ -100,6 +100,82 @@
         .daterangepicker .applyBtn:hover {
             background-color: #3c3293 !important;
         }
+
+        /*-15-08-2026-*/
+
+        .right-side.submanager.completed-leads.closed-leads.failed-lead table tr td:first-child {
+        display:flex;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead input#daterange, select#campaign_name, select#company_s, select#company_time, select#closedon {
+            min-width: 100% !important;
+            background: transparent;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead .filter-actions button {
+            width: 100%;
+        }
+              .right-side.submanager.completed-leads.closed-leads.failed-lead button#export_csv {
+            background: #0d3a6b;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead button#export_csv:hover {
+            color: #fff;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead table tr td:first-child a {
+            color: #000;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            padding-top: 0;
+            padding-right: 0;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead button#export_csv:hover {
+            color: #fff;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead table tr td:first-child {
+            display:flex;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr td:nth-child(5) {
+            display: table-cell !important;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr td:nth-child(6) {
+           display: flex;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr td:nth-child(6) a {
+            color: #000;
+            padding-left: 0;
+            margin-bottom: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr td:nth-child(6) i.fa-brands.fa-linkedin {
+            color: #0A66C2;
+            font-size: 20px;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr td:nth-child(4) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr td:nth-child(5) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr td:nth-child(8) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr th:nth-child(10) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr td:nth-child(2) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead tr th:nth-child(6) {
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads.closed-leads.failed-lead span.badge {
+           padding: 8px 10px;
+        }
+        #numberRow th {
+        text-align: left !important;
+        }
+
+        /*-15-08-2026-*/
+
     </style>
 @endpush
 
@@ -108,7 +184,7 @@
     <input type="hidden" id="source_id" value="{{ $id }}">
 
     <div class="main-right">
-        <div class="right-side submanager completed-leads closed-leads">
+        <div class="right-side submanager completed-leads closed-leads failed-lead">
 
             <h2>Failed Leads</h2>
 
@@ -465,6 +541,7 @@
                             <table id="employee-table">
                                 <thead class="thead-main">
                                     <tr>
+                                        <th>Actions</th>
                                         <th>Campaign Name</th>
                                         <th>Sub Campaign Name</th>
                                         <th>Company Name</th>
@@ -475,7 +552,6 @@
                                         <th>Email Id</th>
                                         <th>Phone Number</th>
                                         <th>Failed On</th>
-                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -547,6 +623,7 @@
                         }
                     },
                     columns: [
+                        { data: 'action', orderable: false, searchable: false },
                         { data: 'source_name', name: 'sources.source_name', orderable: true, searchable: false },
                         { data: 'description', name: 'sources.description', orderable: true },
                         { data: 'company_name', name: 'leads.company_name', orderable: true },
@@ -556,8 +633,7 @@
                         { data: 'designation', orderable: false },
                         { data: 'prospect_email', orderable: false },
                         { data: 'contact_number_1', orderable: false },
-                        { data: 'updated_at_new', orderable: true },
-                        { data: 'action', orderable: false, searchable: false }
+                        { data: 'updated_at_new', orderable: true }
                     ],
                     drawCallback: function () {
                         // Initialize Tippy tooltips for the action icons on hover

@@ -76,6 +76,52 @@
       color: blue;
       font-weight: bold;
     }
+
+    /*-14-08-2026-*/
+.graph.customclass.employe-list tbody tr td:last-child {
+    padding: 16px !important;
+    display: block;
+}
+.graph.customclass.employe-list button {
+    border: none;
+    padding: 5px 10px;
+}
+.graph.customclass.employe-list tr td span.badge {
+    padding: 11px 10px !important;
+    font-weight: 500;
+}
+.graph.customclass.employe-list div#campaignlisting tr td {
+    padding: 10px !important;
+}
+.graph.customclass.employe-list div#campaignlisting .modal-footer button.btn.btn-info {
+    padding: 10px 30px;
+}
+.graph.customclass.employe-list tr th:nth-child(7) {
+    text-align: center;
+}
+div#campaignlistingbody table.table.table-bordered tr td:first-child {
+    display: table-cell;
+}
+.graph.customclass.employe-list tr td:first-child a:hover {
+    background: transparent;
+}
+/*-14-08-2026-*/
+
+/*-14-08-2026-*/
+.graph.customclass.employe-list tr td:first-child {
+    display: flex;
+}
+/*-14-08-2026-*/
+
+/*-15-08-2026-*/
+.graph.customclass.employe-list tr td:first-child a {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/*-15-08-2026-*/
+
+
   </style>
 
   <div class="main-right">
@@ -202,7 +248,7 @@
         </div>
       </div>
 
-      <div class="graph customclass">
+      <div class="graph customclass employe-list">
         <div class="row">
           <div class="add-submanager">
             @if(is_null(Auth::user()->is_admin))
@@ -218,6 +264,7 @@
             <table class="table table-striped table-hover" id="employee-table">
               <thead class="thead-main">
                 <tr>
+                  <th>Actions</th>
                   <th>First Name</th>
                   <th>Last Name</th>
                   <th>Email</th>
@@ -225,7 +272,6 @@
                   <th>Phone No</th>
                   <th>Assigned Campaigns</th>
                   <th>Sub Manager</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
             </table>
@@ -272,6 +318,7 @@
         },
         pageLength: 10,
         columns: [
+          { data: 'actions', name: 'actions', orderable: false, searchable: false },
           { data: 'first_name', name: 'first_name', render: data => data || "N/A" },
           { data: 'last_name', name: 'last_name', render: data => data || "N/A" },
           { data: 'email', name: 'email', orderable: false, render: data => data || "N/A" },
@@ -286,8 +333,7 @@
           },
           { data: 'phone_no', name: 'phone_no', orderable: false, render: data => data || "N/A" },
           { data: 'totalcampaigns', name: 'totalcampaigns', orderable: false, render: data => data || "N/A" },
-          { data: 'sub_manager', name: 'sub_manager', orderable: false, render: data => data || "N/A" },
-          { data: 'actions', name: 'actions', orderable: false, searchable: false }
+          { data: 'sub_manager', name: 'sub_manager', orderable: false, render: data => data || "N/A" }
         ],
         drawCallback: function () {
           $('.switchery').each(function () {

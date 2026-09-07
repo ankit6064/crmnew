@@ -5,6 +5,12 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 
+<style>
+    .main-right.addsubmanager.Update.leadchart select#categoryFilter {
+    min-width: 100%;
+}
+</style>
+
 @endpush
 
 @section('content')

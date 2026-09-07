@@ -16,6 +16,57 @@
         .is-invalid-input {
             border: 1px solid #dc3545 !important;
         }
+
+        /*-17-08-2026-*/
+        .right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:first-child i.fa-brands.fa-linkedin {
+    font-size: 20px;
+    color: #0A66C2;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:first-child a {
+    padding: 0;
+    margin-bottom: 0;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:first-child i.fa-solid.fa-pen-to-square.edit-linkedin {
+    font-size: 18px;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:first-child div {
+    align-items: flex-start !important;
+    justify-content: center;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:nth-child(5) {
+    display: table-cell;
+    text-align: left;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:last-child button.btn.btn-xs.btn-success.onchange_element_approve {
+    margin-right: 0;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:last-child select {
+    margin-top: 0px !important;
+    font-size: 13px;
+    padding: 10px !important;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:last-child button {
+    padding: 11px 10px !important;
+    font-weight: 500;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:last-child {
+    gap: 0px !important;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr.even {
+    background: #fff !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td {
+    padding: 6px 15px !important;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:last-child button {
+    padding: 8px 12px !important;
+    background: #0d3a6b !important;
+}
+.right-side.submanager.completed-leads.closed-leads.unaproved-leads table tr td:last-child select {
+    font-size: 11px;
+    padding: 7px 12px !important;
+}
+        /*-17-08-2026-*/
     </style>
 
     {{-- LinkedIn Update Modal --}}

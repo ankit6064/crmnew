@@ -147,7 +147,7 @@
                                     <th>Sub Campaign</th>
                                     <th>Total Leads</th>
                                     <th>Last Login</th>
-                                    <th>Notes Count</th>
+                                    <!-- <th>Notes Count</th> -->
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -195,7 +195,7 @@
                         { data: 'description', orderable: false, searchable: false },
                         { data: 'totalLeads', orderable: false, searchable: false },
                         { data: 'last_login', orderable: false, searchable: false },
-                        { data: 'notes_count', orderable: false, searchable: false },
+                        // { data: 'notes_count', orderable: false, searchable: false },
                         { data: 'action', orderable: false, searchable: false },
                     ],
 

@@ -100,6 +100,111 @@
         .daterangepicker .applyBtn:hover {
             background-color: #3c3293 !important;
         }
+        .right-side.submanager.completed-leads.closed-leads td:first-child {
+            display: flex;
+            padding-right: 0;
+        }
+
+        /*-12-08-2026-*/
+        .right-side.submanager.completed-leads.closed-leads td:nth-child(8) {
+            color: #212529 !important;
+            text-align: left;
+        }
+        .right-side.submanager.completed-leads.closed-leads td:nth-child(6) a:hover {
+            background: transparent;
+        }
+
+        .right-side.submanager.completed-leads.closed-leads td:first-child a {
+            color: #212529 !important;
+            margin-bottom: 0px !important;
+        }
+        .right-side.submanager.completed-leads.closed-leads td:first-child a {
+         padding-right: 0px !important;
+        }
+        .right-side.submanager.completed-leads.closed-leads td:nth-child(6) {
+            display: flex;
+        }
+        .right-side.submanager.completed-leads.closed-leads tr td:nth-child(5) {
+            display: table-cell;
+            align-items: center;
+        }
+        .right-side.submanager.completed-leads.closed-leads td:nth-child(6) a {
+            margin-bottom: 0;
+            color: #212529;
+        }
+        .right-side.submanager.completed-leads.closed-leads td:nth-child(6) i.fa-brands.fa-linkedin {
+            font-size: 20px;
+            color: #0A66C2;
+        }
+        .right-side.submanager.completed-leads.closed-leads td:first-child a:hover {
+            background: transparent;
+        }
+        .right-side.submanager.completed-leads.closed-leads td:nth-child(11) span {
+            padding: 12px 20px !important;
+            background: #0d3a6b !important;
+            color: #fff !important;
+            border: none;
+            font-weight: 600;
+            font-size: 11px;
+        }
+       .right-side.submanager.completed-leads.closed-leads td:nth-child(10) button.btn.btn-sm.btn-info.send-lhs {
+    color: #fff !important;
+    font-weight: 500;
+}
+        .right-side.submanager.completed-leads.closed-leads tr td:last-child button.btn.btn-sm.btn-secondary.add-invitation-date {
+            background: #2f75e5;
+        }
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(12) span.badge.bg-secondary {
+    background: #dddddd3d !important;
+    padding: 15px 12px;
+    color: #000;
+    font-weight: 500;
+    border: 1px solid #ddd;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:nth-child(12) span {
+    background: #dddddd3d !important;
+    font-weight: 500;
+    border-radius: 7px;
+    padding: 9px 20px;
+     color: #212529;
+    border: 1px solid #ddd;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child i {
+    margin-right: 5px;
+}
+.right-side.submanager.completed-leads.closed-leads td {
+    text-align: left !important;
+}
+.right-side.submanager.completed-leads.closed-leads .filter-card select#campaign_name, select#company_s, select#company_time, select#closedon, select#filter_confirmation_status {
+    min-width: 100% !important;
+}
+.right-side.submanager.completed-leads.closed-leads .filter-card input#daterange, input#filter_invitation_date {
+    background: transparent;
+}
+.right-side.submanager.completed-leads.closed-leads td:nth-child(6) a {
+    font-size: 11px;
+    padding-right: 0;
+}
+.right-side.submanager.completed-leads.closed-leads td:nth-child(12) button.btn.btn-sm.btn-primary.send-lhs-reminder {
+    background: #78a5ee;
+}
+div#employee-table_filter {
+    margin-top: 0 !important;
+}
+.right-side.submanager.completed-leads.closed-leads .graph.campaignslist tr td {
+    padding: 0px 15px !important;
+}
+.right-side.submanager.completed-leads.closed-leads tr td:last-child button.btn.btn-sm.btn-secondary.add-invitation-date {
+    margin-right: 0;
+     background: #78a5ee;
+}
+.right-side.submanager.completed-leads.closed-leads td:nth-child(11) span {
+    font-size: 11px !important;
+    width: 100%;
+    font-weight: normal;
+}
+
+        /*-12-08-2026-*/
     </style>
 @endpush
 
@@ -253,6 +358,33 @@
                         transform: translateY(-1px);
                         box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.2);
                     }
+                    .right-side.submanager.completed-leads.closed-leads thead.thead-main tr th:nth-child(6) {
+                    text-align: left;
+                    }
+                    .right-side.submanager.completed-leads.closed-leads .filter-actions button {
+                    width: 100% !important;
+                    }
+                    .right-side.submanager.completed-leads.closed-leads .filter-actions button#export_csv {
+                    background: #0d3a6b;
+                    }
+                    .right-side.submanager.completed-leads.closed-leads .filter-actions button#export_csv:hover {
+                    color: #fff !important;
+                    }
+                    .right-side.submanager.completed-leads.closed-leads button.btn.btn-info {
+                    margin-right: 0px;
+                     font-size: 11px;
+                    background: #0d3a6b;
+                    }
+                    .right-side.submanager.completed-leads.closed-leads td:nth-child(11) span {
+                    padding: 11px 20px !important;
+                    font-size: 11px;
+                    }
+                    .right-side.submanager.completed-leads.closed-leads td:nth-child(12) button.btn.btn-sm.btn-primary.send-lhs-reminder {
+                    font-size: 11px;
+                    margin-right: 0;
+                    }
+
+                     
                 </style>
 
                 <div class="filter-card">
@@ -323,7 +455,6 @@
                                 <option value="waiting">Waiting for Confirmation</option>
                             </select>
                         </div>
-
                         <!-- Actions Group -->
                         <div class="filter-actions">
                             <button id="reset_filters" class="btn btn-reset">
@@ -344,21 +475,21 @@
                         <table id="employee-table">
                             <thead class="thead-main">
                                 <tr>
+                                    <th>Actions</th>
                                     <th>Campaign Name</th>
                                     <th>Sub Campaign Name</th>
                                     <th>Company Name</th>
                                     <th>Closed By</th>
                                     <th>Prospect Name</th>
                                     <th>Time Zone</th>
-                                    <th>Designation</th>
+                                    <!-- <th>Designation</th> -->
                                     <th>Email Id</th>
-                                    <th>Phone Number</th>
+                                    <!-- <th>Phone Number</th> -->
                                     <th>Closed On</th>
                                     <th>Send LHS</th>
-                                    <th>Confirmation Status</th>
+                                    <th>Status</th>
                                     <th>Reminder Status</th>
                                     <th>Invitation Date</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -654,22 +785,22 @@
                     }
                 },
                 columns: [
+                    { data: 'action', orderable: false, searchable: false },
                     { data: 'source_name', name: 'sources.source_name', orderable: true, searchable: false },
                     { data: 'description', name: 'sources.description', orderable: true }, // FIX HERE
                     { data: 'company_name', name: 'leads.company_name', orderable: true },
                     { data: 'closed_by', orderable: false },
                     { data: 'prospect_first_name_new', name: 'prospect_first_name', orderable: false }, // FIX HERE
                     { data: 'timezone', orderable: false },
-                    { data: 'designation', orderable: false },
+                    // { data: 'designation', orderable: false },
                     { data: 'prospect_email', orderable: false },
-                    { data: 'contact_number_1', orderable: false },
+                    // { data: 'contact_number_1', orderable: false },
                     { data: 'updated_at_new', orderable: true },
                     { data: 'send_lhs', orderable: false },
                     { data: 'confirmation_status', orderable: false },
                     { data: 'reminder_status', orderable: false },
-                    { data: 'invitation_date', orderable: false },
+                    { data: 'invitation_date', orderable: false }
 
-                    { data: 'action', orderable: false, searchable: false }
                 ],
                 drawCallback: function () {
                     // Initialize Tippy tooltips for the action icons on hover

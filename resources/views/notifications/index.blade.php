@@ -1,5 +1,76 @@
 @extends('layouts.admin')
 
+<style>
+    .graph.campaignslist.logstable.mb-3.Notifications-form select#filter-type, select#filter-status, input#filter-date {
+    min-width: 100% !important;
+    box-shadow: 0px -1px 9px #dddddd70;
+}
+.graph.campaignslist.logstable.mb-3.Notifications-form button {
+    color: #fff;
+    font-weight: 500;
+}
+.graph.campaignslist.logstable.mb-3.Notifications-form {
+    padding: 20px !important;
+}
+.graph.campaignslist.logstable.mb-3.Notifications-form select#filter-type, select#filter-status, input#filter-date {
+    padding: 10px !important;
+    font-size: 12px;
+}
+.graph.campaignslist.logstable.mb-3.Notifications-form button {
+    padding: 11px !important;
+        font-size: 12px;
+}
+.graph.campaignslist.logstable.mb-3.Notifications-form form#filter-form {
+    padding: 0px !important;
+    margin-bottom: 0;
+}
+.graph.campaignslist.logstable.notification-table tbody tr td:nth-child(2) span {
+    padding: 10px;
+    width: 100%;
+    background: #0d3a6b !important;
+    max-width: 120px;
+    font-weight: 500;
+    color: #fff !important;
+    font-size: 11px;
+}
+.graph.campaignslist.logstable.notification-table button.btn.btn-sm.btn-info {
+    color: #fff;
+    font-weight: 500;
+    font-size: 11px;
+}
+.graph.campaignslist.logstable.notification-table table tr td:last-child a {
+    font-size: 14px;
+}
+.graph.campaignslist.logstable.notification-table tr td:last-child a.btn.btn-sm.btn-secondary.mt-1 {
+    margin-top: 0px !important;
+    font-weight: 500;
+    font-size: 11px;
+    padding: 8px 20px !important;
+}
+.graph.campaignslist.logstable.mb-3.Notifications-form button.btn.btn-info.flex-grow-1 {
+    background: #0a2b63;
+}
+.graph.campaignslist.logstable.mb-3.Notifications-form button#reset-btn {
+    background: #78a5ee;
+}
+span.text-success {
+    color: #78a5ee !important;
+    font-weight: 500;
+}
+span.text-danger {
+    color: #0d3a6b !important;
+    font-weight: 500;
+}
+.graph.campaignslist.logstable.mb-3.Notifications-form .col-md-3:last-child .d-flex.gap-2 {
+    max-width: 242px;
+    gap: 0px !important;
+}
+.graph.campaignslist.logstable.notification-table table tr td:last-child a {
+    background: #0d3a6b;
+    color: #fff !important;
+}
+</style>
+
 @section('content')
     <div class="main-right">
         <div class="right-side submanager">
@@ -10,7 +81,7 @@
             </div>
 
             <!-- Filters -->
-            <div class="graph campaignslist logstable mb-3">
+            <div class="graph campaignslist logstable mb-3 Notifications-form">
                 <form id="filter-form" action="{{ route('notifications.filter') }}" method="POST" class="p-3">
                     @csrf
                     <div class="row g-3 align-items-end">
@@ -45,7 +116,7 @@
                 </form>
             </div>
 
-            <div class="graph campaignslist logstable">
+            <div class="graph campaignslist logstable notification-table">
                 <div class="table">
                     <div class="table-container" id="table-container">
                         @include('notifications.table_partial')

@@ -79,6 +79,58 @@
     .graph tbody tr.odd td:last-child {
         display: flex;
     }
+
+    /*-15-08-2026-*/
+.graph.campaignslist table tr td:first-child {
+    display: flex;
+    flex-wrap: wrap;
+}
+.graph.campaignslist table tr td:first-child a {
+    margin-bottom: 0px !important;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.graph.campaignslist table tr td:first-child a:hover {
+    background: none;
+}
+.graph.campaignslist table tr td:first-child a {
+    margin-bottom: 0px !important;
+    padding-right: 0;
+}
+.graph.campaignslist tbody tr td:last-child {
+    justify-content: center;
+}
+.graph.campaignslist table tr td {
+    text-align: left !important;
+}
+.graph.campaignslist thead.thead-main tr th {
+    text-align: left !important;
+}
+.graph.campaignslist thead.thead-main tr th:nth-child(6) {
+    text-align: center !important;
+}
+.graph.campaignslist table tr td:nth-child(6) {
+    text-align: center !important;
+}
+.graph.campaignslist table tr td:nth-child(5) {
+    text-align: center !important;
+}
+.graph.campaignslist tr td:nth-child(6) button {
+    border: none;
+    padding: 2px 10px;
+}
+.graph.campaignslist table tr td:first-child a:first-child {
+    padding-left: 0;
+}
+div#leadsAssignToUserModal tr td a {
+    color: #fff!important;
+    background: #5fbc01;
+    padding: 5px 10px;
+    margin-bottom: 0;
+}
+/*-15-08-2026-*/
+
 </style>
 {{-- @endpush --}}
 
@@ -174,6 +226,7 @@
                             <thead class="thead-main">
                                 <tr>
 
+                                    <th style="text-align:center">Actions</th>
                                     <th width="200" style="text-align:center">Campaign</th>
                                     <th width="200" style="text-align:center">Sub Campaign</th>
                                     <th width="50" style="text-align:center">Manager</th>
@@ -187,7 +240,6 @@
                                     <th width="50" style="text-align:center">Status</th>
 
                                     <!--<th>Total Amount</th>-->
-                                    <th style="text-align:center">Actions</th>
                                 </tr>
                             </thead>
                         </table>
@@ -394,7 +446,7 @@
                 processing: false,
                 serverSide: true,
                 searching: true,
-                pageLength: 10,
+                pageLength: 100,
                 ordering: true,
                 ajax: {
                     url: '{{ route('campaigns_list_ajax_pagination') }}',
@@ -404,6 +456,7 @@
                     }
                 },
                 columns: [
+                    { data: 'action', name: 'action', orderable: false },
                     { data: 'source_name_new', name: 'source_name' },
                     { data: 'description', name: 'description' },
                     { data: 'manager_name', name: 'manager_name', orderable: false },
@@ -414,9 +467,8 @@
 
                     { data: 'created_at_new', name: 'created_at', orderable: true },
                     { data: 'updated_at_new', name: 'updated_at', orderable: true },
-                    { data: 'status', name: 'status', orderable: false },
+                    { data: 'status', name: 'status', orderable: false }
 
-                    { data: 'action', name: 'action', orderable: false },
                 ],
 
 

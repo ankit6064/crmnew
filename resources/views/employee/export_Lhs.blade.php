@@ -222,6 +222,28 @@ if (isset($data->contact_number_2) && !empty($data->contact_number_2)) {
                     </div>
                 </div>
 
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prospect Level</label>
+                        <input type="text" name='prospects_level' value="{{ old('prospects_level') }}" placeholder="Enter Prospect Level">
+                    </div>
+                    <div class="form-group">
+                        <label>Website</label>
+                        <input type="text" name='website' value="{{ old('website') }}" placeholder="Enter Website">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prospect Vertical</label>
+                        <input type="text" name='prospect_vertical' value="{{ old('prospect_vertical') }}" placeholder="Enter Prospect Vertical">
+                    </div>
+                    <div class="form-group">
+                        <label>Opt-in Status</label>
+                        <input type="text" name='opt_in_status' value="{{ old('opt_in_status') }}" placeholder="Enter Opt-in Status">
+                    </div>
+                </div>
+
                 <h3 class="section-title">Analysis & Discovery</h3>
 
                 <div class="form-group">
@@ -251,6 +273,17 @@ if (isset($data->contact_number_2) && !empty($data->contact_number_2)) {
                     </div>
                 </div>
 
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Budget</label>
+                        <textarea name='budget' rows="3">{{ old('budget') }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Defined Agenda</label>
+                        <textarea name='defined_agenda' rows="3">{{ old('defined_agenda') }}</textarea>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Call Notes</label>
                     <textarea name='call_notes' rows="4">{{ old('call_notes') }}</textarea>
@@ -274,6 +307,17 @@ if (isset($data->contact_number_2) && !empty($data->contact_number_2)) {
                             <option value="Yes" {{ old('contact_decision_maker') == 'Yes' ? 'selected' : '' }}>Yes</option>
                             <option value="No" {{ old('contact_decision_maker') == 'No' ? 'selected' : '' }}>No</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Who else would be the influencers in the decision making process?</label>
+                        <input type="text" name='influencers_decision_making_process' value="{{ old('influencers_decision_making_process') }}" placeholder="Enter Influencers">
+                    </div>
+                    <div class="form-group">
+                        <label>Is the Company already affiliated with any other similar services? If Yes, Name?</label>
+                        <input type="text" name='company_already_affiliated' value="{{ old('company_already_affiliated') }}" placeholder="Enter Affiliations">
                     </div>
                 </div>
 

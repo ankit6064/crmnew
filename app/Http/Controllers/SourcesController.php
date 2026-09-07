@@ -1019,6 +1019,26 @@ class SourcesController extends Controller
             </span>";
                 })
                 ->rawColumns(['action', 'prospect_first_name', 'contact_number_1', 'contact_number_2']) // To render HTML in the actions column
+                ->order(function ($query) {
+                    if (request()->has('order')) {
+                        foreach (request()->input('order') as $order) {
+                            $colIndex = $order['column'];
+                            $direction = $order['dir'];
+                            $colName = request()->input("columns.{$colIndex}.name") ?: request()->input("columns.{$colIndex}.data");
+                            if ($colName) {
+                                $direction = in_array(strtolower($direction), ['asc', 'desc']) ? $direction : 'asc';
+                                if ($colName === 'update_note_date') {
+                                    $query->orderBy('leads.note_created_date', $direction);
+                                } elseif (in_array($colName, ['company_name', 'prospect_first_name', 'timezone', 'designation', 'contact_number_1', 'contact_number_2'])) {
+                                    $query->orderBy('leads.' . $colName, $direction);
+                                }
+                            }
+                        }
+                    } else {
+                        $query->orderBy('leads.company_name', 'asc');
+                    }
+                    $query->orderBy('leads.id', 'desc');
+                })
                 ->make(true);
         }
 
@@ -1363,7 +1383,7 @@ class SourcesController extends Controller
                                 $colorClass = 'bg-danger text-white';
                             }
                         }
-                        return '<span class="badge ' . $colorClass . '">Waiting for Confirmation</span>';
+                        return '<span class="badge ' . $colorClass . '"><i class="fa-solid fa-clock"></i> WFC</span>';
                     }
                 })
                 ->addColumn('reminder_status', function ($row) {
@@ -1376,7 +1396,7 @@ class SourcesController extends Controller
 
                         // If LHS sent less than 24 hours ago and no reminder sent yet
                         if (!$row->lhs_reminder_sent_at && $lhsSentAt->diffInHours(now()) < 24) {
-                            return '<span class="badge bg-secondary">LHS Sent (Wait 24h)</span>';
+                            return '<span class="badge bg-secondary"><i class="fas fa-paper-plane"></i> LHS Sent (Wait 24h)</span>';
                         }
 
                         if ($row->lhs_reminder_sent_at) {
@@ -1399,7 +1419,7 @@ class SourcesController extends Controller
                                     Send Reminder
                                 </button>';
                     } else {
-                        return 'N/A';
+                        return '<span><i class="fas fa-paper-plane"></i> N/A </span>';
                     }
                 })
                 ->addColumn('send_lhs', function ($row) {
@@ -1417,7 +1437,7 @@ class SourcesController extends Controller
                     } else {
                         $disabled = $row->lhs_sent_at ? '' : 'disabled';
                         return '<button class="btn btn-sm btn-secondary add-invitation-date" data-id="' . $row->id . '" ' . $disabled . '>
-                                    Add Invitation Date
+                                    <i class="fa-solid fa-calendar"></i> Add Invitation Date
                                 </button>';
                     }
 

@@ -223,6 +223,35 @@ readonly>
 </div>
 
 
+<!-- Row 8 -->
+<div class="form-row">
+<div class="form-group">
+<label>Prospect Level</label>
+<input type="text"
+value="{{ $data->prospects_level }}"
+readonly>
+</div>
+
+<div class="form-group">
+<label>Prospect Vertical</label>
+<input type="text"
+value="{{ $data->prospect_vertical }}"
+readonly>
+</div>
+</div>
+
+
+<!-- Row 9 -->
+<div class="form-row">
+<div class="form-group">
+<label>Opt-in Status</label>
+<input type="text"
+value="{{ $data->opt_in_status }}"
+readonly>
+</div>
+</div>
+
+
 
 <h3 style="margin-top:30px">Company Description</h3>
 
@@ -276,6 +305,71 @@ readonly>
 <div class="form-group">
 <label>Call Notes</label>
 <div class="description-box">{!! $data->call_notes !!}</div>
+</div>
+
+
+<h3 style="margin-top:30px">Meeting Details</h3>
+
+<!-- Meeting Preference & Decision Maker -->
+<div class="form-row">
+<div class="form-group">
+<label>Meeting Preference</label>
+<input type="text" value="{{ $data->meeting_teleconference }}" readonly>
+</div>
+
+<div class="form-group">
+<label>Is Contact Decision Maker?</label>
+<input type="text" value="{{ $data->contact_decision_maker }}" readonly>
+</div>
+</div>
+
+<!-- Influencers & Affiliations -->
+<div class="form-row">
+<div class="form-group">
+<label>Who else would be the influencers in the decision making process?</label>
+<input type="text" value="{{ $data->influencers_decision_making_process }}" readonly>
+</div>
+
+<div class="form-group">
+<label>Is the Company already affiliated with any other similar services? If Yes, Name?</label>
+<input type="text" value="{{ $data->company_already_affiliated }}" readonly>
+</div>
+</div>
+
+<!-- Meeting Details 1 -->
+<div class="form-row">
+<div class="form-group">
+<label>Meeting Date 1</label>
+<input type="text" value="{{ $data->meeting_date1 }}" readonly>
+</div>
+
+<div class="form-group">
+<label>Meeting Time 1</label>
+<input type="text" value="{{ $data->meeting_time1 }}" readonly>
+</div>
+
+<div class="form-group">
+<label>Timezone 1</label>
+<input type="text" value="{{ $data->timezone_1 }}" readonly>
+</div>
+</div>
+
+<!-- Meeting Details 2 -->
+<div class="form-row">
+<div class="form-group">
+<label>Meeting Date 2</label>
+<input type="text" value="{{ $data->meeting_date2 }}" readonly>
+</div>
+
+<div class="form-group">
+<label>Meeting Time 2</label>
+<input type="text" value="{{ $data->meeting_time2 }}" readonly>
+</div>
+
+<div class="form-group">
+<label>Timezone 2</label>
+<input type="text" value="{{ $data->timezone_2 }}" readonly>
+</div>
 </div>
 
 

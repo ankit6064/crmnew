@@ -377,6 +377,75 @@ No
 
 </div>
 
+<!-- MEETING QUESTIONS -->
+<div class="form-row">
+
+<div class="form-group">
+<label>Who else would be the influencers in the decision making process?</label>
+<input type="text" id="influencers_decision_making_process" name="influencers_decision_making_process"
+placeholder="Enter Influencers"
+value="{{ $data->influencers_decision_making_process }}">
+</div>
+
+<div class="form-group">
+<label>Is the Company already affiliated with any other similar services? If Yes, Name?</label>
+<input type="text" id="company_already_affiliated" name="company_already_affiliated"
+placeholder="Enter Affiliations"
+value="{{ $data->company_already_affiliated }}">
+</div>
+
+</div>
+
+<!-- MEETING DETAILS 1 -->
+<div class="form-row">
+
+<div class="form-group">
+<label>Meeting Date 1</label>
+<input type="date" name="meeting_date1" value="{{ $data->meeting_date1 }}">
+</div>
+
+<div class="form-group">
+<label>Meeting Time 1</label>
+<input type="time" name="meeting_time1" value="{{ $data->meeting_time1 }}">
+</div>
+
+<div class="form-group">
+<label>Timezone 1</label>
+<select name='timezone_1' required>
+<option value="">Select Timezone</option>
+@foreach(DateTimeZone::listAbbreviations() as $key => $val)
+<option value="{{ strtoupper($key) }}" {{ $data->timezone_1 == strtoupper($key) ? 'selected' : '' }}>{{ strtoupper($key) }}</option>
+@endforeach
+</select>
+</div>
+
+</div>
+
+<!-- MEETING DETAILS 2 -->
+<div class="form-row">
+
+<div class="form-group">
+<label>Meeting Date 2</label>
+<input type="date" name="meeting_date2" value="{{ $data->meeting_date2 }}">
+</div>
+
+<div class="form-group">
+<label>Meeting Time 2</label>
+<input type="time" name="meeting_time2" value="{{ $data->meeting_time2 }}">
+</div>
+
+<div class="form-group">
+<label>Timezone 2</label>
+<select name='timezone_2'>
+<option value="">Select Timezone</option>
+@foreach(DateTimeZone::listAbbreviations() as $key => $val)
+<option value="{{ strtoupper($key) }}" {{ $data->timezone_2 == strtoupper($key) ? 'selected' : '' }}>{{ strtoupper($key) }}</option>
+@endforeach
+</select>
+</div>
+
+</div>
+
 
 <!-- BUTTONS -->
 <div class="btn-group">
