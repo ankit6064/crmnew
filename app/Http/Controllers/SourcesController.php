@@ -835,6 +835,234 @@ class SourcesController extends Controller
     }
 
 
+    // public function view_camp($id)
+    // {
+    //     // Check if the request is an AJAX call from DataTable
+    //     if (request()->ajax()) {
+    //         $query = Lead::with(['source', 'latestNote'])
+    //             ->whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
+    //             ->where('asign_to', auth()->user()->id)
+    //             ->where('source_id', $id);
+
+    //         if (!empty(request('cName'))) {
+    //             $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
+    //         }
+
+    //         if (!empty(request('timeZone'))) {
+    //             $query->where('timezone', 'LIKE', '%' . request('timeZone') . '%');
+    //         }
+
+
+    //         // Apply search and filter conditions
+    //         if (!empty(request('search')['value'])) {
+    //             $search = trim(request('search')['value']);
+
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->where('company_name', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('prospect_first_name', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('prospect_last_name', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere(DB::raw('CONCAT(prospect_first_name, " ", prospect_last_name)'), 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('timezone', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('designation', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%');
+    //             });
+    //         }
+
+
+    //         return datatables()->of($query)
+    //             ->addColumn('source_name', function ($row) {
+    //                 return $row->source->name ?? 'N/A'; // Example: Adjust 'name' as per your source model
+    //             })
+    //             ->addColumn('action', function ($row) {
+    //                 $notedetails = $row->latestNote;
+
+    //                 $notesButton = '';
+
+    //                 if ($notedetails) {
+
+    //                     $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
+
+    //                     // check if note created within last 24 hours
+    //                     if ($createdAt->diffInHours(now()) <= 24) {
+
+    //                         $notesButton = '<a class="viewnotes shake-note" onclick="shownoteslist(' . $row->id . ')" data-toggle="modal" data-target="#largeModal">
+    //                             <i class="fas fa-eye label-new" style="color:#8B8000 !important"></i>
+    //                         </a>';
+
+    //                     } else {
+
+    //                         $notesButton = '<a class="viewnotes" onclick="shownoteslist(' . $row->id . ')" data-toggle="modal" data-target="#largeModal">
+    //                             <i class="fas fa-eye label-new"></i>
+    //                         </a>';
+
+    //                     }
+    //                 }
+    //                 $quickNoteButton = '<a class="addnotes" onclick="showaddmodal(' . $row->id . ')" data-toggle="modal">
+    //                                  <i class="fas fa-comment label-new" aria-hidden="true"></i>
+    //                              </a>';
+    //                 $status = '<a class="changestatus" label-info" onclick="showstatusmodal(' . $row->id . ')" data-toggle="modal" data-target="#status-modal" style="color:black"><i class="fa fa-refresh label-new"></i></a>';
+    //                 return $notesButton . ' ' . $quickNoteButton . ' ' . $status;
+
+
+    //             })
+    //             ->editColumn('prospect_first_name', function ($row) {
+    //                 $leadName = '<a href="' . url('/leads', [$row->id]) . '" target="_blank">' . $row->prospect_first_name . ' ' . $row->prospect_last_name . '</a>';
+    //                 $linkedinAddress = $row->linkedin_address ?? ''; // Ensure the variable exists
+    //                 $linkedinIcon = '';
+
+    //                 if (strpos($linkedinAddress, 'linkedin') === false) {
+    //                     $linkedinIcon = '<a href="javascript:void(0)"><i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>';
+    //                 } else {
+    //                     $linkedinUrl = strpos($linkedinAddress, 'http://') !== 0 && strpos($linkedinAddress, 'https://') !== 0
+    //                         ? 'https://' . $linkedinAddress
+    //                         : $linkedinAddress;
+    //                     $linkedinIcon = '<a href="' . $linkedinUrl . '" target="_blank"><i alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>';
+    //                 }
+
+    //                 return $leadName . '  ' . $linkedinIcon;
+    //             })
+
+    //             ->addColumn('update_note_date', function ($row) {
+    //                 return $row->note_created_date;
+    //             })
+    //             ->addColumn('note_created_date_new', function ($row) {
+
+    //                 $notedetails = $row->latestNote;
+
+    //                 if ($notedetails) {
+
+    //                     $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
+    //                     return $createdAt;
+    //                 } else {
+    //                     return 'N/A';
+    //                 }
+
+    //             })
+    //             ->editColumn('contact_number_1', function ($row) {
+    //                 if (empty($row->contact_number_1)) {
+    //                     return 'N/A';
+    //                 }
+
+    //                 // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+    //                 if (strpos($row->contact_number_1, '/-') !== false) {
+    //                     $numbers = explode('/-', $row->contact_number_1);
+    //                 } else {
+    //                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+    //                 }
+    //                 $numbers = array_map('trim', $numbers);
+                    
+    //                 // Remove all hyphens from each number
+    //                 $numbers = array_map(function ($num) {
+    //                     return str_replace('-', '', $num);
+    //                 }, $numbers);
+
+    //                 // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+    //                 $numbers = array_values(array_filter($numbers, function ($num) {
+    //                     return preg_match('/\d/', $num);
+    //                 }));
+
+    //                 $count = count($numbers);
+
+    //                 if ($count == 0) {
+    //                     return 'N/A';
+    //                 }
+
+    //                 $firstNumber = $numbers[0];
+    //                 $contact = json_encode(implode(', ', $numbers));
+    //                 $badgeText = $count <= 1 ? 'Dial' : '+ show more';
+    
+    //                 return "{$firstNumber} 
+    //         <span class='badge' 
+    //               style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+    //               onclick='showAllNumbers({$contact}, {$row->id})'>
+    //               {$badgeText}
+    //         </span>";
+    //             })
+    //             ->editColumn('contact_number_2', function ($row) {
+    //                 if (empty($row->contact_number_2)) {
+    //                     return 'N/A';
+    //                 }
+
+    //                 // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+    //                 if (strpos($row->contact_number_2, '/-') !== false) {
+    //                     $numbers = explode('/-', $row->contact_number_2);
+    //                 } else {
+    //                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_2);
+    //                 }
+    //                 $numbers = array_map('trim', $numbers);
+                    
+    //                 // Remove all hyphens from each number
+    //                 $numbers = array_map(function ($num) {
+    //                     return str_replace('-', '', $num);
+    //                 }, $numbers);
+
+    //                 // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+    //                 $numbers = array_values(array_filter($numbers, function ($num) {
+    //                     return preg_match('/\d/', $num);
+    //                 }));
+
+    //                 $count = count($numbers);
+
+    //                 if ($count == 0) {
+    //                     return 'N/A';
+    //                 }
+
+    //                 $firstNumber = $numbers[0];
+    //                 $contact = json_encode(implode(', ', $numbers));
+    //                 $badgeText = $count <= 1 ? 'Dial' : '+ show more';
+    
+    //                 return "{$firstNumber} 
+    //         <span class='badge' 
+    //               style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+    //               onclick='showAllNumbers({$contact}, {$row->id})'>
+    //               {$badgeText}
+    //         </span>";
+    //             })
+    //             ->rawColumns(['action', 'prospect_first_name', 'contact_number_1', 'contact_number_2']) // To render HTML in the actions column
+    //             ->order(function ($query) {
+    //                 if (request()->has('order')) {
+    //                     foreach (request()->input('order') as $order) {
+    //                         $colIndex = $order['column'];
+    //                         $direction = $order['dir'];
+    //                         $colName = request()->input("columns.{$colIndex}.name") ?: request()->input("columns.{$colIndex}.data");
+    //                         if ($colName) {
+    //                             $direction = in_array(strtolower($direction), ['asc', 'desc']) ? $direction : 'asc';
+    //                             if ($colName === 'update_note_date') {
+    //                                 $query->orderBy('leads.note_created_date', $direction);
+    //                             } elseif (in_array($colName, ['company_name', 'prospect_first_name', 'timezone', 'designation', 'contact_number_1', 'contact_number_2'])) {
+    //                                 $query->orderBy('leads.' . $colName, $direction);
+    //                             }
+    //                         }
+    //                     }
+    //                 } else {
+    //                     $query->orderBy('leads.company_name', 'asc');
+    //                 }
+    //                 $query->orderBy('leads.id', 'desc');
+    //             })
+    //             ->make(true);
+    //     }
+
+    //     $comapnyName = Lead::whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
+    //         ->where('asign_to', auth()->user()->id)
+    //         ->where('source_id', $id)
+    //         ->select('company_name')
+    //         ->orderBy('company_name', 'asc')
+    //         ->groupBy('company_name')
+    //         ->get();
+
+    //     $timeZone = Lead::whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
+    //         ->where('asign_to', auth()->user()->id)
+    //         ->where('source_id', $id)
+    //         ->select('timezone')
+    //         ->orderBy('timezone', 'asc')
+    //         ->groupBy('timezone')
+    //         ->get();
+    //     $source = Source::where('id', $id)->first();
+
+    //     return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone', 'source'));
+
+    // }
+
     public function view_camp($id)
     {
         // Check if the request is an AJAX call from DataTable
@@ -922,8 +1150,23 @@ class SourcesController extends Controller
                     return $leadName . '  ' . $linkedinIcon;
                 })
 
+                ->addColumn('note_status', function ($row) {
+                    $hasNote = $row->latestNote || (!empty($row->note_created_date));
+                    if ($hasNote) {
+                        return '<span class="badge" style="background-color: #28a745 !important; color: #fff !important; padding: 5px 8px; border-radius: 4px; font-weight: 500;">Note Added</span>';
+                    } else {
+                        return '<span class="badge" style="background-color: #ff9800 !important; color: #fff !important; padding: 5px 8px; border-radius: 4px; font-weight: 500;">No Note Added</span>';
+                    }
+                })
+
                 ->addColumn('update_note_date', function ($row) {
-                    return $row->note_created_date;
+                    if (!empty($row->note_created_date)) {
+                        return date('d-m-Y H:i', strtotime($row->note_created_date));
+                    }
+                    if ($row->latestNote) {
+                        return \Carbon\Carbon::parse($row->latestNote->created_at)->format('d-m-Y H:i');
+                    }
+                    return 'N/A';
                 })
                 ->addColumn('note_created_date_new', function ($row) {
 
@@ -1018,7 +1261,7 @@ class SourcesController extends Controller
                   {$badgeText}
             </span>";
                 })
-                ->rawColumns(['action', 'prospect_first_name', 'contact_number_1', 'contact_number_2']) // To render HTML in the actions column
+                ->rawColumns(['action', 'prospect_first_name', 'contact_number_1', 'contact_number_2', 'note_status']) // To render HTML in the actions column
                 ->order(function ($query) {
                     if (request()->has('order')) {
                         foreach (request()->input('order') as $order) {
