@@ -302,18 +302,18 @@ class LogsController extends Controller
 
     public function viewleadlogs(Request $request, $id)
     {
-        $employee = User::select('id', 'first_name', 'last_name')->where('user_id', Auth::id())->orderby('first_name')->get();
-        $sources = Source::select('id', 'source_name', 'description')->where('assign_to_manager', Auth::id())->orderby('source_name')->get();
-        $leadDetails = Lead::where('id', $id)->first();
+        $employee = User::select('id', 'first_name', 'last_name')->orderBy('first_name')->get();
+        $sources = Source::select('id', 'source_name', 'description')->orderBy('source_name')->get();
+        $leadDetails = Lead::with(['source', 'user', 'leadManager'])->where('id', $id)->first();
+        if (!$leadDetails) {
+            abort(404, 'Lead not found');
+        }
         return view('logs.viewleadlogs', compact('employee', 'sources', 'id', 'leadDetails'));
     }
 
 
     public function viewleadlogstable(Request $request)
     {
-
-
-        // Join users, leads, and sources to make sorting work
         $logsQuery = Logs::select(
             'logs.*',
             'users.first_name',
@@ -335,59 +335,84 @@ class LogsController extends Controller
             $logsQuery->whereBetween('logs.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
         }
 
-
-        if (!empty($request->sourceid)) {
-            $logsQuery->where('sources.id', $request->sourceid);
-        }
         if (!empty($request->type)) {
             $logsQuery->where('logs.type', $request->type);
         }
+
         if (!empty($request->employeeid)) {
             $logsQuery->where('logs.user_id', $request->employeeid);
         }
 
         return DataTables::of($logsQuery)
-            ->addColumn('employeename', fn($log) => $log->first_name . ' ' . $log->last_name)
-            ->addColumn('campaign_name', function ($log) {
-                return $log->source_name && $log->source_description
-                    ? $log->source_name . ' - ' . $log->source_description
-                    : '';
+            ->addColumn('employeename', function ($log) {
+                $name = trim(($log->first_name ?? '') . ' ' . ($log->last_name ?? ''));
+                return !empty($name) ? htmlspecialchars($name) : 'System';
             })
-            ->addColumn('lead_name', function ($log) {
-                return $log->prospect_first_name && $log->prospect_last_name
-                    ? $log->prospect_first_name . ' ' . $log->prospect_last_name
-                    : '';
+            ->addColumn('type_badge', function ($log) {
+                $type = (int) $log->type;
+                switch ($type) {
+                    case 1:
+                        return '<span class="badge" style="background:#17a2b8; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-sticky-note me-1"></i> Note Added</span>';
+                    case 2:
+                        return '<span class="badge" style="background:#ffc107; color:#000; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-sync-alt me-1"></i> Status Updated</span>';
+                    case 3:
+                        return '<span class="badge" style="background:#007bff; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-file-alt me-1"></i> LHS Created</span>';
+                    case 4:
+                        return '<span class="badge" style="background:#6c757d; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-file-signature me-1"></i> MOM Report</span>';
+                    case 5:
+                        return '<span class="badge" style="background:#28a745; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-plus-circle me-1"></i> Lead Added</span>';
+                    case 6:
+                        return '<span class="badge" style="background:#007bff; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-edit me-1"></i> LHS Updated</span>';
+                    case 12:
+                        return '<span class="badge" style="background:#6f42c1; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-exchange-alt me-1"></i> Transferred</span>';
+                    case 15:
+                        return '<span class="badge" style="background:#fd7e14; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-check-double me-1"></i> Approval Status</span>';
+                    case 16:
+                        return '<span class="badge" style="background:#20c997; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-user-check me-1"></i> Assigned</span>';
+                    case 17:
+                        return '<span class="badge" style="background:#007bff; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-paper-plane me-1"></i> LHS Sent</span>';
+                    case 18:
+                        return '<span class="badge" style="background:#ffc107; color:#000; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-bell me-1"></i> LHS Reminder</span>';
+                    case 19:
+                        return '<span class="badge" style="background:#28a745; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-check-circle me-1"></i> Confirmed</span>';
+                    case 20:
+                        return '<span class="badge" style="background:#17a2b8; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-calendar-check me-1"></i> Meeting Status</span>';
+                    case 21:
+                        return '<span class="badge" style="background:#e83e8c; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-undo me-1"></i> Reverted to Fresh</span>';
+                    default:
+                        return '<span class="badge" style="background:#6c757d; color:#fff; padding:5px 10px; border-radius:4px; font-weight:600;"><i class="fas fa-history me-1"></i> Activity</span>';
+                }
             })
             ->editColumn('description', function ($log) {
-                return $log->description . ' By ' . $log->first_name . ' ' . $log->last_name;
-            })
-            ->addColumn('type', function ($log) {
+                if (!empty($log->description)) {
+                    return htmlspecialchars($log->description);
+                }
+                if ($log->type == 1 && !empty($log->note_id)) {
+                    $note = Note::find($log->note_id);
+                    if ($note) {
+                        return htmlspecialchars('Note Added: ' . ($note->feedback ?? 'No feedback text'));
+                    }
+                }
                 return match ((int) $log->type) {
-                    1 => Note::where('id', $log->note_id)->value('reminder_for') ?? '',
-                    2 => 'Lead Status Updated',
-                    3 => 'LHS Created',
-                    4 => 'MOM Report Generated',
-                    5 => 'New Lead Added',
-                    6 => 'LHS Updated',
-                    7 => 'Account Added',
-                    8 => 'Manage Login',
-                    9 => 'Account Active/Deactive',
-                    10 => 'Assigned Submanager',
-                    11 => 'Account Deleted',
-                    12 => 'Company Transferred',
-                    13 => 'Campaign Active/Deactive',
-                    14 => 'New Campaign Added',
-                    15 => 'Lead Approved/Disapproved',
-                    16 => 'Employee Assigned',
-                    17 => 'LHS Sent',
-                    18 => 'LHS Reminder Sent',
-                    19 => 'Lead Confirmed',
-                    20 => 'Meeting Status Updated',
-                    default => '',
+                    1 => 'Note added to lead',
+                    2 => 'Lead status updated',
+                    3 => 'LHS report created',
+                    4 => 'MOM report generated',
+                    5 => 'New lead added to system',
+                    6 => 'LHS report updated',
+                    12 => 'Company/Lead transferred',
+                    15 => 'Lead approval status updated',
+                    16 => 'Lead assigned to user',
+                    17 => 'LHS report sent',
+                    18 => 'LHS reminder sent',
+                    19 => 'Lead confirmed',
+                    20 => 'Meeting status updated',
+                    21 => 'Lead automatically reverted to fresh lead',
+                    default => 'Activity logged for lead',
                 };
             })
-            ->editColumn('created_at', fn($log) => $log->created_at ? $log->created_at->format('d-m-Y H:i') : '')
-            ->rawColumns(['description'])
+            ->editColumn('created_at', fn($log) => $log->created_at ? $log->created_at->format('d M, Y h:i A') : '')
+            ->rawColumns(['type_badge', 'description'])
             ->make(true);
     }
 

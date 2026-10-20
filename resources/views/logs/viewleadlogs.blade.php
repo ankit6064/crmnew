@@ -1,326 +1,406 @@
 @extends('layouts.admin')
-@section('content')
+
+@push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <style>
-        .message-box {
-            padding: 15px 20px;
-            margin: 15px 0;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 500;
-            color: #fff;
-            background-color: #007bff;
-            /* Blue info message */
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
+        .lead-summary-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
         }
 
-        .message-box.success {
-            background-color: #28a745;
+        .lead-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
         }
 
-        .message-box.error {
-            background-color: #dc3545;
+        @media (max-width: 992px) {
+            .lead-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
-        table.employee-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-family: Arial, sans-serif;
+        @media (max-width: 576px) {
+            .lead-summary-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .employee-table th,
-        .employee-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        .employee-table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .employee-table th.sortable:hover {
-            background-color: #e0e0e0;
-        }
-
-        .employee-table tr:nth-child(even) {
-            background-color: #fafafa;
-        }
-
-        .employee-table tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        .employee-table input[type="checkbox"] {
-            transform: scale(1.2);
-            cursor: pointer;
-        }
-
-        .view_emp {
-            cursor: pointer;
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        .view_emp:hover {
-            text-decoration: underline;
-        }
-
-        .filter-box {
-            margin-bottom: 20px;
+        .summary-item {
             display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .summary-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .filter-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 20px 24px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
-            align-items: center;
+            align-items: end;
         }
 
-        .filter-box select,
-        .filter-box input {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 14px;
+        @media (max-width: 900px) {
+            .filter-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
-        .filter-box button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            background-color: #007bff;
-            color: #fff;
-            cursor: pointer;
+        @media (max-width: 576px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .filter-box button:hover {
-            background-color: #0056b3;
-        }
-
-        .pagination {
-            margin-top: 20px;
+        .filter-group {
             display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 0px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .filter-control {
+            width: 100% !important;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            padding: 0 14px;
+            font-size: 13px;
+            color: #1e293b;
+            background-color: #f8fafc;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .filter-control:focus {
+            border-color: #192e62;
+            background-color: #ffffff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(25, 46, 98, 0.15);
+        }
+
+        .btn-filter-action {
+            height: 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            font-family: 'Poppins', sans-serif;
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
         }
 
-        .pagination a {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-decoration: none;
-            color: #007bff;
+        .btn-apply-filter {
+            background-color: #192e62;
+            color: #ffffff;
         }
 
-        .pagination a.active {
-            background-color: #007bff;
-            color: #fff;
+        .btn-apply-filter:hover {
+            background-color: #0f1d40;
+            color: #ffffff;
         }
 
-        .pagination a:hover {
-            background-color: #e0e0e0;
+        .btn-reset-filter {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
         }
-        
+
+        .btn-reset-filter:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        #employeelogs thead tr th {
+            background-color: #192e62 !important;
+            color: #ffffff !important;
+            font-weight: 600;
+            padding: 12px 15px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        #employeelogs tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            font-size: 13px;
+            color: #334155;
+        }
+
+        .return-btn {
+            background-color: #192e62;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .return-btn:hover {
+            background-color: #0f1d40;
+            color: #ffffff;
+        }
     </style>
+@endpush
 
-    <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">Dashboard</h3>
-        </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                <li class="breadcrumb-item active">View Lead Logs</li>
-            </ol>
-        </div>
-    </div>
+@section('content')
 
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-outline-info">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="m-b-0 text-white">Logs of {{ $leadDetails->prospect_first_name.' '.$leadDetails->prospect_last_name }}</h4>
-                        <a href="{{ url()->previous() }}" class="btn btn-light d-flex align-items-center">
-                            <span class="material-symbols-outlined mr-2">
-                                arrow_back
-                            </span>
-                            Back
-                        </a>
+    <div class="main-right">
+        <div class="right-side submanager">
+
+            <!-- Page Header -->
+            <div class="row align-items-center mb-3">
+                <div class="col-md-8">
+                    <h2 class="mb-0">Lead Activity Logs</h2>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button type="button" class="btn return-btn"
+                        onclick="window.history.back() || (window.location.href='{{ route('leads.search_lead') }}');">
+                        <i class="fas fa-arrow-left me-2"></i> Back
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lead Info Summary Card -->
+            <div class="lead-summary-card">
+                <div class="lead-summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-label">Prospect Name</span>
+                        <span class="summary-value" style="color: #192e62;">
+                            {{ trim(($leadDetails->prospect_first_name ?? '') . ' ' . ($leadDetails->prospect_last_name ?? '')) ?: 'N/A' }}
+                        </span>
                     </div>
 
-                    <div class="card-body">
-                        <!-- Filter Section -->
-                        <!-- <div class="filter-box">
-                            <select name="filter_status" id="employee_id">
-                                <option value="">Select Employee</option>
-                                @if(isset($employee) && !empty($employee))
-                                    @foreach($employee as $employeelisting)
-                                        <option value="{{ $employeelisting->id }}">
-                                            {{ $employeelisting->first_name . ' ' . $employeelisting->last_name }}
-                                        </option>
-                                    @endforeach
-                                @endif
-                            </select>
+                    <div class="summary-item">
+                        <span class="summary-label">Company / Campaign</span>
+                        <span class="summary-value">
+                            {{ $leadDetails->company_name ?? 'N/A' }}
+                            <small class="text-muted d-block" style="font-weight:400;">
+                                {{ $leadDetails->source->source_name ?? 'N/A' }}
+                            </small>
+                        </span>
+                    </div>
 
-                            <select name="filter_status" id="source_id" style="width: 200px;">
-                                <option value="">Select Campaign</option>
-                                @if(isset($sources) && !empty($sources))
-                                    @foreach($sources as $sourcelisting)
-                                        <option value="{{ $sourcelisting->id }}">
-                                            {{ $sourcelisting->source_name . '-' . $sourcelisting->description }}
-                                        </option>
-                                    @endforeach
-                                @endif
-                            </select>
+                    <div class="summary-item">
+                        <span class="summary-label">Who Created Lead</span>
+                        <span class="summary-value">
+                            {{ $leadDetails->leadManager ? ($leadDetails->leadManager->first_name . ' ' . $leadDetails->leadManager->last_name) : 'N/A' }}
+                            <small class="text-muted d-block" style="font-weight:400;">
+                                {{ $leadDetails->created_at ? $leadDetails->created_at->format('d M, Y h:i A') : '' }}
+                            </small>
+                        </span>
+                    </div>
 
-                            <select name="filter_status" id="type">
-                                <option value="">Select Type</option>
-                                    <option value="1">Note Added</option>
-                                    <option value="2">Lead Status Updated</option>
-                                    <option value="3">LHS Report Created</option>
-                                    <option value="6">LHS Report Updated</option>
-                                    <option value="4">MOM Report Generated</option>
-                                    <option value="5">New Lead Added</option>
-
-                            </select>
-                            <input type="text" name="daterange" id="daterange" class="form-control" />
-                            <button type="button" id="filterLogs" style="background-color:#192e62 !important;border:1px solid #192e62">Filter</button>
-                            <button type="button" id="reset" style="background-color:red">Reset</button>
-                        </div> -->
-
-                        <!-- Messages -->
-                        @if (session('success'))
-                            <div class="message-box success">
-                                {{ session('success') }}
+                    <div class="summary-item">
+                        <span class="summary-label">Assigned To & Status</span>
+                        <span class="summary-value">
+                            {{ $leadDetails->user ? ($leadDetails->user->first_name . ' ' . $leadDetails->user->last_name) : 'Unassigned' }}
+                            <div class="mt-1">
+                                @switch($leadDetails->status)
+                                    @case(1)
+                                        <span class="badge" style="background:#ffc107; color:#000; padding:4px 8px; border-radius:4px;">Pending</span>
+                                        @break
+                                    @case(2)
+                                        <span class="badge" style="background:#dc3545; color:#fff; padding:4px 8px; border-radius:4px;">Failed</span>
+                                        @break
+                                    @case(3)
+                                        <span class="badge" style="background:#28a745; color:#fff; padding:4px 8px; border-radius:4px;">Closed</span>
+                                        @break
+                                    @case(4)
+                                        <span class="badge" style="background:#17a2b8; color:#fff; padding:4px 8px; border-radius:4px;">In Progress</span>
+                                        @break
+                                    @case(5)
+                                        <span class="badge" style="background:#007bff; color:#fff; padding:4px 8px; border-radius:4px;">Completed</span>
+                                        @break
+                                    @default
+                                        <span class="badge" style="background:#6c757d; color:#fff; padding:4px 8px; border-radius:4px;">N/A</span>
+                                @endswitch
                             </div>
-                        @endif
-                        @if (session('error'))
-                            <div class="message-box error">
-                                {{ session('error') }}
-                            </div>
-                        @endif
-                        <input type="hidden" name="" id="lead_id" value="{{ $id }}">
+                        </span>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Logs Table -->
-                        <table id="employeelogs" class="display nowrap table table-hover table-striped table-bordered"
-                            cellspacing="0" width="100%">
+            <!-- Filter Card -->
+            <div class="filter-card">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="daterange">Date Range</label>
+                        <input type="text" id="daterange" class="filter-control" placeholder="Select Date Range" readonly style="cursor: pointer;">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="type">Activity Type</label>
+                        <select id="type" class="filter-control">
+                            <option value="">All Activities</option>
+                            <option value="5">Lead Added</option>
+                            <option value="16">Employee Assigned</option>
+                            <option value="12">Transferred</option>
+                            <option value="1">Note Added</option>
+                            <option value="2">Status Updated</option>
+                            <option value="3">LHS Created</option>
+                            <option value="4">MOM Report</option>
+                            <option value="17">LHS Sent</option>
+                            <option value="18">LHS Reminder</option>
+                            <option value="19">Lead Confirmed</option>
+                            <option value="20">Meeting Status</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="employee_id">Performed By</label>
+                        <select id="employee_id" class="filter-control">
+                            <option value="">All Users</option>
+                            @foreach($employee as $emp)
+                                <option value="{{ $emp->id }}">{{ $emp->first_name . ' ' . $emp->last_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="filter-group" style="flex-direction: row; gap: 10px;">
+                        <button type="button" id="filterLogs" class="btn btn-filter-action btn-apply-filter w-100">
+                            <i class="fas fa-filter me-1"></i> Filter
+                        </button>
+                        <button type="button" id="resetLogs" class="btn btn-filter-action btn-reset-filter w-100">
+                            <i class="fas fa-rotate-left me-1"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" id="lead_id" value="{{ $id }}">
+
+            <!-- Activity Logs Table -->
+            <div class="graph campaignslist logstable lead-listing">
+                <div class="table">
+                    <div class="table-container">
+                        <table id="employeelogs" class="table table-striped table-hover" width="100%">
                             <thead>
                                 <tr>
-                                    <!-- <th>Campaign Name</th> -->
-                                    <!-- <th>Prospect Name</th> -->
-                                    <th>Company Name</th>
-                                    <th>Action Performed</th>
-                                    <!-- <th>Type</th> -->
-                                    <th>Created On</th>
+                                    <th>Event Type</th>
+                                    <th>Action Details</th>
+                                    <th>Performed By</th>
+                                    <th>Date & Time</th>
                                 </tr>
                             </thead>
                             <tbody>
                             </tbody>
                         </table>
-
-
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
+
 @endsection
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script>
         $(document).ready(function () {
-            $('#spinner-overlay').show(); // Show full-page spinne
-            var employeeid = $('#employee_id').val();
-            var sourceid = $('#source_id').val();
-            var date = $('#date').val();
-            const url = "{{ route('viewleadlogstable') }}";
-            var table = $('#employeelogs').DataTable({
+            $('#spinner-overlay').show();
+
+            var logTable = $('#employeelogs').DataTable({
                 processing: false,
                 serverSide: true,
-                searching: false, // Enable search globally
-                ordering: true, // Disable sorting
-
+                searching: true,
+                ordering: true,
+                order: [[3, 'desc']],
                 ajax: {
-                    url: url,
+                    url: "{{ route('viewleadlogstable') }}",
                     data: function (d) {
                         d.lead_id = $('#lead_id').val();
                         d.employeeid = $('#employee_id').val();
-                        d.sourceid = $('#source_id').val();
-                        d.date = $('#daterange').val(); // ✅ use daterange input
-                            d.type = $('#type').val();
-
-                    },
-                    error: function (xhr, error, thrown) {
-                        console.error("AJAX Error:", xhr.responseText);
+                        d.date = $('#daterange').val();
+                        d.type = $('#type').val();
                     }
                 },
                 columns: [
-                    // { data: 'campaign_name', name: 'campaign_name', orderable: true, searchable: false },
-                    // { data: 'lead_name', name: 'lead_name', orderable: false, searchable: false },
-                    { data: 'company_name', name: 'company_name', orderable: false, searchable: false },
-                    { data: 'description', name: 'description', orderable: false, searchable: false },
-                    // { data: 'type', name: 'type', orderable: false, searchable: false },
-                    { data: 'created_at', name: 'created_at', orderable: true, searchable: false },
-                ],
-                order: [[2, 'desc']] // index 5 is 'created_at' column, descending
-
-
-
+                    { data: 'type_badge', name: 'type', orderable: false, searchable: false },
+                    { data: 'description', name: 'description', orderable: false },
+                    { data: 'employeename', name: 'users.first_name', orderable: false },
+                    { data: 'created_at', name: 'created_at', orderable: true }
+                ]
             });
 
-            // Show spinner overlay on processing start
-            table.on('preXhr.dt', function (e, settings, data) {
-                $('#spinner-overlay').show(); // Show full-page spinner
+            logTable.on('preXhr.dt', function () {
+                $('#spinner-overlay').show();
             });
 
-            // Hide spinner overlay when data is loaded
-            table.on('xhr.dt', function (e, settings, json, xhr) {
-                $('#spinner-overlay').hide(); // Hide full-page spinner
+            logTable.on('xhr.dt', function () {
+                $('#spinner-overlay').hide();
             });
 
-            // Ensure filters work by putting event listener inside $(document).ready()
             $('#filterLogs').on('click', function () {
-                console.log('Filter changed! Reloading table...');
-                table.ajax.reload(); // Reload DataTable with new filter values
+                logTable.ajax.reload();
             });
 
-            $('#reset').on('click', function () {
-            $('#employee_id').val('');
-            $('#source_id').val('');
-            $('#daterange').val(''); // ✅ clear the date range input
-            $('#type').val('');    
-             table.ajax.reload(); // Reload DataTable with new filter values
+            $('#resetLogs').on('click', function () {
+                $('#employee_id').val('');
+                $('#daterange').val('');
+                $('#type').val('');
+                logTable.ajax.reload();
             });
 
+            $('#daterange').daterangepicker({
+                autoUpdateInput: false,
+                opens: 'left',
+                locale: {
+                    format: 'YYYY-MM-DD',
+                    cancelLabel: 'Clear'
+                }
+            });
+
+            $('#daterange').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
+            });
+
+            $('#daterange').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).val('');
+            });
         });
-
     </script>
-    <script>
-$(function () {
-    $('#daterange').daterangepicker({
-        autoUpdateInput: false, // ❗Prevents default date display
-        opens: 'left',
-        locale: {
-            format: 'YYYY-MM-DD',
-            cancelLabel: 'Clear'
-        }
-    });
-        // Apply selected date range to the input
-        $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-        $(this).val(
-            picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD')
-        );
-    });
-
-    // Clear input on cancel
-    $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
-        $(this).val('');
-    });
-});
-
-</script>
 @endpush

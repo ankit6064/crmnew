@@ -1746,7 +1746,6 @@ class LeadsController extends Controller
                     // KEEP VIEW NOTES ICON SAME
                     $notedetails = Note::where('lead_id', $data->id)->orderByDesc('id')->first();
 
-                    $actionHtml = '';
 
                     if ($notedetails) {
 
@@ -2995,32 +2994,42 @@ class LeadsController extends Controller
 
     public function assignLeadsManager(AssignLeadRequest $request)
     {
+        $managerUser = User::find($request->employee_id);
+        $managerName = $managerUser ? ($managerUser->first_name . ' ' . $managerUser->last_name) : 'Manager';
 
-        $data = array(
-            'employee_id' => $request->employee_id,
-            'lead_id' => $request->lead_id
-        );
         foreach ($request->lead_id as $leadid) {
             Lead::where('id', $leadid)->update(['asign_to_manager' => $request->employee_id]);
+
+            $logs = new Logs();
+            $logs->user_id = Auth::id();
+            $logs->type = 16;
+            $logs->description = 'Lead assigned to Manager: ' . $managerName;
+            $logs->reference_id = $leadid;
+            $logs->source_id = Lead::where('id', $leadid)->value('source_id');
+            $logs->save();
         }
 
         return redirect('leads/assign')->with('success', 'Leads Assigned Successfully.');
-
     }
 
     public function assignLeadsEmployee(AssignLeadRequest $request)
     {
-        $data = array(
-            'employee_id' => $request->employee_id,
-            'lead_id' => $request->lead_id
-        );
+        $empUser = User::find($request->employee_id);
+        $empName = $empUser ? ($empUser->first_name . ' ' . $empUser->last_name) : 'Employee';
 
         foreach ($request->lead_id as $leadid) {
             Lead::where('id', $leadid)->update(['asign_to' => $request->employee_id]);
+
+            $logs = new Logs();
+            $logs->user_id = Auth::id();
+            $logs->type = 16;
+            $logs->description = 'Lead assigned to Employee: ' . $empName;
+            $logs->reference_id = $leadid;
+            $logs->source_id = Lead::where('id', $leadid)->value('source_id');
+            $logs->save();
         }
 
         return redirect('leads/assign')->with('success', 'Leads Assigned Successfully.');
-
     }
 
     public function assignHalfLeadsEmployee(Request $request)
@@ -3081,5 +3090,212 @@ class LeadsController extends Controller
         ];
     }
 
+    public function searchLeadIndex(Request $request)
+    {
+        $userId = Auth::id();
+        $isAdmin = auth()->user()->is_admin;
+
+        $sourcesQuery = Source::where('is_active', 1);
+
+        if ($isAdmin == MANAGER) {
+            // Manager gets all active campaigns
+        } elseif ($isAdmin == SUBMANAGER) {
+            $subEmpIds = User::where('user_id', $userId)->pluck('id')->toArray();
+            $subEmpIds[] = $userId;
+            $sourcesQuery->where(function ($q) use ($userId, $subEmpIds) {
+                $q->where('user_id', $userId)
+                  ->orWhere('assign_to_manager', $userId)
+                  ->orWhereHas('leads', function ($lq) use ($subEmpIds) {
+                      $lq->whereIn('asign_to', $subEmpIds);
+                  });
+            });
+        } else {
+            $sourcesQuery->whereHas('leads', function ($q) use ($userId) {
+                $q->where('asign_to', $userId);
+            });
+        }
+
+        $sources = $sourcesQuery->select('id', 'source_name', 'description')
+            ->orderBy('source_name', 'asc')
+            ->orderBy('description', 'asc')
+            ->get();
+
+        return view('leads.search_lead', compact('sources'));
+    }
+
+    public function getSearchCompanies(Request $request, $source_id)
+    {
+        $userId = Auth::id();
+        $isAdmin = auth()->user()->is_admin;
+
+        $source = Source::findOrFail($source_id);
+
+        $query = Lead::where('source_id', $source_id)
+            ->whereNotNull('company_name')
+            ->where('company_name', '!=', '');
+
+        if ($isAdmin == USER) {
+            $query->where('asign_to', $userId);
+        } elseif ($isAdmin == SUBMANAGER) {
+            $subEmpIds = User::where('user_id', $userId)->pluck('id')->toArray();
+            $subEmpIds[] = $userId;
+            $query->whereIn('asign_to', $subEmpIds);
+        }
+
+        $companies = $query->select(
+            'company_name',
+            DB::raw('COUNT(*) as total_leads')
+        )
+        ->groupBy('company_name')
+        ->orderBy('company_name', 'asc')
+        ->get();
+
+        return response()->json([
+            'status' => true,
+            'source' => $source,
+            'companies' => $companies
+        ]);
+    }
+
+    public function getSearchLeadsData(Request $request)
+    {
+        $source_id = $request->input('source_id');
+        $company_name = $request->input('company_name');
+        $user = auth()->user();
+        $isAdmin = $user ? $user->is_admin : null;
+
+        $query = Lead::select('leads.*')->with(['source:id,source_name,description', 'user:id,first_name,last_name', 'leadManager:id,first_name,last_name', 'latestNote']);
+
+        if (!empty($source_id)) {
+            $query->where('leads.source_id', $source_id);
+        }
+
+        if (!empty($company_name)) {
+            $query->where('leads.company_name', $company_name);
+        }
+
+        if ($isAdmin == USER) {
+            $query->where('leads.asign_to', $userId);
+        } elseif ($isAdmin == SUBMANAGER) {
+            $subEmpIds = User::where('user_id', $userId)->pluck('id')->toArray();
+            $subEmpIds[] = $userId;
+            $query->whereIn('leads.asign_to', $subEmpIds);
+        }
+
+        $query->groupBy('leads.id');
+
+        return DataTables::of($query)
+            ->addColumn('campaign_name', function ($row) {
+                if (!$row->source) {
+                    return 'N/A';
+                }
+                $sourceName = $row->source->source_name ?? '';
+                $subCampaign = $row->source->description ?? '';
+                if (!empty($sourceName) && !empty($subCampaign)) {
+                    return htmlspecialchars($sourceName . ' - ' . $subCampaign);
+                }
+                return htmlspecialchars($sourceName ?: ($subCampaign ?: 'N/A'));
+            })
+            ->addColumn('company_name', function ($row) {
+                return htmlspecialchars($row->company_name ?? 'N/A');
+            })
+            ->addColumn('prospect_name', function ($row) {
+                $fullName = trim(($row->prospect_first_name ?? '') . ' ' . ($row->prospect_last_name ?? ''));
+                if (empty($fullName)) {
+                    $fullName = 'N/A';
+                }
+                $link = url('/leads', [$row->id]);
+                $html = '<a href="' . $link . '" target="_blank" style="font-weight: 600; color: #192e62;">' . htmlspecialchars($fullName) . '</a>';
+                if (!empty($row->linkedin_address)) {
+                    $url = (strpos($row->linkedin_address, 'http') === 0) ? $row->linkedin_address : 'https://' . $row->linkedin_address;
+                    $html .= ' <a href="' . htmlspecialchars($url) . '" target="_blank" class="ms-1"><i class="fa-brands fa-linkedin" style="color: #0A66C2; font-size: 16px;"></i></a>';
+                }
+                return $html;
+            })
+            ->addColumn('created_by', function ($row) {
+                if ($row->leadManager) {
+                    return htmlspecialchars(($row->leadManager->first_name ?? '') . ' ' . ($row->leadManager->last_name ?? ''));
+                }
+                return 'N/A';
+            })
+            ->addColumn('assigned_to', function ($row) {
+                if ($row->user) {
+                    return htmlspecialchars(($row->user->first_name ?? '') . ' ' . ($row->user->last_name ?? ''));
+                }
+                return 'Unassigned';
+            })
+            ->editColumn('designation', function ($row) {
+                if (empty($row->designation)) return 'N/A';
+                return htmlspecialchars($row->designation);
+            })
+            ->editColumn('timezone', function ($row) {
+                if (empty($row->timezone)) return 'N/A';
+                return htmlspecialchars($row->timezone);
+            })
+            ->editColumn('status', function ($row) {
+                switch ($row->status) {
+                    case 1:
+                        return '<span class="badge" style="background:#ffc107; color:#000; padding:4px 8px; border-radius:4px;">Pending</span>';
+                    case 2:
+                        return '<span class="badge" style="background:#dc3545; color:#fff; padding:4px 8px; border-radius:4px;">Failed</span>';
+                    case 3:
+                        return '<span class="badge" style="background:#28a745; color:#fff; padding:4px 8px; border-radius:4px;">Closed</span>';
+                    case 4:
+                        return '<span class="badge" style="background:#17a2b8; color:#fff; padding:4px 8px; border-radius:4px;">In Progress</span>';
+                    case 5:
+                        return '<span class="badge" style="background:#007bff; color:#fff; padding:4px 8px; border-radius:4px;">Completed</span>';
+                    default:
+                        return '<span class="badge" style="background:#6c757d; color:#fff; padding:4px 8px; border-radius:4px;">N/A</span>';
+                }
+            })
+            ->editColumn('contact_number_1', function ($row) {
+                if (empty($row->contact_number_1)) {
+                    return 'N/A';
+                }
+
+                // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+                if (strpos($row->contact_number_1, '/-') !== false) {
+                    $numbers = explode('/-', $row->contact_number_1);
+                } else {
+                    $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+                }
+                $numbers = array_map('trim', $numbers);
+
+                // Filter out any elements that do not contain a digit
+                $numbers = array_values(array_filter($numbers, function ($num) {
+                    return preg_match('/\d/', $num);
+                }));
+
+                $count = count($numbers);
+
+                if ($count == 0) {
+                    return 'N/A';
+                }
+
+                $firstNumber = htmlspecialchars($numbers[0]);
+                $contact = json_encode(implode(', ', $numbers));
+
+                if ($count > 1) {
+                    return "{$firstNumber} <span class='badge' style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:4px; font-weight:600; padding:3px 6px;' onclick='showAllNumbers({$contact}, {$row->id})'>+ show more</span>";
+                }
+
+                return $firstNumber;
+            })
+            ->addColumn('updated_at', function ($row) {
+                if (!empty($row->note_created_date)) {
+                    return date('d-m-Y H:i', strtotime($row->note_created_date));
+                }
+                if ($row->latestNote) {
+                    return \Carbon\Carbon::parse($row->latestNote->created_at)->format('d-m-Y H:i');
+                }
+                return $row->updated_at ? \Carbon\Carbon::parse($row->updated_at)->format('d-m-Y H:i') : 'N/A';
+            })
+            ->addColumn('action', function ($row) {
+                return '<a href="' . route('viewleadlogs', ['id' => $row->id]) . '" class="notes_id" target="_blank"><i class="fas fa-history label-new" data-tippy-content="View Lead Logs"></i></a>';
+            })
+            ->rawColumns(['prospect_name', 'status', 'action'])
+            ->make(true);
+    }
 }
+
 

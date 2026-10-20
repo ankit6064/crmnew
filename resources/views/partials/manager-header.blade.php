@@ -50,11 +50,37 @@
         pointer-events: none;
         font-family: sans-serif;
     }
+
+    .topbar-sidebar-toggle-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 6px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #192e62;
+        transition: color 0.2s ease, transform 0.2s ease;
+        outline: none;
+        border-radius: 6px;
+    }
+
+    .topbar-sidebar-toggle-btn:hover {
+        color: #0d1b3e;
+        background: rgba(0, 0, 0, 0.05);
+        transform: scale(1.08);
+    }
 </style>
 
 <div class="topbar">
-    <div class="logo">
-        <img src="{{ asset('images/logo.png') }}" alt="Revvelocity Logo">
+    <div class="topbar-brand-group" style="display: flex; align-items: center; gap: 16px;">
+        <div class="logo">
+            <img src="{{ asset('images/logo.png') }}" alt="Revvelocity Logo">
+        </div>
+        <button type="button" class="topbar-sidebar-toggle-btn" id="topbarSidebarToggleBtn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
     </div>
     <div class="topbar-right">
         @php

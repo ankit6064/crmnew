@@ -124,7 +124,6 @@ class HomeController extends Controller
         $leadCounts = Lead::selectRaw('
             COUNT(*) as totalLeads,
             SUM(CASE WHEN status = "1" THEN 1 ELSE 0 END) as freshleads,
-            SUM(CASE WHEN status = "3" THEN 1 ELSE 0 END) as totalClosedLeads,
             SUM(CASE WHEN status = "2" THEN 1 ELSE 0 END) as totalFailedLeads,
             SUM(CASE WHEN status = "4" THEN 1 ELSE 0 END) as totalInprogressLeads,
             SUM(CASE WHEN status = "5" THEN 1 ELSE 0 END) as totalCompletedLeads
@@ -134,6 +133,16 @@ class HomeController extends Controller
                 $query->where('is_active', 1);
             })
             ->first();
+
+        // Closed leads: status=3, LHS created, MOM not created
+        $totalClosedLeads = Lead::where('asign_to', $userId)
+            ->where('status', 3)
+            ->whereHas('lhsreport')
+            ->whereDoesntHave('momReport')
+            ->whereHas('source', function ($query) {
+                $query->where('is_active', 1);
+            })
+            ->count();
 
         // $leadsd = Lead::where('status','5')->get();
         // dd($leadsd);
@@ -146,7 +155,7 @@ class HomeController extends Controller
         return view('employeedashboard', [
             'totalLeads' => $leadCounts->totalLeads,
             'totalFreshLeads' => $leadCounts->freshleads,
-            'totalClosedLeads' => $leadCounts->totalClosedLeads,
+            'totalClosedLeads' => $totalClosedLeads,
             'totalFailedLeads' => $leadCounts->totalFailedLeads,
             'totalInprogressLeads' => $leadCounts->totalInprogressLeads,
             'totalCompletedLeads' => $leadCounts->totalCompletedLeads,
@@ -154,6 +163,49 @@ class HomeController extends Controller
             'totalCampaign' => $totalCampaign
         ]);
     }
+
+    // public function employeedashboard()
+    // {
+    //     $userId = auth()->user()->id;
+    //     $today = Carbon::today();
+    //     $totalCampaign = Source::whereHas('leads', function ($q) use ($userId) {
+    //         $q->where('asign_to', $userId)
+    //             ->where('status', '!=', '2');
+    //     })->count();
+    //     // Retrieve all counts in one query
+    //     $leadCounts = Lead::selectRaw('
+    //         COUNT(*) as totalLeads,
+    //         SUM(CASE WHEN status = "1" THEN 1 ELSE 0 END) as freshleads,
+    //         SUM(CASE WHEN status = "3" THEN 1 ELSE 0 END) as totalClosedLeads,
+    //         SUM(CASE WHEN status = "2" THEN 1 ELSE 0 END) as totalFailedLeads,
+    //         SUM(CASE WHEN status = "4" THEN 1 ELSE 0 END) as totalInprogressLeads,
+    //         SUM(CASE WHEN status = "5" THEN 1 ELSE 0 END) as totalCompletedLeads
+    //         ')
+    //         ->where('asign_to', $userId)
+    //         ->whereHas('source', function ($query) {
+    //             $query->where('is_active', 1);
+    //         })
+    //         ->first();
+
+    //     // $leadsd = Lead::where('status','5')->get();
+    //     // dd($leadsd);
+
+    //     // Retrieve today's reminders
+    //     $todayReminders = Note::where('user_id', $userId)
+    //         ->whereDate('reminder_date', $today)
+    //         ->count();
+
+    //     return view('employeedashboard', [
+    //         'totalLeads' => $leadCounts->totalLeads,
+    //         'totalFreshLeads' => $leadCounts->freshleads,
+    //         'totalClosedLeads' => $leadCounts->totalClosedLeads,
+    //         'totalFailedLeads' => $leadCounts->totalFailedLeads,
+    //         'totalInprogressLeads' => $leadCounts->totalInprogressLeads,
+    //         'totalCompletedLeads' => $leadCounts->totalCompletedLeads,
+    //         'todayReminders' => $todayReminders,
+    //         'totalCampaign' => $totalCampaign
+    //     ]);
+    // }
 
     public function managerdashboard(Request $request)
     {

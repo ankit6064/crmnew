@@ -18,23 +18,32 @@
 </head>
 
 <body class="fix-header fix-sidebar card-no-border">
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('sidebar_collapsed') === 'true') {
+                    document.body.classList.add('sidebar-collapsed');
+                }
+            } catch (e) { }
+        })();
+    </script>
     <div id="main-wrapper">
-            @include('partials.manager-header')
-            <div class="dashboard-screen">
-		<div class="container-fluid">
-			<div class="main-content">
-        @include('partials.sidebarnew')
-     
-                            <!-- <main> -->
-                @yield('content')
-            <!-- </main> -->
-            @include('partials.spinner')
-            <footer>
-                @include('partials.footer')
-            </footer>
+        @include('partials.manager-header')
+        <div class="dashboard-screen">
+            <div class="container-fluid">
+                <div class="main-content">
+                    @include('partials.sidebarnew')
+
+                    <!-- <main> -->
+                    @yield('content')
+                    <!-- </main> -->
+                    @include('partials.spinner')
+                    <footer>
+                        @include('partials.footer')
+                    </footer>
+                </div>
             </div>
-            </div>
-            </div>
+        </div>
         <!-- </div> -->
     </div>
     @include('partials.common-script')

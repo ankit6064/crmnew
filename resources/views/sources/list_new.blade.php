@@ -81,56 +81,68 @@
     }
 
     /*-15-08-2026-*/
-.graph.campaignslist table tr td:first-child {
-    display: flex;
-    flex-wrap: wrap;
-}
-.graph.campaignslist table tr td:first-child a {
-    margin-bottom: 0px !important;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-}
-.graph.campaignslist table tr td:first-child a:hover {
-    background: none;
-}
-.graph.campaignslist table tr td:first-child a {
-    margin-bottom: 0px !important;
-    padding-right: 0;
-}
-.graph.campaignslist tbody tr td:last-child {
-    justify-content: center;
-}
-.graph.campaignslist table tr td {
-    text-align: left !important;
-}
-.graph.campaignslist thead.thead-main tr th {
-    text-align: left !important;
-}
-.graph.campaignslist thead.thead-main tr th:nth-child(6) {
-    text-align: center !important;
-}
-.graph.campaignslist table tr td:nth-child(6) {
-    text-align: center !important;
-}
-.graph.campaignslist table tr td:nth-child(5) {
-    text-align: center !important;
-}
-.graph.campaignslist tr td:nth-child(6) button {
-    border: none;
-    padding: 2px 10px;
-}
-.graph.campaignslist table tr td:first-child a:first-child {
-    padding-left: 0;
-}
-div#leadsAssignToUserModal tr td a {
-    color: #fff!important;
-    background: #5fbc01;
-    padding: 5px 10px;
-    margin-bottom: 0;
-}
-/*-15-08-2026-*/
+    .graph.campaignslist table tr td:first-child {
+        display: flex;
+        flex-wrap: wrap;
+    }
 
+    .graph.campaignslist table tr td:first-child a {
+        margin-bottom: 0px !important;
+        padding-right: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .graph.campaignslist table tr td:first-child a:hover {
+        background: none;
+    }
+
+    .graph.campaignslist table tr td:first-child a {
+        margin-bottom: 0px !important;
+        padding-right: 0;
+    }
+
+    .graph.campaignslist tbody tr td:last-child {
+        justify-content: center;
+    }
+
+    .graph.campaignslist table tr td {
+        text-align: left !important;
+    }
+
+    .graph.campaignslist thead.thead-main tr th {
+        text-align: left !important;
+    }
+
+    .graph.campaignslist thead.thead-main tr th:nth-child(6) {
+        text-align: center !important;
+    }
+
+    .graph.campaignslist table tr td:nth-child(6) {
+        text-align: center !important;
+    }
+
+    .graph.campaignslist table tr td:nth-child(5) {
+        text-align: center !important;
+    }
+
+    .graph.campaignslist tr td:nth-child(6) button {
+        border: none;
+        padding: 2px 10px;
+    }
+
+    .graph.campaignslist table tr td:first-child a:first-child {
+        padding-left: 0;
+    }
+
+    div#leadsAssignToUserModal tr td a {
+        color: #fff !important;
+        background: #5fbc01;
+        padding: 5px 10px;
+        margin-bottom: 0;
+    }
+
+    /*-15-08-2026-*/
 </style>
 {{-- @endpush --}}
 
@@ -229,7 +241,6 @@ div#leadsAssignToUserModal tr td a {
                                     <th style="text-align:center">Actions</th>
                                     <th width="200" style="text-align:center">Campaign</th>
                                     <th width="200" style="text-align:center">Sub Campaign</th>
-                                    <th width="50" style="text-align:center">Manager</th>
                                     <th width="50" style="text-align:center">Leads</th>
                                     <th width="200" style="text-align:center">Transfer</th>
 
@@ -442,11 +453,23 @@ div#leadsAssignToUserModal tr td a {
         $(document).ready(function () {
             // Initializing the DataTable (for example)
             var currentStatus = 'total';
+
+            // Support starting on a specific page via URL parameter ?page=X
+            var urlParams = new URLSearchParams(window.location.search);
+            var initialPage = parseInt(urlParams.get('page'), 10);
+            if (isNaN(initialPage) || initialPage < 1) {
+                initialPage = 1;
+            }
+            var defaultPageLength = 25;
+            var initialDisplayStart = (initialPage - 1) * defaultPageLength;
+
             var table = $('#employee-table').DataTable({
                 processing: false,
                 serverSide: true,
                 searching: true,
-                pageLength: 100,
+                pageLength: defaultPageLength,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                displayStart: initialDisplayStart,
                 ordering: true,
                 ajax: {
                     url: '{{ route('campaigns_list_ajax_pagination') }}',
@@ -459,7 +482,6 @@ div#leadsAssignToUserModal tr td a {
                     { data: 'action', name: 'action', orderable: false },
                     { data: 'source_name_new', name: 'source_name' },
                     { data: 'description', name: 'description' },
-                    { data: 'manager_name', name: 'manager_name', orderable: false },
                     { data: 'total_leads_new', name: 'total_leads' },
 
                     { data: 'transfer', name: 'transfer', orderable: false },
@@ -488,7 +510,7 @@ div#leadsAssignToUserModal tr td a {
 
                         // 2. Update status and reload Table
                         currentStatus = $(this).data('filter');
-                        table.draw();
+                        table.page(0).draw(false);
                     });
 
                     // Trigger "Total" card by default on load (though it's visually marked in HTML)
@@ -533,6 +555,66 @@ div#leadsAssignToUserModal tr td a {
                         theme: 'light-border',
                         placement: 'top',
                     });
+
+                    // --- Jump to Page Controls & URL Sync ---
+                    var pageInfo = table.page.info();
+                    var currentPage = pageInfo.page + 1;
+                    var totalPages = pageInfo.pages || 1;
+
+                    // Sync URL ?page= parameter so user can copy/share or refresh on that page
+                    try {
+                        var currentUrl = new URL(window.location.href);
+                        if (currentPage > 1) {
+                            currentUrl.searchParams.set('page', currentPage);
+                        } else {
+                            currentUrl.searchParams.delete('page');
+                        }
+                        window.history.replaceState({}, '', currentUrl.toString());
+                    } catch (e) {}
+
+                    // Append Jump to Page input control in pagination container
+                    var $paginate = $('#employee-table_paginate');
+                    if ($paginate.length) {
+                        var $jumpWrap = $paginate.find('.dt-page-jump-wrap');
+                        if (!$jumpWrap.length) {
+                            var jumpHtml = '<div class="dt-page-jump-wrap" style="display:inline-flex;align-items:center;margin-left:14px;gap:6px;vertical-align:middle;">' +
+                                '<span style="font-size:13px;font-weight:500;color:#495057;">Go to page:</span>' +
+                                '<input type="number" min="1" max="' + totalPages + '" value="' + currentPage + '" class="form-control form-control-sm dt-page-jump-input" style="width:65px;height:32px;display:inline-block;text-align:center;font-size:13px;padding:2px 6px;border:1px solid #ced4da;border-radius:4px;" placeholder="' + currentPage + '">' +
+                                '<span class="dt-page-total-label" style="font-size:12px;color:#6c757d;">of ' + totalPages + '</span>' +
+                                '<button type="button" class="btn btn-sm dt-page-jump-btn" style="background-color:#0d3a6b;color:#fff;border:none;height:32px;padding:0 12px;font-size:12px;font-weight:600;border-radius:4px;cursor:pointer;">Go</button>' +
+                                '</div>';
+                            $paginate.append(jumpHtml);
+                        } else {
+                            $jumpWrap.find('.dt-page-jump-input').attr('max', totalPages).val(currentPage);
+                            $jumpWrap.find('.dt-page-total-label').text('of ' + totalPages);
+                        }
+
+                        $paginate.off('click.dtJump', '.dt-page-jump-btn').on('click.dtJump', '.dt-page-jump-btn', function (e) {
+                            e.preventDefault();
+                            executePageJump();
+                        });
+
+                        $paginate.off('keypress.dtJump', '.dt-page-jump-input').on('keypress.dtJump', '.dt-page-jump-input', function (e) {
+                            if (e.which === 13) {
+                                e.preventDefault();
+                                executePageJump();
+                            }
+                        });
+
+                        function executePageJump() {
+                            var inputVal = $paginate.find('.dt-page-jump-input').val();
+                            var targetPage = parseInt(inputVal, 10);
+                            if (isNaN(targetPage) || targetPage < 1) {
+                                targetPage = 1;
+                            } else if (targetPage > totalPages) {
+                                targetPage = totalPages;
+                            }
+                            $paginate.find('.dt-page-jump-input').val(targetPage);
+                            if (targetPage !== currentPage) {
+                                table.page(targetPage - 1).draw('page');
+                            }
+                        }
+                    }
 
                 }
             });

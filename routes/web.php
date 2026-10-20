@@ -217,6 +217,9 @@ Route::middleware('auth')->group(function () {
         Route::get('notifications/count', [\App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.count');
 
 
+        Route::get('search_lead', [LeadsController::class, 'searchLeadIndex'])->name('leads.search_lead');
+        Route::get('search_lead/companies/{source_id}', [LeadsController::class, 'getSearchCompanies'])->name('leads.search_lead.companies');
+        Route::get('search_lead/leads_data', [LeadsController::class, 'getSearchLeadsData'])->name('leads.search_lead.leads_data');
     });
 
     Route::get('/reminder/view', [ReminderController::class, 'view']);

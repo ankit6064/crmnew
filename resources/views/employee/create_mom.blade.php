@@ -112,7 +112,7 @@
                         </div>
 
                         <div class="form-group col-md-6">
-                            <label class="form-label">EXL Participants</label>
+                            <label class="form-label">Participants</label>
                             <input type="text" 
                                    name="exl_participants" 
                                    class="form-control"

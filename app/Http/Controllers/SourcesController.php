@@ -638,73 +638,113 @@ class SourcesController extends Controller
      * @param mixed Request
      */
 
-    public function getLeadBySourceIdtransfer($id)
-    {
-        $leads = Lead::where('source_id', $id)
-            ->select('id', 'company_name')
-            ->groupBy('company_name')
-            ->get();
-        $source = Source::where('id', $id)->first();
-        $source_list = Source::where(['source_name' => $source->source_name])
-            ->where('id', '!=', $id)
-            ->get();
-
-        $html = '<div class="table-responsive m-t-40" id="table_data">
-                     <table id="sources" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
-                         width="100%">
-                         <thead class="heading-custom">
-                             <tr>
-                                 <th width="100" style="text-align:center">Company Name</th>
-                                 <th width="100" style="text-align:center">Select Company</th>
-                             </tr>
-                         </thead>
-                         <tbody>';
-
-        if ($leads->isEmpty()) {
-            $html .= '<tr>
-                                <td colspan="2" style="text-align:center; font-weight:600;">
-                                    No company found
-                                </td>
-                            </tr>';
-        } else {
-            foreach ($leads as $lead) {
-                $html .= '<tr>
-                                    <td width="200">' . htmlspecialchars($lead->company_name) . '</td>
-                                    <td width="200">
-                                        <fieldset>
-                                            <label class="custom-control custom-checkbox">
-                                                <input type="checkbox" value="' . htmlspecialchars($lead->company_name) . '" name="test[]" class="custom-control-input">
-                                                <span class="custom-control-label"></span>
-                                            </label>
-                                        </fieldset>
-                                    </td>
-                                </tr>';
-            }
-        }
-
-
-        $html .= '</tbody>
-                 </table>
-             </div>';
-
-        // Add source select dropdown BELOW the table
-        $sourcediv = '<div class="form-group mt-3">
-                     <label for="source_select">Select Transfer Source</label>
-                     <select name="source_select" id="sourcelistid"  class="form-control" required>
-                         <option value="" selected>-- Select Source --</option>';
-
-        foreach ($source_list as $src) {
-            $sourcediv .= '<option value="' . htmlspecialchars($src->id) . '">' . htmlspecialchars($src->source_name . ' - ' . $src->description) . '</option>';
-        }
-
-        $sourcediv .= '   </select>
-                 </div>';
-
-
-        echo json_encode(['status' => 200, 'html' => $html, 'sourcediv' => $sourcediv]);
-        exit;
-
-    }
+     public function getLeadBySourceIdtransfer($id)
+     {
+         $leads = Lead::where('leads.source_id', $id)
+             ->leftJoin('users', 'users.id', '=', 'leads.asign_to')
+             ->select(
+                 'leads.company_name',
+                 DB::raw("GROUP_CONCAT(DISTINCT CASE 
+                     WHEN TRIM(CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, ''))) != '' 
+                         THEN TRIM(CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, ''))) 
+                     WHEN users.name IS NOT NULL AND users.name != '' 
+                         THEN users.name 
+                     ELSE NULL 
+                 END SEPARATOR ', ') as assigned_employees")
+             )
+             ->groupBy('leads.company_name')
+             ->orderBy(DB::raw('MIN(leads.id)'), 'asc')
+             ->get();
+ 
+         $source = Source::where('id', $id)->first();
+         $source_list = Source::where(['source_name' => $source->source_name])
+             ->where('id', '!=', $id)
+             ->get();
+ 
+         $html = '<div class="d-flex justify-content-between align-items-center mb-3">
+                     <span style="font-size: 13px; color: #555; font-weight: 500;">Total Companies: <strong>' . $leads->count() . '</strong></span>
+                     <input type="text" id="transferCompanySearch" class="form-control" style="max-width: 260px; font-size: 13px; height: 36px;" placeholder="Search company or employee..." onkeyup="filterTransferCompanies(this.value)">
+                  </div>';
+ 
+         $html .= '<div class="table-responsive" id="table_data">
+                      <table id="sources" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
+                          width="100%">
+                          <thead class="heading-custom">
+                              <tr>
+                                  <th style="text-align:left">Company Name</th>
+                                  <th style="text-align:left">Assigned Employee</th>
+                                  <th width="140" style="text-align:center">
+                                      <div class="d-flex align-items-center justify-content-center" style="gap:6px;">
+                                          <span>Select Company</span>
+                                          <label class="custom-control custom-checkbox" style="margin-bottom:0; display:inline-block; cursor:pointer;" title="Select All">
+                                              <input type="checkbox" id="selectAllTransferCompanies" class="custom-control-input" onchange="$(\'input[name=\\\'test[]\\\']\').prop(\'checked\', this.checked);">
+                                              <span class="custom-control-label"></span>
+                                          </label>
+                                      </div>
+                                  </th>
+                              </tr>
+                          </thead>
+                          <tbody>';
+ 
+         if ($leads->isEmpty()) {
+             $html .= '<tr>
+                                 <td colspan="3" style="text-align:center; font-weight:600;">
+                                     No company found
+                                 </td>
+                             </tr>';
+         } else {
+             foreach ($leads as $lead) {
+                 $assignedEmployee = !empty($lead->assigned_employees)
+                     ? '<span style="font-weight:500; color:#192e62;">' . htmlspecialchars($lead->assigned_employees) . '</span>'
+                     : '<span style="color:#888;font-style:italic;">Not Assigned</span>';
+ 
+                 $html .= '<tr>
+                                     <td width="200" style="white-space: pre-wrap;">' . htmlspecialchars($lead->company_name) . '</td>
+                                     <td width="200" style="white-space: pre-wrap;">' . $assignedEmployee . '</td>
+                                     <td width="100" style="text-align:center">
+                                         <fieldset>
+                                             <label class="custom-control custom-checkbox" style="margin-bottom:0;">
+                                                 <input type="checkbox" value="' . htmlspecialchars($lead->company_name) . '" name="test[]" class="custom-control-input">
+                                                 <span class="custom-control-label"></span>
+                                             </label>
+                                         </fieldset>
+                                     </td>
+                                 </tr>';
+             }
+         }
+ 
+ 
+         $html .= '</tbody>
+                  </table>
+              </div>
+              <script>
+                 function filterTransferCompanies(term) {
+                     term = (term || "").toLowerCase();
+                     $("#transferleadbody #sources tbody tr").each(function() {
+                         var text = $(this).text().toLowerCase();
+                         $(this).toggle(text.indexOf(term) > -1);
+                     });
+                 }
+              </script>';
+ 
+         // Add source select dropdown BELOW the table
+         $sourcediv = '<div class="form-group mt-3">
+                      <label for="source_select">Select Transfer Source</label>
+                      <select name="source_select" id="sourcelistid"  class="form-control" required>
+                          <option value="" selected>-- Select Source --</option>';
+ 
+         foreach ($source_list as $src) {
+             $sourcediv .= '<option value="' . htmlspecialchars($src->id) . '">' . htmlspecialchars($src->source_name . ' - ' . $src->description) . '</option>';
+         }
+ 
+         $sourcediv .= '   </select>
+                  </div>';
+ 
+ 
+         echo json_encode(['status' => 200, 'html' => $html, 'sourcediv' => $sourcediv]);
+         exit;
+ 
+     }
 
     public function transferleads(Request $request)
     {
@@ -1063,21 +1103,274 @@ class SourcesController extends Controller
 
     // }
 
+    // public function view_camp($id)
+    // {
+    //     // Check if the request is an AJAX call from DataTable
+    //     if (request()->ajax()) {
+    //         $query = Lead::with(['source', 'latestNote'])
+    //             ->whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
+    //             ->where('asign_to', auth()->user()->id)
+    //             ->where('source_id', $id);
+
+    //         if (!empty(request('cName'))) {
+    //             $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
+    //         }
+
+    //         if (!empty(request('timeZone'))) {
+    //             $query->where('timezone', 'LIKE', '%' . request('timeZone') . '%');
+    //         }
+
+
+    //         // Apply search and filter conditions
+    //         if (!empty(request('search')['value'])) {
+    //             $search = trim(request('search')['value']);
+
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->where('company_name', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('prospect_first_name', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('prospect_last_name', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere(DB::raw('CONCAT(prospect_first_name, " ", prospect_last_name)'), 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('timezone', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('designation', 'LIKE', '%' . $search . '%')
+    //                     ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%');
+    //             });
+    //         }
+
+
+    //         return datatables()->of($query)
+    //             ->addColumn('source_name', function ($row) {
+    //                 return $row->source->name ?? 'N/A'; // Example: Adjust 'name' as per your source model
+    //             })
+    //             ->addColumn('action', function ($row) {
+    //                 $notedetails = $row->latestNote;
+
+    //                 $notesButton = '';
+
+    //                 if ($notedetails) {
+
+    //                     $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
+
+    //                     // check if note created within last 24 hours
+    //                     if ($createdAt->diffInHours(now()) <= 24) {
+
+    //                         $notesButton = '<a class="viewnotes shake-note" onclick="shownoteslist(' . $row->id . ')" data-toggle="modal" data-target="#largeModal">
+    //                             <i class="fas fa-eye label-new" style="color:#8B8000 !important"></i>
+    //                         </a>';
+
+    //                     } else {
+
+    //                         $notesButton = '<a class="viewnotes" onclick="shownoteslist(' . $row->id . ')" data-toggle="modal" data-target="#largeModal">
+    //                             <i class="fas fa-eye label-new"></i>
+    //                         </a>';
+
+    //                     }
+    //                 }
+    //                 $quickNoteButton = '<a class="addnotes" onclick="showaddmodal(' . $row->id . ')" data-toggle="modal">
+    //                                  <i class="fas fa-comment label-new" aria-hidden="true"></i>
+    //                              </a>';
+    //                 $status = '<a class="changestatus" label-info" onclick="showstatusmodal(' . $row->id . ')" data-toggle="modal" data-target="#status-modal" style="color:black"><i class="fa fa-refresh label-new"></i></a>';
+    //                 return $notesButton . ' ' . $quickNoteButton . ' ' . $status;
+
+
+    //             })
+    //             ->editColumn('prospect_first_name', function ($row) {
+    //                 $leadName = '<a href="' . url('/leads', [$row->id]) . '" target="_blank">' . $row->prospect_first_name . ' ' . $row->prospect_last_name . '</a>';
+    //                 $linkedinAddress = $row->linkedin_address ?? ''; // Ensure the variable exists
+    //                 $linkedinIcon = '';
+
+    //                 if (strpos($linkedinAddress, 'linkedin') === false) {
+    //                     $linkedinIcon = '<a href="javascript:void(0)"><i style="color: #000" alt="LinkedIn" title="LinkedIn Address Not Valid" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>';
+    //                 } else {
+    //                     $linkedinUrl = strpos($linkedinAddress, 'http://') !== 0 && strpos($linkedinAddress, 'https://') !== 0
+    //                         ? 'https://' . $linkedinAddress
+    //                         : $linkedinAddress;
+    //                     $linkedinIcon = '<a href="' . $linkedinUrl . '" target="_blank"><i alt="LinkedIn" title="LinkedIn" class="fa-brands fa-linkedin" aria-hidden="true"></i></a>';
+    //                 }
+
+    //                 return $leadName . '  ' . $linkedinIcon;
+    //             })
+
+    //             ->addColumn('note_status', function ($row) {
+    //                 $hasNote = $row->latestNote || (!empty($row->note_created_date));
+    //                 if ($hasNote) {
+    //                     return '<span class="badge" style="background-color: #28a745 !important; color: #fff !important; padding: 5px 8px; border-radius: 4px; font-weight: 500;">Note Added</span>';
+    //                 } else {
+    //                     return '<span class="badge" style="background-color: #ff9800 !important; color: #fff !important; padding: 5px 8px; border-radius: 4px; font-weight: 500;">No Note Added</span>';
+    //                 }
+    //             })
+
+    //             ->addColumn('update_note_date', function ($row) {
+    //                 if (!empty($row->note_created_date)) {
+    //                     return date('d-m-Y H:i', strtotime($row->note_created_date));
+    //                 }
+    //                 if ($row->latestNote) {
+    //                     return \Carbon\Carbon::parse($row->latestNote->created_at)->format('d-m-Y H:i');
+    //                 }
+    //                 return 'N/A';
+    //             })
+    //             ->addColumn('note_created_date_new', function ($row) {
+
+    //                 $notedetails = $row->latestNote;
+
+    //                 if ($notedetails) {
+
+    //                     $createdAt = \Carbon\Carbon::parse($notedetails->created_at);
+    //                     return $createdAt;
+    //                 } else {
+    //                     return 'N/A';
+    //                 }
+
+    //             })
+    //             ->editColumn('contact_number_1', function ($row) {
+    //                 if (empty($row->contact_number_1)) {
+    //                     return 'N/A';
+    //                 }
+
+    //                 // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+    //                 if (strpos($row->contact_number_1, '/-') !== false) {
+    //                     $numbers = explode('/-', $row->contact_number_1);
+    //                 } else {
+    //                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
+    //                 }
+    //                 $numbers = array_map('trim', $numbers);
+                    
+    //                 // Remove all hyphens from each number
+    //                 $numbers = array_map(function ($num) {
+    //                     return str_replace('-', '', $num);
+    //                 }, $numbers);
+
+    //                 // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+    //                 $numbers = array_values(array_filter($numbers, function ($num) {
+    //                     return preg_match('/\d/', $num);
+    //                 }));
+
+    //                 $count = count($numbers);
+
+    //                 if ($count == 0) {
+    //                     return 'N/A';
+    //                 }
+
+    //                 $firstNumber = $numbers[0];
+    //                 $contact = json_encode(implode(', ', $numbers));
+    //                 $badgeText = $count <= 1 ? 'Dial' : '+ show more';
+    
+    //                 return "{$firstNumber} 
+    //         <span class='badge' 
+    //               style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+    //               onclick='showAllNumbers({$contact}, {$row->id})'>
+    //               {$badgeText}
+    //         </span>";
+    //             })
+    //             ->editColumn('contact_number_2', function ($row) {
+    //                 if (empty($row->contact_number_2)) {
+    //                     return 'N/A';
+    //                 }
+
+    //                 // Split by '/-' if present, otherwise fall back to comma, semicolon, space
+    //                 if (strpos($row->contact_number_2, '/-') !== false) {
+    //                     $numbers = explode('/-', $row->contact_number_2);
+    //                 } else {
+    //                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_2);
+    //                 }
+    //                 $numbers = array_map('trim', $numbers);
+                    
+    //                 // Remove all hyphens from each number
+    //                 $numbers = array_map(function ($num) {
+    //                     return str_replace('-', '', $num);
+    //                 }, $numbers);
+
+    //                 // Filter out any elements that do not contain a digit (e.g. only '-', '/' etc.)
+    //                 $numbers = array_values(array_filter($numbers, function ($num) {
+    //                     return preg_match('/\d/', $num);
+    //                 }));
+
+    //                 $count = count($numbers);
+
+    //                 if ($count == 0) {
+    //                     return 'N/A';
+    //                 }
+
+    //                 $firstNumber = $numbers[0];
+    //                 $contact = json_encode(implode(', ', $numbers));
+    //                 $badgeText = $count <= 1 ? 'Dial' : '+ show more';
+    
+    //                 return "{$firstNumber} 
+    //         <span class='badge' 
+    //               style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
+    //               onclick='showAllNumbers({$contact}, {$row->id})'>
+    //               {$badgeText}
+    //         </span>";
+    //             })
+    //             ->rawColumns(['action', 'prospect_first_name', 'contact_number_1', 'contact_number_2', 'note_status']) // To render HTML in the actions column
+    //             ->order(function ($query) {
+    //                 if (request()->has('order')) {
+    //                     foreach (request()->input('order') as $order) {
+    //                         $colIndex = $order['column'];
+    //                         $direction = $order['dir'];
+    //                         $colName = request()->input("columns.{$colIndex}.name") ?: request()->input("columns.{$colIndex}.data");
+    //                         if ($colName) {
+    //                             $direction = in_array(strtolower($direction), ['asc', 'desc']) ? $direction : 'asc';
+    //                             if ($colName === 'update_note_date') {
+    //                                 $query->orderBy('leads.note_created_date', $direction);
+    //                             } elseif (in_array($colName, ['company_name', 'prospect_first_name', 'timezone', 'designation', 'contact_number_1', 'contact_number_2'])) {
+    //                                 $query->orderBy('leads.' . $colName, $direction);
+    //                             }
+    //                         }
+    //                     }
+    //                 } else {
+    //                     $query->orderBy('leads.company_name', 'asc');
+    //                 }
+    //                 $query->orderBy('leads.id', 'desc');
+    //             })
+    //             ->make(true);
+    //     }
+
+    //     $comapnyName = Lead::whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
+    //         ->where('asign_to', auth()->user()->id)
+    //         ->where('source_id', $id)
+    //         ->select('company_name')
+    //         ->orderBy('company_name', 'asc')
+    //         ->groupBy('company_name')
+    //         ->get();
+
+    //     $timeZone = Lead::whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
+    //         ->where('asign_to', auth()->user()->id)
+    //         ->where('source_id', $id)
+    //         ->select('timezone')
+    //         ->orderBy('timezone', 'asc')
+    //         ->groupBy('timezone')
+    //         ->get();
+    //     $source = Source::where('id', $id)->first();
+
+    //     return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone', 'source'));
+
+    // }
     public function view_camp($id)
     {
         // Check if the request is an AJAX call from DataTable
         if (request()->ajax()) {
-            $query = Lead::with(['source', 'latestNote'])
-                ->whereIn('status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
-                ->where('asign_to', auth()->user()->id)
-                ->where('source_id', $id);
+            $subQuery = Lead::select(DB::raw('MAX(leads.id) as id'))
+                ->whereIn('leads.status', [LEAD_STATUS_PENDING, LEAD_STATUS_INPROGRESS])
+                ->where('leads.asign_to', auth()->user()->id)
+                ->where('leads.source_id', $id)
+                ->groupBy(
+                    'leads.source_id',
+                    'leads.asign_to',
+                    DB::raw('LOWER(TRIM(COALESCE(leads.company_name, "")))'),
+                    DB::raw('LOWER(TRIM(COALESCE(leads.prospect_first_name, "")))'),
+                    DB::raw('LOWER(TRIM(COALESCE(leads.prospect_last_name, "")))')
+                );
+
+            $query = Lead::select('leads.*')
+                ->whereIn('leads.id', $subQuery)
+                ->with(['source', 'latestNote']);
 
             if (!empty(request('cName'))) {
-                $query->where('company_name', 'LIKE', '%' . request('cName') . '%');
+                $query->where('leads.company_name', 'LIKE', '%' . request('cName') . '%');
             }
 
             if (!empty(request('timeZone'))) {
-                $query->where('timezone', 'LIKE', '%' . request('timeZone') . '%');
+                $query->where('leads.timezone', 'LIKE', '%' . request('timeZone') . '%');
             }
 
 
@@ -1086,13 +1379,13 @@ class SourcesController extends Controller
                 $search = trim(request('search')['value']);
 
                 $query->where(function ($q) use ($search) {
-                    $q->where('company_name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('prospect_first_name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('prospect_last_name', 'LIKE', '%' . $search . '%')
-                        ->orWhere(DB::raw('CONCAT(prospect_first_name, " ", prospect_last_name)'), 'LIKE', '%' . $search . '%')
-                        ->orWhere('timezone', 'LIKE', '%' . $search . '%')
-                        ->orWhere('designation', 'LIKE', '%' . $search . '%')
-                        ->orWhere('contact_number_1', 'LIKE', '%' . $search . '%');
+                    $q->where('leads.company_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('leads.prospect_first_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('leads.prospect_last_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere(DB::raw('CONCAT(leads.prospect_first_name, " ", leads.prospect_last_name)'), 'LIKE', '%' . $search . '%')
+                        ->orWhere('leads.timezone', 'LIKE', '%' . $search . '%')
+                        ->orWhere('leads.designation', 'LIKE', '%' . $search . '%')
+                        ->orWhere('leads.contact_number_1', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -1193,7 +1486,7 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    
+
                     // Remove all hyphens from each number
                     $numbers = array_map(function ($num) {
                         return str_replace('-', '', $num);
@@ -1213,7 +1506,7 @@ class SourcesController extends Controller
                     $firstNumber = $numbers[0];
                     $contact = json_encode(implode(', ', $numbers));
                     $badgeText = $count <= 1 ? 'Dial' : '+ show more';
-    
+
                     return "{$firstNumber} 
             <span class='badge' 
                   style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
@@ -1233,7 +1526,7 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_2);
                     }
                     $numbers = array_map('trim', $numbers);
-                    
+
                     // Remove all hyphens from each number
                     $numbers = array_map(function ($num) {
                         return str_replace('-', '', $num);
@@ -1253,7 +1546,7 @@ class SourcesController extends Controller
                     $firstNumber = $numbers[0];
                     $contact = json_encode(implode(', ', $numbers));
                     $badgeText = $count <= 1 ? 'Dial' : '+ show more';
-    
+
                     return "{$firstNumber} 
             <span class='badge' 
                   style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
@@ -1304,7 +1597,7 @@ class SourcesController extends Controller
 
         return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone', 'source'));
 
-    }
+    }  
     public function employeeclosedleads(Request $request)
     {
         if (auth()->user()->is_admin == null) {
