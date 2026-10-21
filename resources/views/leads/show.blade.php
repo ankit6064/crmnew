@@ -489,8 +489,7 @@
 
                     <div class="modal-header">
                         <h4 class="modal-title">Change Status</h4>
-                        <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true"
-                            style="color:black">×</button>
+                        <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true">×</button>
                     </div>
                     <div class="alert alert-danger print-error-msg" style="display:none">
                         <ul class="custom_text"></ul>
@@ -532,7 +531,7 @@
                     <div class="modal-header">
                         <h4 class="modal-title">Add Quick Note</h4>
                         <button type="button" id="modelclose" class="close modal-close" data-dismiss="modal"
-                            aria-hidden="true" style="color:black">×</button>
+                            aria-hidden="true">×</button>
                     </div>
                     <div class="modal-body">
                     
@@ -540,59 +539,78 @@
                             <div>
                                 <input type="radio" class="conversation_type" id="NoResponse" name="conversation_type"
                                     value="NoResponse" checked="checked">
-                                  <label for="NoResponse">VM/No Response</label>
+                                <label for="NoResponse" style="cursor:pointer; font-weight: 500;">VM / No Response</label>
                             </div>
                             <div>
-                                  <input type="radio" class="conversation_type" id="Conversation" name="conversation_type"
+                                <input type="radio" class="conversation_type" id="Conversation" name="conversation_type"
                                     value="Conversation">
-                                  <label for="Conversation">Conversation</label>
+                                <label for="Conversation" style="cursor:pointer; font-weight: 500;">Conversation</label>
                             </div>
                         </div>
 
                         <div class="NoResponseData">
                             <div class="form-group" id="status" name="status">
-                                <label class="control-label">Reminder Date</label>
-                                <input type="date" class="form-control" placeholder="Reminder Date" name="reminder_date"
-                                    value="{{ old('reminder_date') }}" id="min-date">
+                                <div id="conversation_type_container" style="display:none; margin-bottom: 12px;">
+                                    <div style="display:flex; gap:12px; align-items:flex-start;">
+                                        <div style="flex:1;">
+                                            <label class="control-label" style="font-weight:600; margin-bottom: 5px;">Conversation Type</label>
+                                            <select id="reminder_for" class="form-control required" name="reminder_for"
+                                                onchange="checkQuickType(); updateSubConversationType();">
+                                                <option value="">Choose Type</option>
+                                                <option value="Follow up">Follow up</option>
+                                                <option value="Declined">Declined</option>
+                                                <option value="Meeting Setup">Meeting Setup</option>
+                                            </select>
+                                        </div>
+                                        <div style="flex:1; display:none;" id="sub_conversation_col">
+                                            <label class="control-label" style="font-weight:600; margin-bottom: 5px;">Sub Conversation Type</label>
+                                            <select id="sub_reminder_for" class="form-control" name="sub_reminder_for">
+                                                <option value="">Choose Sub Type</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                <label class="control-label">Reminder Time</label>
-                                <input type="time" class="form-control" id="reminder_time" name="reminder_time">
+                                <div id="reminderdatetime" style="margin-bottom: 12px;">
+                                    <div class="form-group mb-2">
+                                        <label class="control-label">Reminder Date</label>
+                                        <input type="date" class="form-control" placeholder="Reminder Date" name="reminder_date"
+                                            value="{{ old('reminder_date') }}" id="min-date">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="control-label">Reminder Time</label>
+                                        <input type="time" class="form-control" id="reminder_time" name="reminder_time">
+                                    </div>
+                                </div>
 
-                                <div id="conversation_type_container" style="display:none;">
-                                    <label class="control-label">Conversation Type</label>
-                                    <select id="reminder_for" class="form-control required" name="reminder_for">
-                                        <option value="">Choose Conversation Type</option>
-                                        <option value="Declined">Declined</option>
-                                        <option value="DNC">DNC</option>
-                                        <option value="Follow-up Call">Follow-up Call</option>
-                                        <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
-                                        <option value="Meeting Set-up">Meeting Set-up</option>
-                                        <option value="Not Interested">Not Interested</option>
-                                        <option value="Not Right Party">Not Right Party</option>
-                                        <option value="Reference Shared">Reference Shared</option>
-                                    </select>
+                                <div id="callbackdatetime" style="display:none; margin-bottom: 12px;">
+                                    <div class="form-group mb-2">
+                                        <label class="control-label">Callback Date</label>
+                                        <input type="date" class="form-control" name="callback_date" id="callback_date">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="control-label">Callback Time</label>
+                                        <input type="time" class="form-control" id="callback_time" name="callback_time">
+                                    </div>
                                 </div>
 
                                 <div class="alert alert-danger print-error-msg-1" style="display:none">
                                     <ul class="custom_text-1"></ul>
                                 </div>
 
-                                @if(Auth::user()->is_admin == 1)
+                                <div class="form-group mb-2" id="phone_number_container">
                                     <label class="control-label">Phone Number</label>
                                     <input type="tel" class="form-control" placeholder="Phone Number" name="phone_number"
-                                        value="" id="phone_number" pattern="[0-9]{10}"
-                                        title="Please enter a valid 10-digit phone number">
-                                @else
-                                    <input type="tel" class="form-control" placeholder="Phone Number" name="phone_number"
-                                        value="" id="phone_number" pattern="[0-9]{10}"
-                                        title="Please enter a valid 10-digit phone number" style="display:none">
-                                @endif
+                                        value="" id="phone_number">
+                                </div>
 
-                                <label class="control-label">Note</label>
-                                <input type="hidden" class="form-control" name="source_id"
-                                    value="{{ $data->source_id ?? '' }}">
-                                <textarea required type="text" class="form-control required" name="feedback" id="feedback"
-                                    placeholder="Enter Note" style="min-height: 130px;">{{ old('note') }}</textarea>
+                                <div class="form-group mb-2">
+                                    <label class="control-label">Note</label>
+                                    <input type="hidden" class="form-control" name="source_id"
+                                        value="{{ $data->source_id ?? '' }}">
+                                    <textarea required class="form-control required" name="feedback" id="feedback"
+                                        placeholder="Enter Note" style="min-height: 130px;">{{ old('note') }}</textarea>
+                                </div>
 
                                 <div class="alert alert-danger print-error-msg" style="display:none">
                                     <ul class="custom_text" id="showerrormessage"></ul>
@@ -601,12 +619,11 @@
                         </div>
                     </div>
 
-                    <div class="modal-footer">
+                    <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; border-top: 1px solid #dee2e6; padding: 12px 20px;">
                         <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
                         <button type="button" class="btn btn-default waves-effect modal-close"
                             data-dismiss="modal">Close</button>
-                        <button id="save-data-quick-note" type="button" class="btn btn-info waves-effect waves-light ">Add
-                            Note</button>
+                        <button id="save-data-quick-note" type="button" class="btn btn-info waves-effect waves-light">Add Note</button>
                     </div>
                 </form>
             </div>
@@ -637,8 +654,8 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <meta name="csrf-token" content="{{ csrf_token() }}" />
-                <div class="modal-header" style="background: #0d3a6b; color: white;">
-                    <h4 class="modal-title" style="color: white;">Add Note after Dial</h4>
+                <div class="modal-header">
+                    <h4 class="modal-title">Add Note after Dial</h4>
                 </div>
                 <div class="modal-body" style="padding: 20px;">
                     <div class="form-group">
@@ -650,20 +667,25 @@
                     </div>
 
                     <div class="form-group">
-                        <div id="dial_conversation_type_container" style="display:none;">
-                            <label class="control-label">Conversation Type <span class="text-danger">*</span></label>
-                            <select id="dial_reminder_for" class="form-control" onchange="checkdialtype();">
-                                <option value="">Choose Option</option>
-                                <option value="Callback">Callback</option>
-                                <option value="Declined">Declined</option>
-                                <option value="DNC">DNC</option>
-                                <option value="Follow-up Call">Follow-up Call</option>
-                                <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
-                                <option value="Meeting Set-up">Meeting Set-up</option>
-                                <option value="Not Interested">Not Interested</option>
-                                <option value="Not Right Party">Not Right Party</option>
-                                <option value="Reference Shared">Reference Shared</option>
-                            </select>
+                        <div id="dial_conversation_type_container" style="display:none; margin-bottom: 12px;">
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                <div style="flex:1;">
+                                    <label class="control-label" style="font-weight:600; margin-bottom: 5px;">Conversation Type <span class="text-danger">*</span></label>
+                                    <select id="dial_parent_reminder_for" class="form-control" onchange="checkdialtype(); updateDialSubConversationType();">
+                                        <option value="">Choose Type</option>
+                                        <option value="Callback">Callback</option>
+                                        <option value="Follow up">Follow up</option>
+                                        <option value="Declined">Declined</option>
+                                        <option value="Meeting Setup">Meeting Setup</option>
+                                    </select>
+                                </div>
+                                <div style="flex:1; display:none;" id="dial_sub_conversation_col">
+                                    <label class="control-label" style="font-weight:600; margin-bottom: 5px;">Sub Conversation Type <span class="text-danger">*</span></label>
+                                    <select id="dial_reminder_for" class="form-control" name="sub_reminder_for">
+                                        <option value="">Choose Sub Type</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="dial_reminderdatetime" style="display:none; margin-top: 10px;">
@@ -699,7 +721,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
+                <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; border-top: 1px solid #dee2e6; padding: 12px 20px;">
                     <input type="hidden" id="lead_id_dial_note">
                     <button class="btn btn-info waves-effect waves-light" id="save-data-dialnote">Submit</button>
                 </div>
@@ -708,6 +730,7 @@
     </div>
 
     @push('scripts')
+        <script src="{{url('js/conversation-types.js')}}"></script>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
@@ -757,20 +780,30 @@
                         $('#feedback').val('VM/No Response');
                         $('#min-date').val("");
                         $('#reminder_for').val("");
+                        $('#sub_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
+                        $('#sub_conversation_col').hide();
                         $('#reminder_time').val("");
                         $('#phone_number').val('');
+                        $('#callback_date').val('');
+                        $('#callback_time').val('');
                         $('.alert.alert-danger.print-error-msg-1').hide();
                         $('.alert.alert-danger.print-error-msg').hide();
                         $('#conversation_type_container').hide();
+                        $('#reminderdatetime').show();
+                        $('#callbackdatetime').hide();
                     } else if (this.value == 'Conversation') {
                         $('.alert.alert-danger.print-error-msg-1').hide();
                         $('.alert.alert-danger.print-error-msg').hide();
                         $('#feedback').val('');
                         $('#phone_number').val('');
                         $('#min-date').val("");
-                        $('#reminder_for').val("");
+                        $('#reminder_for').val('Follow up');
                         $('#reminder_time').val("");
+                        $('#callback_date').val('');
+                        $('#callback_time').val('');
                         $('#conversation_type_container').show();
+                        updateSubConversationType();
+                        checkQuickType();
                     }
                 });
             });
@@ -788,9 +821,10 @@
                     selectedVal = selected.val();
                 }
 
-                var selecteddata = ""
+                var selecteddata = "";
                 if (selectedVal == 'Conversation') {
-                    selecteddata = $('#reminder_for').val();
+                    var parentType = $('#reminder_for').val();
+                    selecteddata = $('#sub_reminder_for').val() || parentType;
                 } else {
                     selecteddata = 1;
                 }
@@ -814,9 +848,13 @@
                     let feedback = $("[name=feedback]").val();
                     let reminder_date = $("[name=reminder_date]").val();
                     let reminder_time = $("[name=reminder_time]").val();
-                    let reminder_for = $("[name=reminder_for]").val();
+                    let parentType = $('#reminder_for').val();
+                    let reminder_for = $('#sub_reminder_for').val() || parentType;
+                    let callback_date = $('#callback_date').val();
+                    let callback_time = $('#callback_time').val();
                     let lead_id = $("input[name=lead_id_quick_note]").val();
                     let source_id = $("input[name=source_id]").val();
+                    let type = selectedVal;
                     let _token = $('meta[name="csrf-token"]').attr('content');
 
                     $.ajax({
@@ -830,6 +868,9 @@
                             source_id: source_id,
                             feedback: feedback,
                             phone_number: phone_number,
+                            callback_date: callback_date,
+                            callback_time: callback_time,
+                            type: type,
                             _token: _token
                         },
                         success: function (response) {
@@ -845,6 +886,11 @@
                                 toastr.error(xhr.responseJSON.error, 'Error!');
                             } else {
                                 toastr.error("Something went wrong", "Error!");
+                            }
+                        }
+                    });
+                }
+            });
                             }
                         }
                     });
@@ -910,9 +956,15 @@
                 $('#min-date').val('');
                 $('#reminder_time').val('');
                 $('#reminder_for').val('');
+                $('#sub_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
+                $('#sub_conversation_col').hide();
                 $('#feedback').val('VM/No Response');
                 $('#phone_number').val('');
+                $('#callback_date').val('');
+                $('#callback_time').val('');
                 $('#conversation_type_container').hide();
+                $('#reminderdatetime').show();
+                $('#callbackdatetime').hide();
                 $('#status-modal-quicknote').modal('show');
             }
 
@@ -1018,7 +1070,9 @@
 
                 $('#dial_min-date').val('');
                 $('#dial_reminder_time').val('');
+                $('#dial_parent_reminder_for').val('');
                 $('#dial_reminder_for').val('');
+                $('#dial_sub_conversation_col').hide();
                 $('#dial_feedback').val('VM/No Response');
 
                 // Prefill and disable/enable phone number
@@ -1046,7 +1100,11 @@
                 if (remindfor == 'Callback') {
                     $('#dial_reminderdatetime').css('display', 'none');
                     $('#dial_callbackdatetime').css('display', 'block');
+                } else if (remindfor === '' || remindfor.startsWith('Declined')) {
+                    $('#dial_reminderdatetime').css('display', 'none');
+                    $('#dial_callbackdatetime').css('display', 'none');
                 } else {
+                    // Follow-up types and Meeting Setup show reminder date/time
                     $('#dial_reminderdatetime').css('display', 'block');
                     $('#dial_callbackdatetime').css('display', 'none');
                 }
@@ -1080,7 +1138,9 @@
                     if (this.value == 'NoResponse') {
                         $('#dial_feedback').val('VM/No Response');
                         $('#dial_min-date').val("");
-                        $('#dial_reminder_for').val("");
+                        $('#dial_parent_reminder_for').val('');
+                        $('#dial_reminder_for').val('');
+                        $('#dial_sub_conversation_col').hide();
                         $('#dial_reminder_time').val("");
                         if (!$('#dial_phone_number').prop('disabled')) {
                             $('#dial_phone_number').val('');
@@ -1099,7 +1159,7 @@
                             $('#dial_phone_number').val('');
                         }
                         $('#dial_min-date').val("");
-                        $('#dial_reminder_for').val("");
+                        $('#dial_parent_reminder_for').val("Follow up");
                         $('#dial_reminder_time').val("");
                         $('#dial_callback_date').val('');
                         $('#dial_callback_time').val('');
@@ -1107,6 +1167,7 @@
                         // Show Conversation Type dropdown and phone number container
                         $('#dial_conversation_type_container').show();
                         $('#dial_phone_number_container').show();
+                        updateDialSubConversationType();
                         checkdialtype();
                     }
                 });
@@ -1130,7 +1191,8 @@
                     let source_id = "{{ $data->source_id ?? $data['source_id'] ?? '' }}";
                     let reminder_date = $('#dial_min-date').val();
                     let reminder_time = $('#dial_reminder_time').val();
-                    let reminder_for = $('#dial_reminder_for').val();
+                    let parentType = $('#dial_parent_reminder_for').val();
+                    let reminder_for = $('#dial_reminder_for').val() || parentType;
                     let feedback = $('#dial_feedback').val();
                     let phone_number = $('#dial_phone_number').val();
                     let callback_date = $('#dial_callback_date').val();

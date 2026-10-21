@@ -614,30 +614,26 @@
                     </div>
 
                     <div class="form-group">
-                        <div id="dial_conversation_type_container" style="display:none;">
-                            <div class="row">
-                                <div class="col-12 parent-col">
-                                    <div class="form-group mb-2">
-                                        <label style="font-weight: 600;">Conversation Type <span
-                                                class="text-danger">*</span></label>
-                                        <select id="dial_parent_reminder_for" class="form-control"
-                                            onchange="handleParentCategoryChange(this, 'dial_reminder_for', checkdialtype);">
-                                            <option value="">select conversation</option>
-                                            <option value="Follow up">Follow up</option>
-                                            <option value="Declined">Declined</option>
-                                            <option value="Meeting Setup">Meeting Setup</option>
-                                        </select>
-                                    </div>
+                        <div id="dial_conversation_type_container" style="display:none; margin-bottom: 12px;">
+                            <div style="display:flex; gap:12px; align-items:flex-start;">
+                                <div style="flex:1;">
+                                    <label style="font-weight: 600; margin-bottom: 5px;">Conversation Type <span
+                                            class="text-danger">*</span></label>
+                                    <select id="dial_parent_reminder_for" class="form-control required" name="reminder_for"
+                                        onchange="checkDialParentType(); updateDialSubConversationType();">
+                                        <option value="">Choose Type</option>
+                                        <option value="Callback">Callback</option>
+                                        <option value="Follow up">Follow up</option>
+                                        <option value="Declined">Declined</option>
+                                        <option value="Meeting Setup">Meeting Setup</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-6 col-6 child-col" id="dial_reminder_for_child_col"
-                                    style="display:none;">
-                                    <div class="form-group mb-2">
-                                        <label style="font-weight: 600;">Sub Conversation Type <span
-                                                class="text-danger">*</span></label>
-                                        <select id="dial_reminder_for" class="form-control" onchange="checkdialtype();">
-                                            <option value="">Choose Option</option>
-                                        </select>
-                                    </div>
+                                <div style="flex:1; display:none;" id="dial_reminder_for_child_col">
+                                    <label style="font-weight: 600; margin-bottom: 5px;">Sub Conversation Type <span
+                                            class="text-danger">*</span></label>
+                                    <select id="dial_reminder_for" class="form-control" name="sub_reminder_for" onchange="checkdialtype();">
+                                        <option value="">Choose Sub Type</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -682,6 +678,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{url('js/conversation-types.js')}}"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
@@ -704,11 +701,11 @@
                 columns: [
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                     { data: 'campaign_name', name: 'sources.source_name', orderable: false },
-                    { data: 'company_name', name: 'company_name' },
-                    { data: 'prospect_name', name: 'prospect_first_name' },
-                    { data: 'designation', name: 'designation', orderable: false },
-                    { data: 'status', name: 'status', orderable: false },
-                    { data: 'updated_at', name: 'updated_at', orderable: true },
+                    { data: 'company_name', name: 'leads.company_name' },
+                    { data: 'prospect_name', name: 'leads.prospect_first_name' },
+                    { data: 'designation', name: 'leads.designation', orderable: false },
+                    { data: 'status', name: 'leads.status', orderable: false },
+                    { data: 'updated_at', name: 'leads.updated_at', orderable: true },
                     { data: 'created_by', name: 'leadManager.first_name', orderable: false },
                     { data: 'assigned_to', name: 'user.first_name', orderable: false }
                 ],
@@ -891,7 +888,7 @@
             $('#dial_min-date').val('');
             $('#dial_reminder_time').val('');
             $('#dial_parent_reminder_for').val('');
-            $('#dial_reminder_for').empty().append('<option value="">Choose Option</option>');
+            $('#dial_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
             $('#dial_reminder_for_child_col').hide();
             $('#dial_feedback').val('VM/No Response');
 
@@ -911,17 +908,6 @@
             $('#dial_phone_number_container').show();
 
             $('#status-modal-dialnote').modal('show');
-        }
-
-        function checkdialtype() {
-            var remindfor = $('#dial_reminder_for').val();
-            if (remindfor == 'Callback') {
-                $('#dial_reminderdatetime').css('display', 'none');
-                $('#dial_callbackdatetime').css('display', 'block');
-            } else {
-                $('#dial_reminderdatetime').css('display', 'block');
-                $('#dial_callbackdatetime').css('display', 'none');
-            }
         }
 
         $(document).ready(function () {
@@ -950,7 +936,7 @@
                     $('#dial_feedback').val('VM/No Response');
                     $('#dial_min-date').val("");
                     $('#dial_parent_reminder_for').val("");
-                    $('#dial_reminder_for').empty().append('<option value="">Choose Option</option>');
+                    $('#dial_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
                     $('#dial_reminder_for_child_col').hide();
                     $('#dial_reminder_time').val("");
                     if (!$('#dial_phone_number').prop('disabled')) {
@@ -969,15 +955,14 @@
                         $('#dial_phone_number').val('');
                     }
                     $('#dial_min-date').val("");
-                    $('#dial_parent_reminder_for').val("");
-                    $('#dial_reminder_for').empty().append('<option value="">Choose Option</option>');
-                    $('#dial_reminder_for_child_col').hide();
+                    $('#dial_parent_reminder_for').val("Follow up");
                     $('#dial_reminder_time').val("");
                     $('#dial_callback_date').val('');
                     $('#dial_callback_time').val('');
 
                     $('#dial_conversation_type_container').show();
                     $('#dial_phone_number_container').show();
+                    updateDialSubConversationType();
                     checkdialtype();
                 }
             });
@@ -993,7 +978,8 @@
             let source_id = $('#search_campaign_id').val();
             let reminder_date = $('#dial_min-date').val();
             let reminder_time = $('#dial_reminder_time').val();
-            let reminder_for = $('#dial_reminder_for').val();
+            let parentType = $('#dial_parent_reminder_for').val();
+            let reminder_for = $('#dial_reminder_for').val() || parentType;
             let feedback = $('#dial_feedback').val();
             let phone_number = $('#dial_phone_number').val();
             let callback_date = $('#dial_callback_date').val();

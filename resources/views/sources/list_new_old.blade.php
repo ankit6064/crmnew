@@ -287,7 +287,7 @@ div#leadsAssignToUserModal tr td a {
                         <h5 class="modal-title" id="totalLeadsLabel">Company listing</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                             onclick="closemodaltransfer()">
-                            <span aria-hidden="true" style="color:black">&times;</span>
+                            <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div id="transferleadbody" class="modal-body">
@@ -326,7 +326,7 @@ div#leadsAssignToUserModal tr td a {
                 <div class="modal-header">
                     <h5 class="modal-title" id="totalLeadsLabel">Distribution of leads for each employee</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closemodal()">
-                        <span aria-hidden="true" style="color:black">&times;</span>
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div id="employeeleadsdetails" class="modal-body">

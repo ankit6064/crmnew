@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
@@ -1379,7 +1378,7 @@ class LeadsController extends Controller
 
                         $checknote = Note::where('lead_id', $data->id)->orderByDesc('id')->first();
 
-                        if (isset($checknote) && !empty($checknote) && $checknote->reminder_for == 'Meeting Set-up') {
+                        if (isset($checknote) && !empty($checknote) && ($checknote->reminder_for == 'Meeting Set-up' || $checknote->reminder_for == 'Meeting Setup')) {
 
                             // Add LHS
                             $actionHtml .= '
@@ -1921,22 +1920,43 @@ class LeadsController extends Controller
                             $statusValue = 'Callba';
                             break;
                         case 'Declined':
+                        case 'Declined - No Opportunity':
+                        case 'No Opportunity':
                             $statusValue = 'Declin';
                             break;
                         case 'Follow-up Call':
+                        case 'Follow-up call':
+                        case 'Call':
                             $statusValue = 'FUPC';
                             break;
                         case 'Follow-up Email/Info Requested':
+                        case 'Follow-up Email':
+                        case 'Email':
                             $statusValue = 'FUPEIN';
                             break;
+                        case 'Follow-up Text':
+                        case 'Text':
+                            $statusValue = 'FUPC';
+                            break;
                         case 'Meeting Set-up':
+                        case 'Meeting Setup':
                             $statusValue = 'MSUP';
                             break;
                         case 'Not Right Party':
+                        case 'Declined - Not Right Party':
                             $statusValue = 'NGP';
                             break;
                         case 'Reference Shared':
+                        case 'Declined - Reference Shared':
                             $statusValue = 'Rs';
+                            break;
+                        case 'DNC':
+                        case 'Declined - DNC':
+                            $statusValue = 'DNC';
+                            break;
+                        case 'Left the Organization':
+                        case 'Declined - Left the Organization':
+                            $statusValue = 'LTO';
                             break;
                         default:
                             $statusValue = $request->reminder_for;
@@ -3162,9 +3182,16 @@ class LeadsController extends Controller
         $source_id = $request->input('source_id');
         $company_name = $request->input('company_name');
         $user = auth()->user();
+        $userId = $user ? $user->id : null;
         $isAdmin = $user ? $user->is_admin : null;
 
-        $query = Lead::select('leads.*')->with(['source:id,source_name,description', 'user:id,first_name,last_name', 'leadManager:id,first_name,last_name', 'latestNote']);
+        $query = Lead::select([
+            'leads.*',
+            'sources.source_name as source_name',
+            'sources.description as source_description'
+        ])
+        ->leftJoin('sources', 'leads.source_id', '=', 'sources.id')
+        ->with(['source:id,source_name,description', 'user:id,first_name,last_name', 'leadManager:id,first_name,last_name', 'latestNote']);
 
         if (!empty($source_id)) {
             $query->where('leads.source_id', $source_id);
@@ -3185,6 +3212,81 @@ class LeadsController extends Controller
         $query->groupBy('leads.id');
 
         return DataTables::of($query)
+            ->filterColumn('campaign_name', function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('sources.source_name', 'like', "%{$keyword}%")
+                      ->orWhere('sources.description', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('sources.source_name', function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('sources.source_name', 'like', "%{$keyword}%")
+                      ->orWhere('sources.description', 'like', "%{$keyword}%");
+                });
+            })
+            ->filterColumn('company_name', function ($query, $keyword) {
+                $query->where('leads.company_name', 'like', "%{$keyword}%");
+            })
+            ->filterColumn('leads.company_name', function ($query, $keyword) {
+                $query->where('leads.company_name', 'like', "%{$keyword}%");
+            })
+            ->filterColumn('prospect_first_name', function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('leads.prospect_first_name', 'like', "%{$keyword}%")
+                      ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
+                      ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
+                });
+            })
+            ->filterColumn('leads.prospect_first_name', function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('leads.prospect_first_name', 'like', "%{$keyword}%")
+                      ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
+                      ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
+                });
+            })
+            ->filterColumn('prospect_name', function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('leads.prospect_first_name', 'like', "%{$keyword}%")
+                      ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
+                      ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
+                });
+            })
+            ->filterColumn('status', function ($query, $keyword) {
+                $kw = strtolower(trim($keyword));
+                $statusMap = [
+                    'pending' => 1,
+                    'failed' => 2,
+                    'closed' => 3,
+                    'in progress' => 4,
+                    'inprogress' => 4,
+                    'completed' => 5
+                ];
+                $matched = [];
+                foreach ($statusMap as $label => $val) {
+                    if (strpos($label, $kw) !== false) {
+                        $matched[] = $val;
+                    }
+                }
+                if (!empty($matched)) {
+                    $query->whereIn('leads.status', array_unique($matched));
+                } else {
+                    $query->where('leads.status', 'like', "%{$keyword}%");
+                }
+            })
+            ->filterColumn('leadManager.first_name', function ($query, $keyword) {
+                $query->whereHas('leadManager', function ($q) use ($keyword) {
+                    $q->where('first_name', 'like', "%{$keyword}%")
+                      ->orWhere('last_name', 'like', "%{$keyword}%")
+                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$keyword}%"]);
+                });
+            })
+            ->filterColumn('user.first_name', function ($query, $keyword) {
+                $query->whereHas('user', function ($q) use ($keyword) {
+                    $q->where('first_name', 'like', "%{$keyword}%")
+                      ->orWhere('last_name', 'like', "%{$keyword}%")
+                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$keyword}%"]);
+                });
+            })
             ->addColumn('campaign_name', function ($row) {
                 if (!$row->source) {
                     return 'N/A';
@@ -3196,7 +3298,7 @@ class LeadsController extends Controller
                 }
                 return htmlspecialchars($sourceName ?: ($subCampaign ?: 'N/A'));
             })
-            ->addColumn('company_name', function ($row) {
+            ->editColumn('company_name', function ($row) {
                 return htmlspecialchars($row->company_name ?? 'N/A');
             })
             ->addColumn('prospect_name', function ($row) {

@@ -221,7 +221,7 @@ window.handleParentCategoryChange = function (parentSelectEl, childSelectId, onc
     var $childSelect = $('#' + targetChildId);
     var $childCol = $('#' + targetChildId + '_child_col');
     if (!$childCol.length) {
-        $childCol = $childSelect.closest('.child-col, .col-md-6, .col-6');
+        $childCol = $childSelect.closest('.child-col, .col-md-6, .col-6, #sub_conversation_col, #reminder_for_child_col');
     }
     var $parentCol = $(parentSelectEl).closest('.parent-col, .col-md-6, .col-6, .col-12');
 
@@ -236,23 +236,23 @@ window.handleParentCategoryChange = function (parentSelectEl, childSelectId, onc
             $parentCol.removeClass('col-12').addClass('col-md-6 col-6');
         }
     } else if (parentVal === 'Declined') {
-        $childSelect.append('<option value="No Opportunity" selected>No Opportunity</option>');
-        $childSelect.append('<option value="DNC">DNC</option>');
-        $childSelect.append('<option value="Not Right Party">Not Right Party</option>');
-        $childSelect.append('<option value="Left the Organization">Left the Organization</option>');
-        $childSelect.append('<option value="Reference Shared">Reference Shared</option>');
+        $childSelect.append('<option value="Declined - No Opportunity" selected>No Opportunity</option>');
+        $childSelect.append('<option value="Declined - DNC">DNC</option>');
+        $childSelect.append('<option value="Declined - Not Right Party">Not Right Party</option>');
+        $childSelect.append('<option value="Declined - Left the Organization">Left the Organization</option>');
+        $childSelect.append('<option value="Declined - Reference Shared">Reference Shared</option>');
         $childCol.show();
         if ($parentCol.length) {
             $parentCol.removeClass('col-12').addClass('col-md-6 col-6');
         }
     } else if (parentVal === 'Meeting Setup' || parentVal === 'Meeting Set-up') {
         $childSelect.append('<option value="Meeting Set-up" selected>Meeting Setup</option>');
-        $childCol.hide();
+        $childCol.show();
         if ($parentCol.length) {
-            $parentCol.removeClass('col-md-6 col-6').addClass('col-12');
+            $parentCol.removeClass('col-12').addClass('col-md-6 col-6');
         }
     } else {
-        $childSelect.append('<option value="">Choose Option</option>');
+        $childSelect.append('<option value="">Choose Sub Type</option>');
         $childCol.hide();
         if ($parentCol.length) {
             $parentCol.removeClass('col-md-6 col-6').addClass('col-12');
@@ -264,13 +264,105 @@ window.handleParentCategoryChange = function (parentSelectEl, childSelectId, onc
     }
 };
 
+window.subOptions = {
+    'Follow up': [
+        {value: 'Follow-up Call', label: 'Call'},
+        {value: 'Follow-up Email/Info Requested', label: 'Email'},
+        {value: 'Follow-up Text', label: 'Text'}
+    ],
+    'Declined': [
+        {value: 'Declined - No Opportunity', label: 'No Opportunity'},
+        {value: 'Declined - DNC', label: 'DNC'},
+        {value: 'Declined - Not Right Party', label: 'Not Right Party'},
+        {value: 'Declined - Left the Organization', label: 'Left the Organization'},
+        {value: 'Declined - Reference Shared', label: 'Reference Shared'}
+    ],
+    'Meeting Setup': [
+        {value: 'Meeting Set-up', label: 'Meeting Setup'}
+    ]
+};
+
+window.updateSubConversationType = function (parentSel, childSel, colSel) {
+    var $parent = $(parentSel || ( $('#reminder_for').length ? '#reminder_for' : '#quick_reminder_for' ));
+    var $child = $(childSel || ( $('#sub_reminder_for').length ? '#sub_reminder_for' : '#quick_reminder_for_child' ));
+    var $col = $(colSel || ( $('#sub_conversation_col').length ? '#sub_conversation_col' : '#reminder_for_child_col' ));
+    
+    var parentVal = $parent.val();
+    $child.empty().append('<option value="">Choose Sub Type</option>');
+    
+    if (parentVal && window.subOptions[parentVal]) {
+        $.each(window.subOptions[parentVal], function(i, opt) {
+            $child.append('<option value="' + opt.value + '">' + opt.label + '</option>');
+        });
+        if (window.subOptions[parentVal].length > 0) {
+            $child.val(window.subOptions[parentVal][0].value);
+        }
+        $col.show();
+    } else {
+        $col.hide();
+    }
+};
+
+window.updateDialSubConversationType = function (parentSel, childSel, colSel) {
+    var $parent = $(parentSel || '#dial_parent_reminder_for');
+    var $child = $(childSel || '#dial_reminder_for');
+    var $col = $(colSel || ( $('#dial_sub_conversation_col').length ? '#dial_sub_conversation_col' : '#dial_reminder_for_child_col' ));
+    
+    var parentVal = $parent.val();
+    $child.empty().append('<option value="">Choose Sub Type</option>');
+    
+    if (parentVal && window.subOptions[parentVal]) {
+        $.each(window.subOptions[parentVal], function(i, opt) {
+            $child.append('<option value="' + opt.value + '">' + opt.label + '</option>');
+        });
+        if (window.subOptions[parentVal].length > 0) {
+            $child.val(window.subOptions[parentVal][0].value);
+        }
+        $col.show();
+    } else {
+        $col.hide();
+    }
+};
+
+window.checkQuickType = function (parentSel) {
+    var $parent = $(parentSel || ( $('#reminder_for').length ? '#reminder_for' : '#quick_reminder_for' ));
+    var val = $parent.val();
+    if (val === 'Callback') {
+        $('#reminderdatetime').hide();
+        $('#callbackdatetime').show();
+    } else if (!val) {
+        $('#reminderdatetime').hide();
+        $('#callbackdatetime').hide();
+    } else {
+        $('#reminderdatetime').show();
+        $('#callbackdatetime').hide();
+    }
+};
+window.checktype = window.checkQuickType;
+
+window.checkdialtype = function (parentSel) {
+    var $parent = $(parentSel || '#dial_parent_reminder_for');
+    var val = $parent.val();
+    if (val === 'Callback') {
+        $('#dial_reminderdatetime').hide();
+        $('#dial_callbackdatetime').show();
+    } else if (!val) {
+        $('#dial_reminderdatetime').hide();
+        $('#dial_callbackdatetime').hide();
+    } else {
+        $('#dial_reminderdatetime').show();
+        $('#dial_callbackdatetime').hide();
+    }
+};
+window.checkDialParentType = window.checkdialtype;
+
 window.setNoteOptionsValue = function (reminderForVal, parentSelectId, childSelectId, onchangeCallback) {
     var $parentSelect = $('#' + (parentSelectId || 'parent_reminder_for'));
     var parentCategory = '';
 
     if (['Follow-up Call', 'CALL', 'Call', 'Follow-up Email/Info Requested', 'EMAIL', 'Email', 'Follow-up Text', 'TEXT', 'Text', 'Callback'].indexOf(reminderForVal) !== -1) {
         parentCategory = 'Follow up';
-    } else if (['No Opportunity', 'NO', 'DNC', 'DND', 'Not Right Party', 'NGP', 'Left the Organization', 'LTO', 'Reference Shared', 'RS', 'Rs', 'Declined'].indexOf(reminderForVal) !== -1) {
+    } else if (['No Opportunity', 'NO', 'DNC', 'DND', 'Not Right Party', 'NGP', 'Left the Organization', 'LTO', 'Reference Shared', 'RS', 'Rs', 'Declined', 'Declined - No Opportunity', 'Declined - DNC', 'Declined - Not Right Party', 'Declined - Left the Organization', 'Declined - Reference Shared'].indexOf(reminderForVal) !== -1) {
         parentCategory = 'Declined';
     } else if (reminderForVal === 'Meeting Set-up' || reminderForVal === 'Meeting Setup' || reminderForVal === 'MSUP') {
         parentCategory = 'Meeting Setup';

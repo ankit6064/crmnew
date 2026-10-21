@@ -111,8 +111,7 @@
 
                     <div class="modal-header">
                         <h4 class="modal-title">Change Status</h4>
-                        <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true"
-                            style="color:black">×</button>
+                        <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true">×</button>
                     </div>
 
                     <div class="modal-body">
@@ -150,7 +149,7 @@
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel">View Note</h4>
                     <button type="button" class="close largemodal-close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true" style="color:black">&times;</span>
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -183,26 +182,11 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <meta name="csrf-token" content="{{ csrf_token() }}" />
-                    <div>
-                        <ul></ul>
-                    </div>
-                    <style type="text/css">
-                        .responseconversrespo {
-                            float: left;
-                            width: 50%;
-                            margin-bottom: 10px;
-                        }
 
-                        .modal-dialog {
-                            background: #fff;
-                            border-radius: 10px;
-                            background: none !important;
-                        }
-                    </style>
                     <div class="modal-header">
                         <h4 class="modal-title">Add Callback Note</h4>
                         <button type="button" id="modelclose" class="close modal-close" data-dismiss="modal"
-                            aria-hidden="true" style="color:black" onclick="closemodal();">×</button>
+                            aria-hidden="true" onclick="closemodal();">×</button>
                     </div>
                     <div class="modal-body">
 
@@ -212,11 +196,10 @@
                                 <input type="hidden" name="callbackid" id="callbackid">
                                 <input type="hidden" name="callbackstatus" id="callbackstatus">
 
-
-                                <textarea required type="text" class="form-control required" name="note" id="note"
+                                <textarea required class="form-control required" name="note" id="note"
                                     placeholder="Enter Note" style="min-height: 130px;">{{ old('note') }}</textarea>
-                                <div class="alert alert-danger print-error-msg" style="display:none">
-                                    <ul class="custom_text">Please Add Note First</ul>
+                                <div class="alert alert-danger print-error-msg" style="display:none; margin-top: 10px;">
+                                    <ul class="custom_text mb-0">Please Add Note First</ul>
                                 </div>
                                 @if($errors->has('status'))
                                     <div class="alert alert-danger">{{ $errors->first('status') }}</div>
@@ -226,17 +209,15 @@
 
                     </div>
 
-
-                    <div class="modal-footer">
+                    <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; border-top: 1px solid #dee2e6; padding: 12px 20px;">
                         <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
                         <button type="button" class="btn btn-default waves-effect modal-close" data-dismiss="modal"
                             onclick="closemodal();">Close</button>
-                        {{-- <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i>
-                            Save</button> --}}
-                        <button id="save-data-quick-note" type="button" class="btn btn-info waves-effect waves-light ">Add
-                            Note</button>
+                        <button id="save-data-quick-note" type="button" class="btn btn-info waves-effect waves-light">Add Note</button>
                     </div>
                 </div>
+            </div>
+        </div>
     </form>
 
     @push('scripts')
@@ -303,6 +284,39 @@
 
 
         <script>
+            $("#save-data-quick-note").click(function (event) {
+                var leadid = $('#leadid').val();
+                var callbackid = $('#callbackid').val();
+                var callbackstatus = $('#callbackstatus').val();
+                var note = $('#note').val();
+                
+                if (note == '') {
+                    $('.print-error-msg').css('display', 'block');
+                } else {
+                    $('.print-error-msg').css('display', 'none');
+
+                    let _token = $('meta[name="csrf-token"]').attr('content');
+                    $.ajax({
+                        url: '{{url("leads/changecallbackstatus")}}',
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            callbackid: callbackid,
+                            lead_id: leadid,
+                            status: callbackstatus,
+                            _token: _token,
+                            note: note
+                        },
+                        success: function (response) {
+                            location.reload(true);
+                        },
+                        error: function () {
+                            location.reload(true);
+                        }
+                    });
+                }
+            });
+
             function changecallbackstatus(callbackid, leadid, status) {
                 $('#leadid').val(leadid);
                 $('#callbackid').val(callbackid);

@@ -254,116 +254,86 @@
                     </div>
 
                     <div class="modal-body">
-
-                        <div class="form-group responseconvers">
-
-                            <div class="responseconversrespo">
-                                <input type="radio" class="conversation_type" id="NoResponse" name="conversation_type"
-                                    value="NoResponse" checked>
-                                <label for="NoResponse">VM/No Response</label>
-                            </div>
-
-                            <div class="responseconversrespo">
-                                <input type="radio" class="conversation_type" id="Conversation" name="conversation_type"
-                                    value="Conversation">
-                                <label for="Conversation">Conversation</label>
-                            </div>
-
+                        <div class="form-group mb-3">
+                            <label class="custom-control-inline mr-3" style="cursor:pointer; font-weight: 500;">
+                                <input type="radio" name="conversation_type" value="NoResponse" checked> VM / No Response
+                            </label>
+                            <label class="custom-control-inline" style="cursor:pointer; font-weight: 500;">
+                                <input type="radio" name="conversation_type" value="Conversation"> Conversation
+                            </label>
                         </div>
-
 
                         <div class="NoResponseData">
-
-                            <div class="form-group" id="status" name="status">
-
-                                <div id="conversation_type_container" style="display:none;">
-                                    <label class="control-label">Conversation Type</label>
-
-                                    <select id="reminder_for" class="form-control required" name="reminder_for"
-                                        onchange="checktype();">
-
-                                        <option value="">Choose Conversation Type</option>
-                                        <option value="Callback">Callback</option>
-                                        <option value="Declined">Declined</option>
-                                        <option value="DNC">DNC</option>
-                                        <option value="Follow-up Call">Follow-up Call</option>
-                                        <option value="Follow-up Email/Info Requested">Follow-up Email/Info Requested</option>
-                                        <option value="Meeting Set-up">Meeting Set-up</option>
-                                        <option value="Not Interested">Not Interested</option>
-                                        <option value="Not Right Party">Not Right Party</option>
-                                        <option value="Reference Shared">Reference Shared</option>
-
-                                    </select>
+                            <div class="form-group mb-0" id="status" name="status">
+                                <div id="conversation_type_container" style="display:none; margin-bottom: 12px;">
+                                    <div style="display:flex; gap:12px; align-items:flex-start;">
+                                        <div style="flex:1;">
+                                            <label class="control-label" style="font-weight:600; margin-bottom: 5px;">Conversation Type</label>
+                                            <select id="reminder_for" class="form-control required" name="reminder_for"
+                                                onchange="checkQuickType(); updateSubConversationType();">
+                                                <option value="">Choose Type</option>
+                                                <option value="Follow up">Follow up</option>
+                                                <option value="Declined">Declined</option>
+                                                <option value="Meeting Setup">Meeting Setup</option>
+                                            </select>
+                                        </div>
+                                        <div style="flex:1; display:none;" id="sub_conversation_col">
+                                            <label class="control-label" style="font-weight:600; margin-bottom: 5px;">Sub Conversation Type</label>
+                                            <select id="sub_reminder_for" class="form-control" name="sub_reminder_for">
+                                                <option value="">Choose Sub Type</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div id="reminderdatetime">
-
-                                    <label class="control-label">Reminder Date</label>
-                                    <input type="date" class="form-control" name="reminder_date" id="min-date">
-
-                                    <label class="control-label">Reminder Time</label>
-                                    <input type="time" class="form-control" id="reminder_time" name="reminder_time">
-
+                                <div id="reminderdatetime" style="margin-bottom: 12px;">
+                                    <div class="form-group mb-2">
+                                        <label class="control-label">Reminder Date</label>
+                                        <input type="date" class="form-control" name="reminder_date" id="min-date">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="control-label">Reminder Time</label>
+                                        <input type="time" class="form-control" id="reminder_time" name="reminder_time">
+                                    </div>
                                 </div>
 
-
-                                <div id="callbackdatetime" style="display:none;">
-
-                                    <label class="control-label">Callback Date</label>
-                                    <input type="date" class="form-control" name="callback_date" id="callback_date">
-
-                                    <label class="control-label">Callback Time</label>
-                                    <input type="time" class="form-control" id="callback_time" name="callback_time">
-
+                                <div id="callbackdatetime" style="display:none; margin-bottom: 12px;">
+                                    <div class="form-group mb-2">
+                                        <label class="control-label">Callback Date</label>
+                                        <input type="date" class="form-control" name="callback_date" id="callback_date">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="control-label">Callback Time</label>
+                                        <input type="time" class="form-control" id="callback_time" name="callback_time">
+                                    </div>
                                 </div>
 
-
-                                <div class="alert alert-danger print-error-msg-1" style="display:none">
-                                    <ul class="custom_text-1"></ul>
-                                </div>
-
-
-                                @if(Auth::user()->is_admin == 1)
-
+                                <div class="form-group mb-2" id="phone_number_container">
                                     <label class="control-label">Phone Number</label>
-                                    <input type="tel" class="form-control" name="phone_number" id="phone_number"
-                                        pattern="[0-9]{10}">
-
-                                @else
-
-                                    <input type="hidden" name="phone_number" id="phone_number">
-
-                                @endif
-
-
-                                <label class="control-label">Note</label>
-
-                                <textarea required class="form-control required" name="feedback" id="feedback"
-                                    placeholder="Enter Note" style="min-height:130px;"></textarea>
-
-
-                                <div class="alert alert-danger print-error-msg" style="display:none">
-                                    <ul class="custom_text"></ul>
+                                    <input type="tel" class="form-control" name="phone_number" id="phone_number" placeholder="Phone Number">
                                 </div>
 
+                                <div class="form-group mb-2">
+                                    <label class="control-label">Note</label>
+                                    <textarea required class="form-control required" name="feedback" id="feedback"
+                                        placeholder="Enter Note" style="min-height:130px;"></textarea>
+                                </div>
+
+                                <div class="alert alert-danger print-error-msg" style="display:none; margin-top: 10px;">
+                                    <ul class="custom_text mb-0"></ul>
+                                </div>
+
+                                <div class="alert alert-danger print-error-msg-1" style="display:none; margin-top: 10px;">
+                                    <ul class="custom_text-1 mb-0"></ul>
+                                </div>
                             </div>
                         </div>
-
                     </div>
 
-
-                    <div class="modal-footer">
-
+                    <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; border-top: 1px solid #dee2e6; padding: 12px 20px;">
                         <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
-
-                        <button type="button" class="btn btn-default modal-close" data-dismiss="modal">
-                            Close
-                        </button>
-
-                        <button id="save-data-quick-note" type="button" class="btn btn-info">
-                            Add Note
-                        </button>
-
+                        <button type="button" class="btn btn-default modal-close" data-dismiss="modal">Close</button>
+                        <button id="save-data-quick-note" type="button" class="btn btn-info">Add Note</button>
                     </div>
 
                 </div>
@@ -443,8 +413,7 @@
 
                     <div class="modal-header">
                         <h4 class="modal-title">Change Status</h4>
-                        <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true"
-                            style="color:black">×</button>
+                        <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true">×</button>
                     </div>
                     <div class="alert alert-danger print-error-msg" style="display:none">
                         <ul></ul>
@@ -477,6 +446,7 @@
         </div>
     </div>
     @push('scripts')
+    <script src="{{url('js/conversation-types.js')}}"></script>
         <script src="{{url('vendor/moment/moment.js')}}"></script>
 
         <script src="{{url('vendor/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js')}}">
@@ -597,7 +567,8 @@
                 }
                 var selecteddata = ""
                 if (selectedVal == 'Conversation') {
-                    selecteddata = $('#reminder_for').val();
+                    var parentType = $('#reminder_for').val();
+                    selecteddata = $('#sub_reminder_for').val() || parentType;
                 } else {
                     selecteddata = 1;
                 }
@@ -622,7 +593,7 @@
                     let callback_time = $("[name=callback_time]").val();
 
                     console.log(reminder_time);
-                    let reminder_for = $("[name=reminder_for]").val();
+                    let reminder_for = $('#sub_reminder_for').val() || $('[name=reminder_for]').val();
                     let lead_id = $("input[name=lead_id_quick_note]").val();
                     let _token = $('meta[name="csrf-token"]').attr('content');
                     $.ajax({
@@ -656,6 +627,8 @@
                                 $('#phone_number').val('');
                                 $('#min-date').val("");
                                 $('#reminder_for').val("");
+                        $('#sub_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
+                        $('#sub_conversation_col').hide();
                                 $('#reminder_time').val("");
                                 $('#callback_date').val("");
                                 $('#callback_time').val("");
@@ -765,6 +738,8 @@
                         $('#feedback').val('VM/No Response');
                         $('#min-date').val("");
                         $('#reminder_for').val("");
+                        $('#sub_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
+                        $('#sub_conversation_col').hide();
                         $('#reminder_time').val("");
                         $('#phone_number').val('');
                         $('#callback_date').val('');
@@ -779,13 +754,14 @@
                         $('.alert.alert-danger.print-error-msg').hide();
                         $('#feedback').val('');
                         $('#min-date').val("");
-                        $('#reminder_for').val("");
+                        $('#reminder_for').val("Follow up");
                         $('#reminder_time').val("");
                         $('#phone_number').val('');
                         $('#callback_date').val('');
                         $('#callback_time').val('');
                         $('#conversation_type_container').show();
-                        checktype();
+                        updateSubConversationType();
+                        checkQuickType();
                     }
                 });
             });
@@ -798,6 +774,8 @@
                 $('#min-date').val('');
                 $('#reminder_time').val('');
                 $('#reminder_for').val('');
+                $('#sub_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
+                $('#sub_conversation_col').hide();
                 $('#feedback').val('VM/No Response');
                 $('#phone_number').val('');
                 $('#callback_date').val('');

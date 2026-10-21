@@ -189,77 +189,91 @@ th[data-orderable="false"]::after {
                                 <div class="modal-header">
                                     <h4 class="modal-title">Add Quick Note</h4>
                                     <button type="button" id="modelclose" class="close modal-close" data-dismiss="modal"
-                                        aria-hidden="true" style="color:black">×</button>
+                                        aria-hidden="true">×</button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="form-group responseconvers">
-                                        <div class="responseconversrespo">
-                                            <input type="radio" class="conversation_type" id="NoResponse"
-                                                name="conversation_type" value="NoResponse" checked="checked">
-                                              <label for="NoResponse">VM/No Response</label><br>
-                                        </div>
-                                        <div class="responseconversrespo">
-                                              <input type="radio" class="conversation_type" id="Conversation"
-                                                name="conversation_type" value="Conversation">
-                                              <label for="Conversation">Conversation</label><br>
-                                        </div>
-                                    </div>
-                                    <div class="NoResponseData">
-                                        <div class="form-group" id="status" name="status">
-                                            <label class="control-label">Reminder Date</label>
-                                            <input type="date" class="form-control" placeholder="Reminder Date"
-                                                name="reminder_date" value="{{ old('reminder_date') }}" id="min-date"
-                                                data-dtp="dtp_2827e">
-                                            <label class="control-label">Reminder Time</label>
-                                            <input type="time" class="form-control" id="reminder_time"
-                                                name="reminder_time">
-                                            <div id="conversation_type_container" style="display:none;">
-                                                <label class="control-label">Conversation Type</label>
-                                                {{-- <input type="text" class="form-control required"
-                                                    placeholder="Reminder Type" id="reminder_for" name="reminder_for"
-                                                    value="{{ old('reminder_for') }}"> --}}
-                                                <select id="reminder_for" class="form-control required" name="reminder_for">
-                                                    <option value="">Choose Conversation Type</option>
-                                                    <option value="Declined">Declined</option>
-                                                    <option value="DNC">DNC</option>
-                                                    <option value="Follow-up Call">Follow-up Call</option>
-                                                    <option value="Follow-up Email/Info Requested">Follow-up Email/Info
-                                                        Requested</option>
-                                                    <option value="Meeting Set-up">Meeting Set-up</option>
-                                                    <option value="Not Interested">Not Interested</option>
-                                                    <option value="Not Right Party">Not Right Party</option>
-                                                    <option value="Reference Shared">Reference Shared</option>
-                                                </select>
-                                            </div>
-                                            <div class="alert alert-danger print-error-msg-1" style="display:none">
-                                                <ul class="custom_text-1"></ul>
-                                            </div>
-                                            <label class="control-label">Note</label>
-                                            <input type="hidden" class="form-control" name="lead_id"
-                                                placeholder="Lead Id" value="{{isset($data['id'])}}">
-                                            <textarea required type="text" class="form-control required" name="feedback"
-                                                id="feedback" placeholder="Enter Note"
-                                                style="min-height: 130px;">{{ old('note') }}</textarea>
-                                            <div class="alert alert-danger print-error-msg" style="display:none">
-                                                <ul class="custom_text"></ul>
-                                            </div>
-                                            @if($errors->has('status'))
-                                                <div class="alert alert-danger">{{ $errors->first('status') }}</div>
-                                            @endif
-                                        </div>
+                                    <div class="form-group mb-3">
+                                        <label class="custom-control-inline mr-3" style="cursor:pointer; font-weight: 500;">
+                                            <input type="radio" name="conversation_type" value="NoResponse" checked> VM / No Response
+                                        </label>
+                                        <label class="custom-control-inline" style="cursor:pointer; font-weight: 500;">
+                                            <input type="radio" name="conversation_type" value="Conversation"> Conversation
+                                        </label>
                                     </div>
 
+                                    <div class="NoResponseData">
+                                        <div class="form-group mb-0" id="status" name="status">
+                                            <div id="conversation_type_container" style="display:none; margin-bottom: 12px;">
+                                                <div style="display:flex; gap:12px; align-items:flex-start;">
+                                                    <div style="flex:1;">
+                                                        <label class="control-label" style="font-weight:600; margin-bottom: 5px;">Conversation Type</label>
+                                                        <select id="reminder_for" class="form-control required" name="reminder_for"
+                                                            onchange="checkQuickType(); updateSubConversationType();">
+                                                            <option value="">Choose Type</option>
+                                                            <option value="Follow up">Follow up</option>
+                                                            <option value="Declined">Declined</option>
+                                                            <option value="Meeting Setup">Meeting Setup</option>
+                                                        </select>
+                                                    </div>
+                                                    <div style="flex:1; display:none;" id="sub_conversation_col">
+                                                        <label class="control-label" style="font-weight:600; margin-bottom: 5px;">Sub Conversation Type</label>
+                                                        <select id="sub_reminder_for" class="form-control" name="sub_reminder_for">
+                                                            <option value="">Choose Sub Type</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div id="reminderdatetime" style="margin-bottom: 12px;">
+                                                <div class="form-group mb-2">
+                                                    <label class="control-label">Reminder Date</label>
+                                                    <input type="date" class="form-control" name="reminder_date" id="min-date">
+                                                </div>
+                                                <div class="form-group mb-2">
+                                                    <label class="control-label">Reminder Time</label>
+                                                    <input type="time" class="form-control" id="reminder_time" name="reminder_time">
+                                                </div>
+                                            </div>
+
+                                            <div id="callbackdatetime" style="display:none; margin-bottom: 12px;">
+                                                <div class="form-group mb-2">
+                                                    <label class="control-label">Callback Date</label>
+                                                    <input type="date" class="form-control" name="callback_date" id="callback_date">
+                                                </div>
+                                                <div class="form-group mb-2">
+                                                    <label class="control-label">Callback Time</label>
+                                                    <input type="time" class="form-control" id="callback_time" name="callback_time">
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group mb-2" id="phone_number_container">
+                                                <label class="control-label">Phone Number</label>
+                                                <input type="tel" class="form-control" name="phone_number" id="phone_number" placeholder="Phone Number">
+                                            </div>
+
+                                            <div class="form-group mb-2">
+                                                <label class="control-label">Note</label>
+                                                <textarea required class="form-control required" name="feedback" id="feedback"
+                                                    placeholder="Enter Note" style="min-height:130px;"></textarea>
+                                            </div>
+
+                                            <div class="alert alert-danger print-error-msg" style="display:none; margin-top: 10px;">
+                                                <ul class="custom_text mb-0"></ul>
+                                            </div>
+
+                                            <div class="alert alert-danger print-error-msg-1" style="display:none; margin-top: 10px;">
+                                                <ul class="custom_text-1 mb-0"></ul>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-
-                                <div class="modal-footer">
+                                <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; border-top: 1px solid #dee2e6; padding: 12px 20px;">
                                     <input type="hidden" id="lead_id_quick_note" name="lead_id_quick_note">
                                     <button type="button" class="btn btn-default waves-effect modal-close"
                                         data-dismiss="modal">Close</button>
-                                    {{-- <button type="submit" class="btn btn-success"> <i class="fa fa-check"></i>
-                                        Save</button> --}}
                                     <button id="save-data-quick-note" type="button"
-                                        class="btn btn-info waves-effect waves-light ">Add Note</button>
+                                        class="btn btn-info waves-effect waves-light">Add Note</button>
                                 </div>
                             </div>
                 </form>
@@ -284,8 +298,7 @@ th[data-orderable="false"]::after {
 
                 <div class="modal-header">
                     <h4 class="modal-title">Change Status</h4>
-                    <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true"
-                        style="color:black">×</button>
+                    <button type="button" class="close close-status-modal" data-dismiss="modal" aria-hidden="true">×</button>
                 </div>
                 <div class="alert alert-danger print-error-msg" style="display:none">
                     <ul></ul>
@@ -324,7 +337,7 @@ th[data-orderable="false"]::after {
             <div class="modal-header">
                 <h4 class="modal-title" id="myModalLabel">View Note</h4>
                 <button type="button" class="close largemodal-close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true" style="color:black">&times;</span>
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
@@ -349,6 +362,7 @@ th[data-orderable="false"]::after {
 </div>
 </div>
 @push('scripts')
+    <script src="{{url('js/conversation-types.js')}}"></script>
     <script src="{{url('vendor/moment/moment.js')}}"></script>
 
     <script src="{{url('vendor/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js')}}">
@@ -449,7 +463,8 @@ th[data-orderable="false"]::after {
             }
             var selecteddata = ""
             if (selectedVal == 'Conversation') {
-                selecteddata = $('#reminder_for').val();
+                var parentType = $('#reminder_for').val();
+                    selecteddata = $('#sub_reminder_for').val() || parentType;
             } else {
                 selecteddata = 1;
             }
@@ -469,7 +484,7 @@ th[data-orderable="false"]::after {
                 let reminder_time = $("[name=reminder_time]").val();
                 let source_id = $("[name=source_id]").val();
                 console.log(reminder_time);
-                let reminder_for = $("[name=reminder_for]").val();
+                let reminder_for = $('#sub_reminder_for').val() || $('[name=reminder_for]').val();
                 let lead_id = $("input[name=lead_id_quick_note]").val();
                 let _token = $('meta[name="csrf-token"]').attr('content');
                 $.ajax({
@@ -482,6 +497,9 @@ th[data-orderable="false"]::after {
                         reminder_for: reminder_for,
                         lead_id: lead_id,
                         feedback: feedback,
+                        phone_number: $('#phone_number').val(),
+                        callback_date: $('#callback_date').val(),
+                        callback_time: $('#callback_time').val(),
                         _token: _token
                     },
                     success: function (response) {
@@ -491,6 +509,8 @@ th[data-orderable="false"]::after {
                             $('#feedback').val('');
                             $('#min-date').val("");
                             $('#reminder_for').val("");
+                        $('#sub_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
+                        $('#sub_conversation_col').hide();
                             $('#reminder_time').val("");
                             $('.alert.alert-danger.print-error-msg-1').hide();
                             $('.alert.alert-danger.print-error-msg').hide();
@@ -558,6 +578,8 @@ th[data-orderable="false"]::after {
                     $('#feedback').val('VM/No Response');
                     $('#min-date').val("");
                     $('#reminder_for').val("");
+                        $('#sub_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
+                        $('#sub_conversation_col').hide();
                     $('#reminder_time').val("");
                     $('.alert.alert-danger.print-error-msg-1').hide();
                     $('.alert.alert-danger.print-error-msg').hide();
@@ -567,12 +589,52 @@ th[data-orderable="false"]::after {
                     $('.alert.alert-danger.print-error-msg').hide();
                     $('#feedback').val('');
                     $('#min-date').val("");
-                    $('#reminder_for').val("");
+                    $('#reminder_for').val("Follow up");
                     $('#reminder_time').val("");
+                    $('#phone_number').val('');
+                    $('#callback_date').val('');
+                    $('#callback_time').val('');
                     $('#conversation_type_container').show();
+                    updateSubConversationType();
+                    checkQuickType();
                 }
             });
         });
+
+        var subOptions = {
+            'Follow up': [
+                {value: 'Follow-up Call', label: 'Call'},
+                {value: 'Follow-up Email', label: 'Email'},
+                {value: 'Follow-up Text', label: 'Text'}
+            ],
+            'Declined': [
+                {value: 'Declined - No Opportunity', label: 'No Opportunity'},
+                {value: 'Declined - DNC', label: 'DNC'},
+                {value: 'Declined - Not Right Party', label: 'Not Right Party'},
+                {value: 'Declined - Left the Organization', label: 'Left the Organization'},
+                {value: 'Declined - Reference Shared', label: 'Reference Shared'}
+            ],
+            'Meeting Setup': [
+                {value: 'Meeting Setup', label: 'Meeting Setup'}
+            ]
+        };
+
+        function updateSubConversationType() {
+            var parent = $('#reminder_for').val();
+            var $sub = $('#sub_reminder_for');
+            $sub.empty().append('<option value="">Choose Sub Type</option>');
+            if (parent && subOptions[parent]) {
+                $.each(subOptions[parent], function(i, opt) {
+                    $sub.append('<option value="' + opt.value + '">' + opt.label + '</option>');
+                });
+                if (subOptions[parent].length > 0) {
+                    $sub.val(subOptions[parent][0].value);
+                }
+                $('#sub_conversation_col').show();
+            } else {
+                $('#sub_conversation_col').hide();
+            }
+        }
     </script>
 
     <script>
@@ -582,6 +644,8 @@ th[data-orderable="false"]::after {
             $('#min-date').val('');
             $('#reminder_time').val('');
             $('#reminder_for').val('');
+                $('#sub_reminder_for').empty().append('<option value="">Choose Sub Type</option>');
+                $('#sub_conversation_col').hide();
             $('#feedback').val('VM/No Response');
             $('#conversation_type_container').hide();
             $('#status-modal-quicknote').modal('show');
