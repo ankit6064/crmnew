@@ -2991,8 +2991,56 @@ div#appSidebar .menu-title.active {
 .graph.campaignslist.logstable.lead-listing div#employee-table_wrapper table#employee-table {
     display: table !important;
 }
+.graph.customclass #employee-table tbody td {
+    display: table-cell !important;
+    float: none !important;
+    vertical-align: middle !important;
+    padding: 15px !important;
+    white-space: nowrap;
+}
+
+.graph.customclass #employee-table tbody td:last-child {
+    text-align: center;
+}
+.graph.customclass #employee-table tbody td:first-child > * {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+	margin-bottom: 0px !important;
+}
+.graph.campaignslist.logstable.notification-table thead th:last-child,
+.graph.campaignslist.logstable.notification-table tbody td:last-child {
+    text-align: right !important;
+    float: none !important;
+    display: table-cell !important;
+    white-space: nowrap;
+    padding-right: 30px !important;
+}
+
+.graph.campaignslist.logstable.notification-table tbody td:last-child .btn,
+.graph.campaignslist.logstable.notification-table tbody td:last-child a,
+.graph.campaignslist.logstable.notification-table tbody td:last-child button {
+    display: inline-block !important;
+    vertical-align: middle;
+    margin: 0 0 0 8px !important;
+}
+.graph.campaignslist.logstable.notification-table button.btn.btn-sm.btn-info {
+    padding: 8px 20px !important;
+}
 /*-seacrh-lead-page-*/
 
+	div#employee-table_paginate a#employee-table_previous {
+    margin-bottom: 0px !important ;
+}
+a#employee-table_next {
+    margin-bottom: 0px !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    margin-bottom: 0px !important;
+}
+div#employee-table_paginate a.paginate_button.current {
+    padding: 5px 15px !important;
+}
 
 /*-mediaquery-*/
 
@@ -3044,7 +3092,12 @@ div#appSidebar .menu-title.active {
         font-size: 11px !important;
         font-weight: normal !important;
     }
-
+.graph.campaignslist.logstable.notification-table tr td:last-child a.btn.btn-sm.btn-secondary.mt-1 {
+    margin-top: 0px !important;
+}
+.graph tbody tr.odd td:last-child a {
+    margin-bottom: 0px !important;
+}
 }
 
 
@@ -3073,7 +3126,7 @@ div#appSidebar .menu-title.active {
     }
 
     div#employee-table_paginate {
-        padding: 10px 5px !important;
+        padding: 13px 5px !important;
     }
 
     div#employee-table_paginate a.paginate_button.current {
@@ -3088,6 +3141,10 @@ div#appSidebar .menu-title.active {
     .employee-filterss.daily-report-filter .filter-group {
         min-width: 284px !important;
     }
+
+div#employee-table_info {
+    font-size: 14px !important;
+}
 
 }
 

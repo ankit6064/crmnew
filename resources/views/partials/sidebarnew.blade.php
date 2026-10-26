@@ -294,7 +294,7 @@
     <div class="menu-item dropdown" data-title="Manager">
         <div class="menu-title">
             <div class="menu-title-left">
-                <i class="fa fa-users"></i>
+                <i class="fa-solid fa-user-shield"></i>
                 <span class="menu-text">Manager</span>
             </div>
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>
@@ -312,7 +312,7 @@
     <!-- Submanagers -->
     <a href="{{ route('employee.submanagerlisting') }}"
         class="{{ request()->is('employee/submanagerlisting') ? 'active' : '' }} menu-link" data-title="Submanagers">
-        <i class="fa fa-users"></i>
+        <i class="fa-solid fa-user-gear"></i>
         <span class="menu-text">Submanagers</span>
     </a>
 
@@ -320,7 +320,7 @@
     <div class="menu-item dropdown" data-title="Employee">
         <div class="menu-title">
             <div class="menu-title-left">
-                <i class="fa fa-users"></i>
+                <i class="fa-solid fa-user-tie"></i>
                 <span class="menu-text">Employee</span>
             </div>
             <span class="arrow"><i class="fas fa-chevron-right"></i></span>

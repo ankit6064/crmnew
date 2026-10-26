@@ -309,7 +309,7 @@
                         </a>
                         <div class="collapse" id="manager-collapse">
                             <ul aria-expanded="false" class="list-unstyled fw-normal pb-1 small">
-                                <li><a href="{{ route('manager.index') }}">View Manager</a></li>
+                                <li><a href="{{ route('manager.index') }}">View Managerrr</a></li>
                                 <li><a href="{{ route('manager.create') }}">Add Manager</a></li>
                             </ul>
                         </div>
