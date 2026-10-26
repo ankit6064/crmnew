@@ -1929,7 +1929,7 @@ class LeadsController extends Controller
                         case 'Call':
                             $statusValue = 'FUPC';
                             break;
-                        case 'Follow-up Email/Info Requested':
+                        case 'Follow-up Email':
                         case 'Follow-up Email':
                         case 'Email':
                             $statusValue = 'FUPEIN';

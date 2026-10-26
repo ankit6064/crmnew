@@ -4,7 +4,7 @@
 var subOptions = {
     'Follow up': [
         {value: 'Follow-up Call', label: 'Call'},
-        {value: 'Follow-up Email/Info Requested', label: 'Email'},
+        {value: 'Follow-up Email', label: 'Email'},
         {value: 'Follow-up Text', label: 'Text'}
     ],
     'Declined': [

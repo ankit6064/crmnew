@@ -229,7 +229,7 @@ window.handleParentCategoryChange = function (parentSelectEl, childSelectId, onc
 
     if (parentVal === 'Follow up') {
         $childSelect.append('<option value="Follow-up Call" selected>Call</option>');
-        $childSelect.append('<option value="Follow-up Email/Info Requested">Email</option>');
+        $childSelect.append('<option value="Follow-up Email">Email</option>');
         $childSelect.append('<option value="Follow-up Text">Text</option>');
         $childCol.show();
         if ($parentCol.length) {
@@ -267,7 +267,7 @@ window.handleParentCategoryChange = function (parentSelectEl, childSelectId, onc
 window.subOptions = {
     'Follow up': [
         {value: 'Follow-up Call', label: 'Call'},
-        {value: 'Follow-up Email/Info Requested', label: 'Email'},
+        {value: 'Follow-up Email', label: 'Email'},
         {value: 'Follow-up Text', label: 'Text'}
     ],
     'Declined': [
@@ -360,7 +360,7 @@ window.setNoteOptionsValue = function (reminderForVal, parentSelectId, childSele
     var $parentSelect = $('#' + (parentSelectId || 'parent_reminder_for'));
     var parentCategory = '';
 
-    if (['Follow-up Call', 'CALL', 'Call', 'Follow-up Email/Info Requested', 'EMAIL', 'Email', 'Follow-up Text', 'TEXT', 'Text', 'Callback'].indexOf(reminderForVal) !== -1) {
+    if (['Follow-up Call', 'CALL', 'Call', 'Follow-up Email', 'EMAIL', 'Email', 'Follow-up Text', 'TEXT', 'Text', 'Callback'].indexOf(reminderForVal) !== -1) {
         parentCategory = 'Follow up';
     } else if (['No Opportunity', 'NO', 'DNC', 'DND', 'Not Right Party', 'NGP', 'Left the Organization', 'LTO', 'Reference Shared', 'RS', 'Rs', 'Declined', 'Declined - No Opportunity', 'Declined - DNC', 'Declined - Not Right Party', 'Declined - Left the Organization', 'Declined - Reference Shared'].indexOf(reminderForVal) !== -1) {
         parentCategory = 'Declined';
