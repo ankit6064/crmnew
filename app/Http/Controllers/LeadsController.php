@@ -1810,6 +1810,16 @@ class LeadsController extends Controller
         // Get lead status only (not full model)
         $status = Lead::where('id', $leadId)->value('status');
 
+        // Normalize reminder_for to parent category
+        $reminderFor = $request->reminder_for;
+        if ($reminderFor && (stripos($reminderFor, 'Follow up') === 0 || stripos($reminderFor, 'Follow-up') === 0)) {
+            $reminderFor = 'Follow up';
+        } elseif ($reminderFor && stripos($reminderFor, 'Declined') === 0) {
+            $reminderFor = 'Declined';
+        } elseif ($reminderFor && (stripos($reminderFor, 'Meeting Setup') === 0 || stripos($reminderFor, 'Meeting Set-up') === 0)) {
+            $reminderFor = 'Meeting Setup';
+        }
+
         // Create note
         $note = Note::create([
             'user_id' => $userId,
@@ -1818,7 +1828,7 @@ class LeadsController extends Controller
             'status' => $status,
             'reminder_time' => $request->reminder_time,
             'reminder_date' => $request->reminder_date,
-            'reminder_for' => $request->reminder_for,
+            'reminder_for' => $reminderFor,
             'feedback' => $request->feedback,
             'phone_number' => $request->phone_number,
         ]);
@@ -3124,10 +3134,10 @@ class LeadsController extends Controller
             $subEmpIds[] = $userId;
             $sourcesQuery->where(function ($q) use ($userId, $subEmpIds) {
                 $q->where('user_id', $userId)
-                  ->orWhere('assign_to_manager', $userId)
-                  ->orWhereHas('leads', function ($lq) use ($subEmpIds) {
-                      $lq->whereIn('asign_to', $subEmpIds);
-                  });
+                    ->orWhere('assign_to_manager', $userId)
+                    ->orWhereHas('leads', function ($lq) use ($subEmpIds) {
+                        $lq->whereIn('asign_to', $subEmpIds);
+                    });
             });
         } else {
             $sourcesQuery->whereHas('leads', function ($q) use ($userId) {
@@ -3166,9 +3176,9 @@ class LeadsController extends Controller
             'company_name',
             DB::raw('COUNT(*) as total_leads')
         )
-        ->groupBy('company_name')
-        ->orderBy('company_name', 'asc')
-        ->get();
+            ->groupBy('company_name')
+            ->orderBy('company_name', 'asc')
+            ->get();
 
         return response()->json([
             'status' => true,
@@ -3190,8 +3200,8 @@ class LeadsController extends Controller
             'sources.source_name as source_name',
             'sources.description as source_description'
         ])
-        ->leftJoin('sources', 'leads.source_id', '=', 'sources.id')
-        ->with(['source:id,source_name,description', 'user:id,first_name,last_name', 'leadManager:id,first_name,last_name', 'latestNote']);
+            ->leftJoin('sources', 'leads.source_id', '=', 'sources.id')
+            ->with(['source:id,source_name,description', 'user:id,first_name,last_name', 'leadManager:id,first_name,last_name', 'latestNote']);
 
         if (!empty($source_id)) {
             $query->where('leads.source_id', $source_id);
@@ -3215,13 +3225,13 @@ class LeadsController extends Controller
             ->filterColumn('campaign_name', function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('sources.source_name', 'like', "%{$keyword}%")
-                      ->orWhere('sources.description', 'like', "%{$keyword}%");
+                        ->orWhere('sources.description', 'like', "%{$keyword}%");
                 });
             })
             ->filterColumn('sources.source_name', function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('sources.source_name', 'like', "%{$keyword}%")
-                      ->orWhere('sources.description', 'like', "%{$keyword}%");
+                        ->orWhere('sources.description', 'like', "%{$keyword}%");
                 });
             })
             ->filterColumn('company_name', function ($query, $keyword) {
@@ -3233,22 +3243,22 @@ class LeadsController extends Controller
             ->filterColumn('prospect_first_name', function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('leads.prospect_first_name', 'like', "%{$keyword}%")
-                      ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
-                      ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
+                        ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
+                        ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
                 });
             })
             ->filterColumn('leads.prospect_first_name', function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('leads.prospect_first_name', 'like', "%{$keyword}%")
-                      ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
-                      ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
+                        ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
+                        ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
                 });
             })
             ->filterColumn('prospect_name', function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('leads.prospect_first_name', 'like', "%{$keyword}%")
-                      ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
-                      ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
+                        ->orWhere('leads.prospect_last_name', 'like', "%{$keyword}%")
+                        ->orWhereRaw("CONCAT(leads.prospect_first_name, ' ', leads.prospect_last_name) like ?", ["%{$keyword}%"]);
                 });
             })
             ->filterColumn('status', function ($query, $keyword) {
@@ -3276,15 +3286,15 @@ class LeadsController extends Controller
             ->filterColumn('leadManager.first_name', function ($query, $keyword) {
                 $query->whereHas('leadManager', function ($q) use ($keyword) {
                     $q->where('first_name', 'like', "%{$keyword}%")
-                      ->orWhere('last_name', 'like', "%{$keyword}%")
-                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$keyword}%"]);
+                        ->orWhere('last_name', 'like', "%{$keyword}%")
+                        ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$keyword}%"]);
                 });
             })
             ->filterColumn('user.first_name', function ($query, $keyword) {
                 $query->whereHas('user', function ($q) use ($keyword) {
                     $q->where('first_name', 'like', "%{$keyword}%")
-                      ->orWhere('last_name', 'like', "%{$keyword}%")
-                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$keyword}%"]);
+                        ->orWhere('last_name', 'like', "%{$keyword}%")
+                        ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$keyword}%"]);
                 });
             })
             ->addColumn('campaign_name', function ($row) {
@@ -3327,11 +3337,13 @@ class LeadsController extends Controller
                 return 'Unassigned';
             })
             ->editColumn('designation', function ($row) {
-                if (empty($row->designation)) return 'N/A';
+                if (empty($row->designation))
+                    return 'N/A';
                 return htmlspecialchars($row->designation);
             })
             ->editColumn('timezone', function ($row) {
-                if (empty($row->timezone)) return 'N/A';
+                if (empty($row->timezone))
+                    return 'N/A';
                 return htmlspecialchars($row->timezone);
             })
             ->editColumn('status', function ($row) {
