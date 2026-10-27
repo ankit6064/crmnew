@@ -1810,11 +1810,19 @@ class LeadsController extends Controller
         // Get lead status only (not full model)
         $status = Lead::where('id', $leadId)->value('status');
 
-        // Normalize reminder_for to parent category
+        // Normalize reminder_for to parent category and extract sub-type
         $reminderFor = $request->reminder_for;
+        $subReminderFor = null;
+
         if ($reminderFor && (stripos($reminderFor, 'Follow up') === 0 || stripos($reminderFor, 'Follow-up') === 0)) {
+            // Extract sub-type: "Follow-up Call" → "Call", "Follow-up Email" → "Email"
+            $subReminderFor = trim(preg_replace('/^Follow[\s\-]?up[\s\-]*/i', '', $reminderFor));
+            $subReminderFor = $subReminderFor ?: null;
             $reminderFor = 'Follow up';
         } elseif ($reminderFor && stripos($reminderFor, 'Declined') === 0) {
+            // Extract sub-type: "Declined - No Opportunity" → "No Opportunity", "Declined - DNC" → "DNC"
+            $subReminderFor = trim(preg_replace('/^Declined[\s\-]*/i', '', $reminderFor));
+            $subReminderFor = $subReminderFor ?: null;
             $reminderFor = 'Declined';
         } elseif ($reminderFor && (stripos($reminderFor, 'Meeting Setup') === 0 || stripos($reminderFor, 'Meeting Set-up') === 0)) {
             $reminderFor = 'Meeting Setup';
@@ -1829,6 +1837,7 @@ class LeadsController extends Controller
             'reminder_time' => $request->reminder_time,
             'reminder_date' => $request->reminder_date,
             'reminder_for' => $reminderFor,
+            'sub_reminder_for' => $subReminderFor,
             'feedback' => $request->feedback,
             'phone_number' => $request->phone_number,
         ]);
