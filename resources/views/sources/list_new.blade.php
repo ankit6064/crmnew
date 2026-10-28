@@ -655,7 +655,7 @@
             $('#totalLeadsModalBody').html(loaderHtml);
 
             // Load dynamic content
-            $('#totalLeadsModalBody').load('/source-lead/' + id, function () {
+            $('#totalLeadsModalBody').load('/crm2/source-lead/' + id, function () {
                 $('#sourceId').val(id);
             });
         }
@@ -673,7 +673,7 @@
         // Get already assigned users for leads (supports multi-company selection)
         function getAlredayAssignedUsers(ele) {
             let clickedCompany = $(ele).data("company");
-            
+
             // Collect all selected companies from checkboxes
             var selectedCompanies = [];
             $(".company-select-chk:checked").each(function () {
@@ -772,7 +772,7 @@
                     let companyNames;
                     try {
                         companyNames = JSON.parse(companyNamesRaw);
-                    } catch(err) {
+                    } catch (err) {
                         companyNames = [companyNamesRaw];
                     }
                     let leadsType = $('#assignLeadsType').val();
