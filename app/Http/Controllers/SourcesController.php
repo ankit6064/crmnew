@@ -584,6 +584,10 @@ class SourcesController extends Controller
                         width="100%">
                         <thead class="heading-custom">
                             <tr>
+                                <th width="30" style="text-align:center">
+                                    <label class="custom-control custom-checkbox" style="margin-bottom:0;" title="Select All Companies">
+                                    </label>
+                                </th>
                                 <th width="100" style="text-align:center">Company Name</th>
                                 <th width="50" style="text-align:center">Pending Leads</th>
                                 <th width="50" style="text-align:center">Failed Leads</th>
@@ -594,23 +598,32 @@ class SourcesController extends Controller
                         <tbody>';
         if ($leads->count() > 0) {
             foreach ($leads as $lead) {
-                $html .= '<tr>          
+                $safeCompany = htmlspecialchars($lead->company_name, ENT_QUOTES);
+                $html .= '<tr data-company="' . $safeCompany . '">
+                                    <td style="text-align:center">
+                                        <fieldset>
+                                            <label class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input company-select-chk" data-company="' . $safeCompany . '">
+                                                <span class="custom-control-label"></span>
+                                            </label>
+                                        </fieldset>
+                                    </td>
                                     <td style="white-space: pre-wrap" width="200">' . $lead->company_name . '</td>
                                     <td>' . $lead->pending_leads . ' <fieldset>
                                         <label class="custom-control custom-checkbox">
-                                            <input type="checkbox" value="1" name="' . $lead->company_name . '[]" required class="custom-control-input">
+                                            <input type="checkbox" value="1" name="' . $lead->company_name . '[]" class="custom-control-input lead-type-chk">
                                             <span class="custom-control-label"></span>
                                         </label>
                                     </fieldset></td>
                                     <td>' . $lead->failed_leads . ' <fieldset>
                                         <label class="custom-control custom-checkbox">
-                                            <input type="checkbox" value="2" name="' . $lead->company_name . '[]" required class="custom-control-input">
+                                            <input type="checkbox" value="2" name="' . $lead->company_name . '[]" class="custom-control-input lead-type-chk">
                                             <span class="custom-control-label"></span>
                                         </label>
                                     </fieldset></td>
                                     <td>' . $lead->inprogress_leads . ' <fieldset>
                                         <label class="custom-control custom-checkbox">
-                                            <input type="checkbox" value="4" name="' . $lead->company_name . '[]" required class="custom-control-input">
+                                            <input type="checkbox" value="4" name="' . $lead->company_name . '[]" class="custom-control-input lead-type-chk">
                                             <span class="custom-control-label"></span>
                                         </label>
                                     </fieldset></td>
@@ -623,7 +636,7 @@ class SourcesController extends Controller
             }
         } else {
             $html .= '<tr>
-                                        <td colspan="5" style="text-align:center; padding:20px; font-weight:bold;">
+                                        <td colspan="6" style="text-align:center; padding:20px; font-weight:bold;">
                                             No records found
                                         </td>
                                       </tr>';
@@ -631,42 +644,76 @@ class SourcesController extends Controller
 
         $html .= '</tbody>
             </table>
-        </div>';
+        </div>
+
+        <script>
+        $(document).ready(function() {
+            // Select All Companies checkbox
+            $(document).off("change", "#selectAllCompanies").on("change", "#selectAllCompanies", function() {
+                var isChecked = $(this).is(":checked");
+                $(".company-select-chk").each(function() {
+                    $(this).prop("checked", isChecked).trigger("change");
+                });
+            });
+
+            // Company checkbox change — auto-select/lock lead type checkboxes
+            $(document).off("change", ".company-select-chk").on("change", ".company-select-chk", function() {
+                var $row = $(this).closest("tr");
+                var isChecked = $(this).is(":checked");
+                $row.find(".lead-type-chk").each(function() {
+                    if (isChecked) {
+                        $(this).prop("checked", true).prop("disabled", true);
+                    } else {
+                        $(this).prop("disabled", false).prop("checked", false);
+                    }
+                });
+            });
+        });
+
+        // Get all selected companies (for multi-company transfer)
+        function getSelectedCompanies() {
+            var companies = [];
+            $(".company-select-chk:checked").each(function() {
+                companies.push($(this).data("company"));
+            });
+            return companies;
+        }
+        </script>';
         return $html;
     }
     /**
      * @param mixed Request
      */
 
-     public function getLeadBySourceIdtransfer($id)
-     {
-         $leads = Lead::where('leads.source_id', $id)
-             ->leftJoin('users', 'users.id', '=', 'leads.asign_to')
-             ->select(
-                 'leads.company_name',
-                 DB::raw("GROUP_CONCAT(DISTINCT CASE 
+    public function getLeadBySourceIdtransfer($id)
+    {
+        $leads = Lead::where('leads.source_id', $id)
+            ->leftJoin('users', 'users.id', '=', 'leads.asign_to')
+            ->select(
+                'leads.company_name',
+                DB::raw("GROUP_CONCAT(DISTINCT CASE 
                      WHEN TRIM(CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, ''))) != '' 
                          THEN TRIM(CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, ''))) 
                      WHEN users.name IS NOT NULL AND users.name != '' 
                          THEN users.name 
                      ELSE NULL 
                  END SEPARATOR ', ') as assigned_employees")
-             )
-             ->groupBy('leads.company_name')
-             ->orderBy(DB::raw('MIN(leads.id)'), 'asc')
-             ->get();
- 
-         $source = Source::where('id', $id)->first();
-         $source_list = Source::where(['source_name' => $source->source_name])
-             ->where('id', '!=', $id)
-             ->get();
- 
-         $html = '<div class="d-flex justify-content-between align-items-center mb-3">
+            )
+            ->groupBy('leads.company_name')
+            ->orderBy(DB::raw('MIN(leads.id)'), 'asc')
+            ->get();
+
+        $source = Source::where('id', $id)->first();
+        $source_list = Source::where(['source_name' => $source->source_name])
+            ->where('id', '!=', $id)
+            ->get();
+
+        $html = '<div class="d-flex justify-content-between align-items-center mb-3">
                      <span style="font-size: 13px; color: #555; font-weight: 500;">Total Companies: <strong>' . $leads->count() . '</strong></span>
                      <input type="text" id="transferCompanySearch" class="form-control" style="max-width: 260px; font-size: 13px; height: 36px;" placeholder="Search company or employee..." onkeyup="filterTransferCompanies(this.value)">
                   </div>';
- 
-         $html .= '<div class="table-responsive" id="table_data">
+
+        $html .= '<div class="table-responsive" id="table_data">
                       <table id="sources" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
                           width="100%">
                           <thead class="heading-custom">
@@ -685,20 +732,20 @@ class SourcesController extends Controller
                               </tr>
                           </thead>
                           <tbody>';
- 
-         if ($leads->isEmpty()) {
-             $html .= '<tr>
+
+        if ($leads->isEmpty()) {
+            $html .= '<tr>
                                  <td colspan="3" style="text-align:center; font-weight:600;">
                                      No company found
                                  </td>
                              </tr>';
-         } else {
-             foreach ($leads as $lead) {
-                 $assignedEmployee = !empty($lead->assigned_employees)
-                     ? '<span style="font-weight:500; color:#192e62;">' . htmlspecialchars($lead->assigned_employees) . '</span>'
-                     : '<span style="color:#888;font-style:italic;">Not Assigned</span>';
- 
-                 $html .= '<tr>
+        } else {
+            foreach ($leads as $lead) {
+                $assignedEmployee = !empty($lead->assigned_employees)
+                    ? '<span style="font-weight:500; color:#192e62;">' . htmlspecialchars($lead->assigned_employees) . '</span>'
+                    : '<span style="color:#888;font-style:italic;">Not Assigned</span>';
+
+                $html .= '<tr>
                                      <td width="200" style="white-space: pre-wrap;">' . htmlspecialchars($lead->company_name) . '</td>
                                      <td width="200" style="white-space: pre-wrap;">' . $assignedEmployee . '</td>
                                      <td width="100" style="text-align:center">
@@ -710,11 +757,11 @@ class SourcesController extends Controller
                                          </fieldset>
                                      </td>
                                  </tr>';
-             }
-         }
- 
- 
-         $html .= '</tbody>
+            }
+        }
+
+
+        $html .= '</tbody>
                   </table>
               </div>
               <script>
@@ -726,25 +773,25 @@ class SourcesController extends Controller
                      });
                  }
               </script>';
- 
-         // Add source select dropdown BELOW the table
-         $sourcediv = '<div class="form-group mt-3">
+
+        // Add source select dropdown BELOW the table
+        $sourcediv = '<div class="form-group mt-3">
                       <label for="source_select">Select Transfer Source</label>
                       <select name="source_select" id="sourcelistid"  class="form-control" required>
                           <option value="" selected>-- Select Source --</option>';
- 
-         foreach ($source_list as $src) {
-             $sourcediv .= '<option value="' . htmlspecialchars($src->id) . '">' . htmlspecialchars($src->source_name . ' - ' . $src->description) . '</option>';
-         }
- 
-         $sourcediv .= '   </select>
+
+        foreach ($source_list as $src) {
+            $sourcediv .= '<option value="' . htmlspecialchars($src->id) . '">' . htmlspecialchars($src->source_name . ' - ' . $src->description) . '</option>';
+        }
+
+        $sourcediv .= '   </select>
                   </div>';
- 
- 
-         echo json_encode(['status' => 200, 'html' => $html, 'sourcediv' => $sourcediv]);
-         exit;
- 
-     }
+
+
+        echo json_encode(['status' => 200, 'html' => $html, 'sourcediv' => $sourcediv]);
+        exit;
+
+    }
 
     public function transferleads(Request $request)
     {
@@ -772,29 +819,48 @@ class SourcesController extends Controller
         if ($request->filled('leadsType')) {
             $sourceId = $request->input('sourceId');
             $userId = $request->input('userId');
-            $companyName = $request->input('companyName');
             $leadsTypeString = $request->input('leadsType');
             $assignedUserId = $request->input('assignedUserId');
             $leadsType = explode(',', $leadsTypeString);
-            $leadsToAssign = Lead::where([
-                ['source_id', '=', $sourceId],
-                ['company_name', '=', $companyName],
-                ['asign_to', '=', $assignedUserId],
-            ])->whereIn('status', $leadsType)->pluck('id');
 
-            if ($leadsToAssign->isEmpty()) {
+            // Support multiple company names (array) or single company name (string)
+            $companyNames = $request->input('companyNames', []);
+            if (empty($companyNames)) {
+                $companyName = $request->input('companyName');
+                $companyNames = $companyName ? [$companyName] : [];
+            }
+
+            if (empty($companyNames)) {
+                return [
+                    'status' => false,
+                    'message' => 'No company selected.',
+                ];
+            }
+
+            $totalAssigned = 0;
+            foreach ($companyNames as $companyName) {
+                $leadsToAssign = Lead::where([
+                    ['source_id', '=', $sourceId],
+                    ['company_name', '=', $companyName],
+                    ['asign_to', '=', $assignedUserId],
+                ])->whereIn('status', $leadsType)->pluck('id');
+
+                if ($leadsToAssign->isNotEmpty()) {
+                    Lead::whereIn('id', $leadsToAssign)->update(['asign_to' => $userId]);
+                    $totalAssigned += $leadsToAssign->count();
+                }
+            }
+
+            if ($totalAssigned === 0) {
                 return [
                     'status' => false,
                     'message' => 'No matching leads found to assign.'
                 ];
             }
 
-            // Assign request user to leads
-            $result = Lead::whereIn('id', $leadsToAssign)->update(['asign_to' => $userId]);
-
             return [
                 'status' => true,
-                'message' => 'Leads assigned successfully.'
+                'message' => $totalAssigned . ' leads assigned successfully across ' . count($companyNames) . ' company(s).'
             ];
         } else {
             return [
@@ -810,11 +876,16 @@ class SourcesController extends Controller
      */
     public function getSourceAssignedUsers(Request $request)
     {
-        $assignedLeadsUsers = Lead::where([
-            ['source_id', "=", $request->sourceId],
-            ['company_name', "=", $request->companyName],
-            ['status', "<>", LEAD_STATUS_CLOSED],
-        ])
+        // Support multiple company names or single
+        $companyNames = $request->input('companyNames', []);
+        if (empty($companyNames)) {
+            $companyName = $request->input('companyName');
+            $companyNames = $companyName ? [$companyName] : [];
+        }
+
+        $assignedLeadsUsers = Lead::where('source_id', $request->sourceId)
+            ->whereIn('company_name', $companyNames)
+            ->where('status', '<>', LEAD_STATUS_CLOSED)
             ->whereNotNull('asign_to')
             ->select('asign_to')
             ->groupBy('asign_to')
@@ -990,7 +1061,7 @@ class SourcesController extends Controller
     //                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
     //                 }
     //                 $numbers = array_map('trim', $numbers);
-                    
+
     //                 // Remove all hyphens from each number
     //                 $numbers = array_map(function ($num) {
     //                     return str_replace('-', '', $num);
@@ -1010,7 +1081,7 @@ class SourcesController extends Controller
     //                 $firstNumber = $numbers[0];
     //                 $contact = json_encode(implode(', ', $numbers));
     //                 $badgeText = $count <= 1 ? 'Dial' : '+ show more';
-    
+
     //                 return "{$firstNumber} 
     //         <span class='badge' 
     //               style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
@@ -1030,7 +1101,7 @@ class SourcesController extends Controller
     //                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_2);
     //                 }
     //                 $numbers = array_map('trim', $numbers);
-                    
+
     //                 // Remove all hyphens from each number
     //                 $numbers = array_map(function ($num) {
     //                     return str_replace('-', '', $num);
@@ -1050,7 +1121,7 @@ class SourcesController extends Controller
     //                 $firstNumber = $numbers[0];
     //                 $contact = json_encode(implode(', ', $numbers));
     //                 $badgeText = $count <= 1 ? 'Dial' : '+ show more';
-    
+
     //                 return "{$firstNumber} 
     //         <span class='badge' 
     //               style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
@@ -1233,7 +1304,7 @@ class SourcesController extends Controller
     //                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
     //                 }
     //                 $numbers = array_map('trim', $numbers);
-                    
+
     //                 // Remove all hyphens from each number
     //                 $numbers = array_map(function ($num) {
     //                     return str_replace('-', '', $num);
@@ -1253,7 +1324,7 @@ class SourcesController extends Controller
     //                 $firstNumber = $numbers[0];
     //                 $contact = json_encode(implode(', ', $numbers));
     //                 $badgeText = $count <= 1 ? 'Dial' : '+ show more';
-    
+
     //                 return "{$firstNumber} 
     //         <span class='badge' 
     //               style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
@@ -1273,7 +1344,7 @@ class SourcesController extends Controller
     //                     $numbers = preg_split('/[,\s;]+/', $row->contact_number_2);
     //                 }
     //                 $numbers = array_map('trim', $numbers);
-                    
+
     //                 // Remove all hyphens from each number
     //                 $numbers = array_map(function ($num) {
     //                     return str_replace('-', '', $num);
@@ -1293,7 +1364,7 @@ class SourcesController extends Controller
     //                 $firstNumber = $numbers[0];
     //                 $contact = json_encode(implode(', ', $numbers));
     //                 $badgeText = $count <= 1 ? 'Dial' : '+ show more';
-    
+
     //                 return "{$firstNumber} 
     //         <span class='badge' 
     //               style='cursor:pointer; background-color:#192e62; color:#fff; margin-left:5px;' 
@@ -1597,7 +1668,7 @@ class SourcesController extends Controller
 
         return view('leads.campaignlisting', compact('id', 'comapnyName', 'timeZone', 'source'));
 
-    }  
+    }
     public function employeeclosedleads(Request $request)
     {
         if (auth()->user()->is_admin == null) {
@@ -1779,7 +1850,7 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    
+
                     // Remove all hyphens from each number
                     $numbers = array_map(function ($num) {
                         return str_replace('-', '', $num);
@@ -2634,7 +2705,7 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    
+
                     // Remove all hyphens from each number
                     $numbers = array_map(function ($num) {
                         return str_replace('-', '', $num);
@@ -2905,7 +2976,7 @@ class SourcesController extends Controller
                         $numbers = preg_split('/[,\s;]+/', $row->contact_number_1);
                     }
                     $numbers = array_map('trim', $numbers);
-                    
+
                     // Remove all hyphens from each number
                     $numbers = array_map(function ($num) {
                         return str_replace('-', '', $num);

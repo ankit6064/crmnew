@@ -570,7 +570,7 @@
                             currentUrl.searchParams.delete('page');
                         }
                         window.history.replaceState({}, '', currentUrl.toString());
-                    } catch (e) {}
+                    } catch (e) { }
 
                     // Append Jump to Page input control in pagination container
                     var $paginate = $('#employee-table_paginate');
@@ -655,7 +655,7 @@
             $('#totalLeadsModalBody').html(loaderHtml);
 
             // Load dynamic content
-            $('#totalLeadsModalBody').load('/crm2/source-lead/' + id, function () {
+            $('#totalLeadsModalBody').load('/source-lead/' + id, function () {
                 $('#sourceId').val(id);
             });
         }
@@ -670,14 +670,30 @@
             $('#totalLeadsModalBody').html(loaderHtml); // Reset to spinner when modal is hidden
         });
 
-        // Get already assigned users for leads
+        // Get already assigned users for leads (supports multi-company selection)
         function getAlredayAssignedUsers(ele) {
-            var leadsType = [];
-            let companyName = $(ele).data("company");
+            let clickedCompany = $(ele).data("company");
+            
+            // Collect all selected companies from checkboxes
+            var selectedCompanies = [];
+            $(".company-select-chk:checked").each(function () {
+                selectedCompanies.push($(this).data("company"));
+            });
 
-            // Get selected lead types
-            $("input[name='" + companyName + "[]']:checked").each(function (index, obj) {
-                leadsType[index] = $(obj).val();
+            // If no company checkbox is selected, use the clicked company only
+            if (selectedCompanies.length === 0) {
+                selectedCompanies = [clickedCompany];
+            }
+
+            // Collect lead types from ALL selected companies
+            var leadsType = [];
+            $.each(selectedCompanies, function (i, companyName) {
+                $("input[name='" + companyName + "[]']:checked").each(function () {
+                    var val = $(this).val();
+                    if (leadsType.indexOf(val) === -1) {
+                        leadsType.push(val);
+                    }
+                });
             });
 
             // If no leads type is selected
@@ -686,13 +702,14 @@
                 return false;
             }
 
-            if (companyName) {
+            if (selectedCompanies.length > 0) {
                 $.ajax({
                     type: 'POST',
                     url: '{{ route('assigned.users') }}',
                     data: {
                         "_token": "{{ csrf_token() }}",
-                        "companyName": companyName,
+                        "companyNames": selectedCompanies,
+                        "companyName": selectedCompanies[0],
                         "sourceId": $('#sourceId').val(),
                     },
                     beforeSend: function () {
@@ -702,7 +719,7 @@
                         $('#totalLeadsModal').addClass('dimmed');
                         $(".loader-ajax").hide();
                         $('#assignLeadsType').val(leadsType);
-                        $('#companyName').val(companyName);
+                        $('#companyName').val(JSON.stringify(selectedCompanies));
                         $('#leadsAssignedUsersBody').html(response);
                         $('#leadsAssignedUsers').modal('show');
                     }
@@ -738,7 +755,7 @@
             });
         }
 
-        // Function to assign leads to a user
+        // Function to assign leads to a user (supports multi-company)
         function assignLeadsToUser(ele) {
             swal.fire({
                 title: "Want to Assign?",
@@ -751,7 +768,13 @@
             }).then(function (e) {
                 if (e.value === true) {
                     let userId = $(ele).data("user");
-                    let companyName = $('#companyName').val();
+                    let companyNamesRaw = $('#companyName').val();
+                    let companyNames;
+                    try {
+                        companyNames = JSON.parse(companyNamesRaw);
+                    } catch(err) {
+                        companyNames = [companyNamesRaw];
+                    }
                     let leadsType = $('#assignLeadsType').val();
                     let sourceId = $('#sourceId').val();
                     let assignedUserId = $('#existingAssignedUser').val();
@@ -763,7 +786,8 @@
                             "_token": "{{ csrf_token() }}",
                             "sourceId": sourceId,
                             "userId": userId,
-                            "companyName": companyName,
+                            "companyNames": companyNames,
+                            "companyName": companyNames[0],
                             "leadsType": leadsType,
                             "assignedUserId": assignedUserId,
                         },
