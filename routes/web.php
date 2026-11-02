@@ -78,6 +78,9 @@ Route::middleware('auth')->group(function () {
         Route::get('delete/{id}', [SourcesController::class, 'delete'])->name('delete');
         Route::post('assignManager', [SourcesController::class, 'assignManager'])->name('assignManager');
 
+        Route::get('dnc-companies/{id}', [SourcesController::class, 'getCampaignDncCompanies'])->name('sources.dnc_companies');
+        Route::post('toggle-dnc', [SourcesController::class, 'toggleCampaignDnc'])->name('sources.toggle_dnc');
+
 
 
     });

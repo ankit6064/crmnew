@@ -13,6 +13,7 @@ use App\Models\Relation;
 use App\Models\Logs;
 use App\Models\LhsReport;
 use App\Models\SubmanagerPermissions;
+use App\Models\CampaignDncCompany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -299,7 +300,8 @@ class SourcesController extends Controller
                     "assign_to_manager",
                     "is_active",
                     DB::raw("'N/A' as company_distribution"),
-                    DB::raw("(SELECT COUNT(*) FROM leads WHERE leads.source_id = CAST(sources.id AS CHAR)) as total_leads"),
+                    DB::raw("(SELECT COUNT(*) FROM leads WHERE leads.source_id = CAST(sources.id AS CHAR) AND (leads.is_dnc = 0 OR leads.is_dnc IS NULL) AND leads.deleted_at IS NULL) as total_leads"),
+                    DB::raw("(SELECT COUNT(*) FROM campaign_dnc_companies WHERE campaign_dnc_companies.source_id = sources.id) as dnc_companies_count"),
                     DB::raw("EXISTS(SELECT 1 FROM mom_report JOIN leads ON mom_report.lead_id = leads.id WHERE leads.source_id = CAST(sources.id AS CHAR) AND mom_report.mom_file_path IS NOT NULL) as has_mom_report")
                 )
                     ->whereIn('is_active', $status)
@@ -320,7 +322,8 @@ class SourcesController extends Controller
                         "assign_to_manager",
                         "is_active",
                         DB::raw("'N/A' as company_distribution"),
-                        DB::raw("(SELECT COUNT(*) FROM leads WHERE leads.source_id = CAST(sources.id AS CHAR)) as total_leads"),
+                        DB::raw("(SELECT COUNT(*) FROM leads WHERE leads.source_id = CAST(sources.id AS CHAR) AND (leads.is_dnc = 0 OR leads.is_dnc IS NULL) AND leads.deleted_at IS NULL) as total_leads"),
+                        DB::raw("(SELECT COUNT(*) FROM campaign_dnc_companies WHERE campaign_dnc_companies.source_id = sources.id) as dnc_companies_count"),
                         DB::raw("EXISTS(SELECT 1 FROM mom_report JOIN leads ON mom_report.lead_id = leads.id WHERE leads.source_id = CAST(sources.id AS CHAR) AND mom_report.mom_file_path IS NOT NULL) as has_mom_report"),
                         DB::raw("(SELECT SUM(amount) FROM money WHERE money.source_id = sources.id) as amount")
                     )
@@ -466,7 +469,17 @@ class SourcesController extends Controller
                             </button>';
                 })
 
-                ->rawColumns(['total_leads_new', 'action', 'status', 'source_name_new', 'transfer', 'manager_name'])
+                ->addColumn('manage_dnc', function ($row) {
+                    $count = (int) ($row->dnc_companies_count ?? 0);
+                    $badge = $count > 0 ? ' <span class="badge" style="background:#fff;color:#c82333;margin-left:4px;font-size:11px;font-weight:700;padding:2px 6px;border-radius:10px;">' . $count . '</span>' : '';
+                    return '<button type="button" class="btn btn-sm" style="background-color:#c82333;color:#fff;border-radius:3px;padding:3px 10px;font-size:12px;font-weight:600;border:none;white-space:nowrap;"
+                                data-tippy-content="Manage DNC for ' . htmlspecialchars($row->source_name, ENT_QUOTES) . '"
+                                onclick="manageDncModal(' . $row->id . ', \'' . addslashes($row->source_name) . '\');">
+                                <i class="fa-solid fa-ban me-1"></i> Manage DNC' . $badge . '
+                            </button>';
+                })
+
+                ->rawColumns(['total_leads_new', 'action', 'status', 'source_name_new', 'transfer', 'manage_dnc', 'manager_name'])
                 ->toJson();
         }
     }
@@ -570,16 +583,53 @@ class SourcesController extends Controller
 
     public function getLeadBySourceId($id)
     {
-        $leads = Lead::where('source_id', $id)
+        // Fetch explicit DNC company names for this campaign
+        $dncCompanies = CampaignDncCompany::where('source_id', $id)
+            ->pluck('company_name')
+            ->map(function ($name) {
+                return strtolower(trim($name));
+            })
+            ->flip()
+            ->toArray();
+
+        $leads = Lead::withoutGlobalScope('not_dnc')
+            ->where('source_id', $id)
             ->where('status', '<>', '3')
             ->select('id', 'company_name')
             ->selectRaw(" SUM( CASE WHEN status = '1' THEN 1 ELSE 0 END) AS pending_leads ")
             ->selectRaw(" SUM( CASE WHEN status = '2' THEN 1 ELSE 0 END) AS failed_leads ")
             ->selectRaw(" SUM( CASE WHEN status = '4' THEN 1 ELSE 0 END) AS inprogress_leads ")
+            ->selectRaw(" MAX(CASE WHEN is_dnc = 1 THEN 1 ELSE 0 END) AS has_dnc ")
             ->selectRaw(' COUNT(source_id) as total_leads')
             ->groupBy('company_name')
             ->get();
-        $html = '<div class="table-responsive m-t-40" id="table_data">
+
+        // Sort: DNC companies first, then alphabetical
+        $leads = $leads->sort(function ($a, $b) use ($dncCompanies) {
+            $aDnc = (isset($dncCompanies[strtolower(trim($a->company_name))]) || (int) $a->has_dnc === 1) ? 1 : 0;
+            $bDnc = (isset($dncCompanies[strtolower(trim($b->company_name))]) || (int) $b->has_dnc === 1) ? 1 : 0;
+            if ($aDnc !== $bDnc) {
+                return $bDnc - $aDnc;
+            }
+            return strcasecmp($a->company_name, $b->company_name);
+        });
+
+        $dncCount = 0;
+        foreach ($leads as $lead) {
+            if (isset($dncCompanies[strtolower(trim($lead->company_name))]) || (int) $lead->has_dnc === 1) {
+                $dncCount++;
+            }
+        }
+
+        $html = '';
+        if ($dncCount > 0) {
+            $html .= '<div class="alert alert-danger d-flex align-items-center mb-3" style="padding: 9px 14px; font-size: 13px; background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 6px;">
+                        <i class="fa-solid fa-ban text-danger me-2" style="font-size: 16px;"></i>
+                        <span><strong>' . $dncCount . ' company/companies</strong> in this campaign are marked as <strong>DNC</strong> (highlighted in red below with DNC badge). Leads for DNC companies are hidden from active employee listings.</span>
+                      </div>';
+        }
+
+        $html .= '<div class="table-responsive m-t-10" id="table_data">
                     <table id="sources" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
                         width="100%">
                         <thead class="heading-custom">
@@ -599,7 +649,13 @@ class SourcesController extends Controller
         if ($leads->count() > 0) {
             foreach ($leads as $lead) {
                 $safeCompany = htmlspecialchars($lead->company_name, ENT_QUOTES);
-                $html .= '<tr data-company="' . $safeCompany . '">
+                $isDnc = isset($dncCompanies[strtolower(trim($lead->company_name))]) || (int) $lead->has_dnc === 1;
+
+                $rowClass = $isDnc ? ' class="dnc-highlighted-row"' : '';
+                $dncBadge = $isDnc ? ' <span class="badge" style="background:#dc2626; color:#ffffff; font-size:10px; margin-left:6px; padding:2px 6px; border-radius:4px; vertical-align:middle;"><i class="fa fa-ban me-1"></i>DNC</span>' : '';
+                $companyStyle = $isDnc ? 'style="white-space: pre-wrap; font-weight:700; color:#991b1b;"' : 'style="white-space: pre-wrap"';
+
+                $html .= '<tr data-company="' . $safeCompany . '"' . $rowClass . '>
                                     <td style="text-align:center">
                                         <fieldset>
                                             <label class="custom-control custom-checkbox">
@@ -608,7 +664,7 @@ class SourcesController extends Controller
                                             </label>
                                         </fieldset>
                                     </td>
-                                    <td style="white-space: pre-wrap" width="200">' . $lead->company_name . '</td>
+                                    <td ' . $companyStyle . ' width="200">' . htmlspecialchars($lead->company_name) . $dncBadge . '</td>
                                     <td>' . $lead->pending_leads . ' <fieldset>
                                         <label class="custom-control custom-checkbox">
                                             <input type="checkbox" value="1" name="' . $lead->company_name . '[]" class="custom-control-input lead-type-chk">
@@ -687,7 +743,16 @@ class SourcesController extends Controller
 
     public function getLeadBySourceIdtransfer($id)
     {
-        $leads = Lead::where('leads.source_id', $id)
+        $dncCompanies = CampaignDncCompany::where('source_id', $id)
+            ->pluck('company_name')
+            ->map(function ($name) {
+                return strtolower(trim($name));
+            })
+            ->flip()
+            ->toArray();
+
+        $leads = Lead::withoutGlobalScope('not_dnc')
+            ->where('leads.source_id', $id)
             ->leftJoin('users', 'users.id', '=', 'leads.asign_to')
             ->select(
                 'leads.company_name',
@@ -741,12 +806,17 @@ class SourcesController extends Controller
                              </tr>';
         } else {
             foreach ($leads as $lead) {
+                $isDnc = isset($dncCompanies[strtolower(trim($lead->company_name))]);
+                $rowClass = $isDnc ? ' class="dnc-highlighted-row"' : '';
+                $dncBadge = $isDnc ? ' <span class="badge" style="background:#dc2626; color:#ffffff; font-size:10px; margin-left:6px; padding:2px 6px; border-radius:4px; vertical-align:middle;"><i class="fa fa-ban me-1"></i>DNC</span>' : '';
+                $companyStyle = $isDnc ? 'style="white-space: pre-wrap; font-weight:700; color:#991b1b;"' : 'style="white-space: pre-wrap;"';
+
                 $assignedEmployee = !empty($lead->assigned_employees)
                     ? '<span style="font-weight:500; color:#192e62;">' . htmlspecialchars($lead->assigned_employees) . '</span>'
                     : '<span style="color:#888;font-style:italic;">Not Assigned</span>';
 
-                $html .= '<tr>
-                                     <td width="200" style="white-space: pre-wrap;">' . htmlspecialchars($lead->company_name) . '</td>
+                $html .= '<tr' . $rowClass . '>
+                                     <td width="200" ' . $companyStyle . '>' . htmlspecialchars($lead->company_name) . $dncBadge . '</td>
                                      <td width="200" style="white-space: pre-wrap;">' . $assignedEmployee . '</td>
                                      <td width="100" style="text-align:center">
                                          <fieldset>
@@ -812,6 +882,203 @@ class SourcesController extends Controller
         $logs->save();
         echo json_encode(['status' => 200, 'message' => 'Leads Transfered']);
         exit;
+    }
+
+    /**
+     * Get distinct companies and their DNC status for a campaign
+     */
+    public function getCampaignDncCompanies($id)
+    {
+        $source = Source::find($id);
+        if (!$source) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Campaign not found'
+            ], 404);
+        }
+
+        // Fetch all distinct companies in this campaign from leads (bypassing DNC global scope)
+        $leadCompanies = Lead::withoutGlobalScope('not_dnc')
+            ->where('source_id', $id)
+            ->whereNotNull('company_name')
+            ->where('company_name', '!=', '')
+            ->select(
+                'company_name',
+                DB::raw('COUNT(*) as total_leads'),
+                DB::raw('MAX(CASE WHEN is_dnc = 1 THEN 1 ELSE 0 END) as is_dnc')
+            )
+            ->groupBy('company_name')
+            ->orderBy('company_name', 'asc')
+            ->get();
+
+        // Fetch all explicit DNC companies for this campaign
+        $dncRecords = CampaignDncCompany::where('source_id', $id)->get();
+        $dncMap = [];
+        foreach ($dncRecords as $dnc) {
+            $dncMap[strtolower(trim($dnc->company_name))] = $dnc;
+        }
+
+        $companies = [];
+        $seen = [];
+
+        foreach ($leadCompanies as $item) {
+            $cName = trim($item->company_name);
+            $lower = strtolower($cName);
+            $isDnc = isset($dncMap[$lower]) || (int) $item->is_dnc === 1;
+
+            $companies[$lower] = [
+                'company_name' => $cName,
+                'total_leads'  => (int) $item->total_leads,
+                'is_dnc'       => $isDnc ? 1 : 0,
+            ];
+            $seen[$lower] = true;
+        }
+
+        // Include any companies in DNC list that don't have leads in DB currently
+        foreach ($dncRecords as $dnc) {
+            $cName = trim($dnc->company_name);
+            $lower = strtolower($cName);
+            if (!isset($seen[$lower])) {
+                $companies[$lower] = [
+                    'company_name' => $cName,
+                    'total_leads'  => 0,
+                    'is_dnc'       => 1,
+                ];
+                $seen[$lower] = true;
+            }
+        }
+
+        // Sort companies alphabetically
+        uasort($companies, function ($a, $b) {
+            return strcasecmp($a['company_name'], $b['company_name']);
+        });
+
+        $companyList = array_values($companies);
+        $totalCompanies = count($companyList);
+        $dncCount = count(array_filter($companyList, function ($c) {
+            return $c['is_dnc'] === 1;
+        }));
+        $activeCount = $totalCompanies - $dncCount;
+
+        return response()->json([
+            'status' => true,
+            'source' => [
+                'id' => $source->id,
+                'source_name' => $source->source_name,
+                'description' => $source->description,
+            ],
+            'stats' => [
+                'total_companies' => $totalCompanies,
+                'dnc_count' => $dncCount,
+                'active_count' => $activeCount,
+            ],
+            'companies' => $companyList,
+        ]);
+    }
+
+    /**
+     * Add or remove company/companies from DNC for a campaign
+     */
+    public function toggleCampaignDnc(Request $request)
+    {
+        $sourceId = $request->input('source_id');
+        $isDnc = (int) $request->input('is_dnc', 1);
+
+        $source = Source::find($sourceId);
+        if (!$source) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Campaign not found'
+            ], 404);
+        }
+
+        $companyNames = $request->input('company_names');
+        if (empty($companyNames)) {
+            $single = $request->input('company_name');
+            if ($single !== null && trim($single) !== '') {
+                $companyNames = [trim($single)];
+            }
+        }
+
+        if (!is_array($companyNames) || empty($companyNames)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No company specified'
+            ], 422);
+        }
+
+        $affectedCount = 0;
+        $updatedNames = [];
+
+        foreach ($companyNames as $company) {
+            $company = trim($company);
+            if ($company === '') {
+                continue;
+            }
+            $updatedNames[] = $company;
+
+            if ($isDnc === 1) {
+                // Add to DNC table if not already exists
+                CampaignDncCompany::firstOrCreate(
+                    [
+                        'source_id' => $sourceId,
+                        'company_name' => $company,
+                    ],
+                    [
+                        'created_by' => Auth::id(),
+                    ]
+                );
+
+                // Update all leads of this company in this campaign to is_dnc = 1
+                Lead::withoutGlobalScope('not_dnc')
+                    ->where('source_id', $sourceId)
+                    ->whereRaw('LOWER(TRIM(company_name)) = ?', [strtolower($company)])
+                    ->update(['is_dnc' => 1]);
+
+                $affectedCount++;
+            } else {
+                // Remove from DNC table
+                CampaignDncCompany::where('source_id', $sourceId)
+                    ->whereRaw('LOWER(TRIM(company_name)) = ?', [strtolower($company)])
+                    ->delete();
+
+                // Update all leads of this company in this campaign to is_dnc = 0
+                Lead::withoutGlobalScope('not_dnc')
+                    ->where('source_id', $sourceId)
+                    ->whereRaw('LOWER(TRIM(company_name)) = ?', [strtolower($company)])
+                    ->update(['is_dnc' => 0]);
+
+                $affectedCount++;
+            }
+        }
+
+        // Log the action
+        if (!empty($updatedNames)) {
+            try {
+                $logs = new Logs();
+                $logs->user_id = Auth::id();
+                $actionText = $isDnc === 1 ? 'marked as DNC' : 'removed from DNC';
+                $logs->description = implode(', ', $updatedNames) . ' ' . $actionText . ' in campaign ' . $source->source_name;
+                $logs->type = 12;
+                $logs->source_id = $sourceId;
+                $logs->save();
+            } catch (\Exception $e) {
+                \Log::warning('DNC log saving failed: ' . $e->getMessage());
+            }
+        }
+
+        $dncCount = CampaignDncCompany::where('source_id', $sourceId)->count();
+        $activeLeadsCount = Lead::where('source_id', $sourceId)->count(); // not_dnc scope auto applies
+
+        return response()->json([
+            'status' => true,
+            'message' => $isDnc === 1
+                ? ($affectedCount > 1 ? "{$affectedCount} companies added to DNC" : "Company added to DNC")
+                : ($affectedCount > 1 ? "{$affectedCount} companies removed from DNC" : "Company removed from DNC"),
+            'dnc_count' => $dncCount,
+            'active_leads_count' => $activeLeadsCount,
+            'source_id' => $sourceId,
+        ]);
     }
 
     public function assignLeadsToUser(Request $request)
@@ -3296,7 +3563,10 @@ class SourcesController extends Controller
 
     public function usersByManager(Request $request): string
     {
-        $users = User::where(['user_id' => auth()->user()->id, 'is_admin' => 1])->get(['id', 'first_name', 'last_name']);
+        $users = User::where('user_id', auth()->user()->id)
+            ->whereIn('is_admin', [1, 3])
+            ->get(['id', 'first_name', 'last_name', 'is_admin']);
+
         $html = '<div class="table-responsive m-t-40" id="table_data">
                     <table id="sources" class="display nowrap table table-hover table-striped table-bordered" cellspacing="0"
                         width="100%">
@@ -3308,9 +3578,15 @@ class SourcesController extends Controller
                         </thead>
                         <tbody>';
         foreach ($users as $user) {
+            $roleBadge = (int) $user->is_admin === 3
+                ? ' <span class="badge" style="background:#192e62; color:#fff; font-size:10px; padding:2px 6px; border-radius:3px;">Submanager</span>'
+                : ' <span class="badge" style="background:#28a745; color:#fff; font-size:10px; padding:2px 6px; border-radius:3px;">Employee</span>';
+
+            $fullName = htmlspecialchars(trim($user->first_name . ' ' . $user->last_name), ENT_QUOTES);
+
             $html .= '<tr>          
-                <td style="white-space: pre-wrap" width="200">' . $user->first_name . $user->last_name . '</td>';
-            $html .= '<td><a href="javascript:void(0);" data-user ="' . $user->id . '" onclick="assignLeadsToUser(this)" on><span class="label btn-success">Assign</span></a>                   
+                <td style="white-space: pre-wrap" width="200">' . $fullName . $roleBadge . '</td>';
+            $html .= '<td><a href="javascript:void(0);" data-user ="' . $user->id . '" onclick="assignLeadsToUser(this)"><span class="label btn-success">Assign</span></a>                   
                 </td>              
             </tr>';
         }

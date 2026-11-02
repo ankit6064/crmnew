@@ -42,4 +42,9 @@ class Source extends Model
         return $this->belongsTo(User::class, 'assign_to_manager');
     }
 
+    public function dncCompanies()
+    {
+        return $this->hasMany(CampaignDncCompany::class, 'source_id');
+    }
+
 }

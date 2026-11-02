@@ -32,6 +32,96 @@
         box-shadow: 0 5px 15px rgba(25, 46, 98, 0.2);
     }
 
+    /* --- Manage DNC Modal Styling --- */
+    #dncCompaniesTable thead th {
+        background-color: #071e38 !important;
+        color: #ffffff !important;
+        border-color: #1e3a5f !important;
+        box-shadow: none !important;
+        font-weight: 600;
+        vertical-align: middle;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    #dncCompaniesTable tbody td {
+        vertical-align: middle;
+    }
+    .dnc-filter-pill {
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #475569;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        outline: none;
+    }
+    .dnc-filter-pill:hover {
+        background: #f8fafc;
+    }
+    .dnc-filter-pill.filter-all.active {
+        background: #071e38 !important;
+        border-color: #071e38 !important;
+        color: #ffffff !important;
+    }
+    .dnc-filter-pill.filter-dnc {
+        border-color: #fca5a5;
+        color: #dc2626;
+        background: #ffffff;
+    }
+    .dnc-filter-pill.filter-dnc:hover {
+        background: #fef2f2;
+    }
+    .dnc-filter-pill.filter-dnc.active {
+        background: #dc2626 !important;
+        border-color: #dc2626 !important;
+        color: #ffffff !important;
+    }
+    .dnc-filter-pill.filter-active {
+        border-color: #86efac;
+        color: #16a34a;
+        background: #ffffff;
+    }
+    .dnc-filter-pill.filter-active:hover {
+        background: #f0fdf4;
+    }
+    .dnc-filter-pill.filter-active.active {
+        background: #16a34a !important;
+        border-color: #16a34a !important;
+        color: #ffffff !important;
+    }
+    .dnc-filter-pill .pill-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-weight: 700;
+        background: #e2e8f0;
+        color: #334155;
+    }
+    .dnc-filter-pill.active .pill-badge {
+        background: rgba(255, 255, 255, 0.28) !important;
+        color: #ffffff !important;
+    }
+
+    /* Highlight DNC rows in Company Listing Modals (Total Leads, Transfer, etc.) */
+    tr.dnc-highlighted-row {
+        background-color: #fee2e2 !important;
+        border-left: 4px solid #dc2626 !important;
+    }
+    tr.dnc-highlighted-row > td {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border-color: #fca5a5 !important;
+    }
+    tr.dnc-highlighted-row:hover > td {
+        background-color: #fecaca !important;
+    }
+
     /* ------------------------------ */
 
     table.employee-table {
@@ -243,6 +333,7 @@
                                     <th width="200" style="text-align:center">Sub Campaign</th>
                                     <th width="50" style="text-align:center">Leads</th>
                                     <th width="200" style="text-align:center">Transfer</th>
+                                    <th width="120" style="text-align:center">Manage DNC</th>
 
                                     <!-- <th width="50" style="text-align:center">Distribution</th> -->
 
@@ -441,6 +532,140 @@
         </div>
     </div>
 
+    <!-- ================= MANAGE DNC MODAL ================= -->
+    <div class="modal fade" id="manageDncModal" tabindex="-1" role="dialog" aria-labelledby="manageDncModalLabel"
+        aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document" style="max-width: 860px;">
+            <div class="modal-content" style="border-radius: 8px; border: none; box-shadow: 0 5px 25px rgba(0,0,0,0.25);">
+                <div class="modal-header" style="background-color: #071e38; color: #fff; border-top-left-radius: 8px; border-top-right-radius: 8px; padding: 14px 20px;">
+                    <div class="d-flex align-items-center justify-content-between w-100">
+                        <div>
+                            <h5 class="modal-title mb-1" id="manageDncModalLabel" style="font-weight: 700; color: #fff; font-size: 17px;">
+                                <i class="fa-solid fa-ban text-danger me-2"></i> Manage DNC Companies
+                            </h5>
+                            <small id="dncCampaignTitle" style="color: #cbd5e1; font-size: 13px; font-weight: 500;"></small>
+                        </div>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"
+                            onclick="closeDncModal();" style="opacity: 0.9; font-size: 26px; border: none; background: transparent; cursor: pointer;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-body" style="padding: 16px 20px; background-color: #f8fafc;">
+                    <!-- Stat counters -->
+                    <div class="row g-2 mb-3" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div class="col" style="flex: 1;">
+                            <div class="p-2 text-center rounded border bg-white shadow-sm" style="background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:10px;">
+                                <span class="d-block text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 700; color:#64748b;">Total Companies</span>
+                                <span id="dncStatTotal" style="font-size: 20px; font-weight: 700; color: #192e62;">0</span>
+                            </div>
+                        </div>
+                        <div class="col" style="flex: 1;">
+                            <div class="p-2 text-center rounded border bg-white shadow-sm" style="background:#fff; border:1px solid #fecaca; border-radius:6px; padding:10px;">
+                                <span class="d-block text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 700; color:#dc3545;">In DNC (Excluded)</span>
+                                <span id="dncStatDnc" style="font-size: 20px; font-weight: 700; color: #dc3545;">0</span>
+                            </div>
+                        </div>
+                        <div class="col" style="flex: 1;">
+                            <div class="p-2 text-center rounded border bg-white shadow-sm" style="background:#fff; border:1px solid #bbf7d0; border-radius:6px; padding:10px;">
+                                <span class="d-block text-muted" style="font-size: 11px; text-transform: uppercase; font-weight: 700; color:#16a34a;">Active Companies</span>
+                                <span id="dncStatActive" style="font-size: 20px; font-weight: 700; color: #16a34a;">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Company Directly to DNC -->
+                    <!-- <div class="card mb-3 border-0 shadow-sm" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 15px;">
+                        <div class="card-body" style="padding: 10px 14px;">
+                            <label style="font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px; display: block;">
+                                <i class="fa fa-plus-circle text-danger me-1"></i> Add Specific Company to DNC
+                            </label>
+                            <div class="input-group" style="display: flex;">
+                                <input type="text" id="manualDncCompanyName" class="form-control"
+                                    placeholder="Enter company name to add to DNC (even if not imported yet)..."
+                                    style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
+                                    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addCustomDncCompany(); }">
+                                <button type="button" class="btn btn-danger" onclick="addCustomDncCompany()"
+                                    style="font-weight: 600; padding: 6px 16px; border-top-left-radius: 0; border-bottom-left-radius: 0; white-space: nowrap;">
+                                    <i class="fa fa-ban me-1"></i> Add to DNC
+                                </button>
+                            </div>
+                        </div>
+                    </div> -->
+
+                    <!-- Filter bar and bulk actions -->
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;">
+                        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+                            <!-- Search input -->
+                            <div style="flex: 1 1 220px; min-width: 180px;">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white" style="border-color: #cbd5e1; border-right: none;">
+                                        <i class="fa fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" id="dncCompanyFilterInput" class="form-control form-control-sm"
+                                        placeholder="Search company in list..." onkeyup="filterDncTable();"
+                                        style="border-color: #cbd5e1; border-left: none; font-size: 12px;">
+                                </div>
+                            </div>
+
+                            <!-- Status filter pills -->
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                <button type="button" class="dnc-filter-pill filter-all active" id="filterBtnAll" onclick="setDncFilter('all')">
+                                    All <span id="pillCountAll" class="pill-badge">0</span>
+                                </button>
+                                <button type="button" class="dnc-filter-pill filter-dnc" id="filterBtnDnc" onclick="setDncFilter('dnc')">
+                                    <i class="fa fa-ban me-1"></i> DNC Only <span id="pillCountDnc" class="pill-badge">0</span>
+                                </button>
+                                <button type="button" class="dnc-filter-pill filter-active" id="filterBtnActive" onclick="setDncFilter('active')">
+                                    <i class="fa fa-check me-1"></i> Active Only <span id="pillCountActive" class="pill-badge">0</span>
+                                </button>
+                            </div>
+
+                            <!-- Bulk actions -->
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="bulkToggleDnc(1)" style="font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 4px;" title="Mark checked companies as DNC">
+                                    <i class="fa fa-ban me-1"></i> Mark DNC
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm" onclick="bulkToggleDnc(0)" style="font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 4px;" title="Remove checked companies from DNC">
+                                    <i class="fa fa-check me-1"></i> Remove DNC
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Companies Table Container -->
+                    <div id="dncTableWrapper" style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff;">
+                        <table class="table table-hover table-striped mb-0" id="dncCompaniesTable" style="width: 100%; font-size: 13px;">
+                            <thead style="position: sticky; top: 0; z-index: 2;">
+                                <tr>
+                                    <th width="40" class="text-center" style="vertical-align: middle;">
+                                        <input type="checkbox" id="dncMasterCheckbox" onchange="toggleSelectAllDnc(this)" title="Select all visible">
+                                    </th>
+                                    <th width="45" class="text-center">#</th>
+                                    <th>Company Name</th>
+                                    <th width="90" class="text-center">Leads</th>
+                                    <th width="110" class="text-center">Status</th>
+                                    <th width="140" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dncCompaniesListBody">
+                                <!-- Loaded via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="padding: 10px 20px; background-color: #f1f5f9; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                    <small class="text-muted" style="font-size: 12px;">
+                        <i class="fa fa-info-circle text-primary me-1"></i> Leads from DNC companies are automatically hidden across all system reports and listings.
+                    </small>
+                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal" onclick="closeDncModal();" style="border-radius: 4px;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -485,6 +710,7 @@
                     { data: 'total_leads_new', name: 'total_leads' },
 
                     { data: 'transfer', name: 'transfer', orderable: false },
+                    { data: 'manage_dnc', name: 'manage_dnc', orderable: false, searchable: false },
                     // { data: 'company_distribution', name: 'company_distribution', orderable: false },
 
                     { data: 'created_at_new', name: 'created_at', orderable: true },
@@ -655,7 +881,7 @@
             $('#totalLeadsModalBody').html(loaderHtml);
 
             // Load dynamic content
-            $('#totalLeadsModalBody').load('/crm2/source-lead/' + id, function () {
+            $('#totalLeadsModalBody').load('/source-lead/' + id, function () {
                 $('#sourceId').val(id);
             });
         }
@@ -1039,5 +1265,291 @@
         });
     </script>
 
+    <!-- ================= MANAGE DNC JAVASCRIPT ================= -->
+    <script>
+        var dncSourceId = null;
+        var dncSourceName = '';
+        var dncCompaniesData = [];
+        var dncFilteredCompanies = [];
+        var dncCurrentFilter = 'all';
+        var dncModified = false;
 
+        function manageDncModal(sourceId, sourceName) {
+            dncSourceId = sourceId;
+            dncSourceName = sourceName;
+            dncModified = false;
+            dncCompaniesData = [];
+            dncFilteredCompanies = [];
+            dncCurrentFilter = 'all';
+
+            $('#dncCampaignTitle').text(sourceName);
+            $('#manualDncCompanyName').val('');
+            $('#dncCompanyFilterInput').val('');
+            $('#dncStatTotal').text('0');
+            $('#dncStatDnc').text('0');
+            $('#dncStatActive').text('0');
+            $('#pillCountAll').text('0');
+            $('#pillCountDnc').text('0');
+            $('#pillCountActive').text('0');
+            $('#dncMasterCheckbox').prop('checked', false);
+
+            $('.dnc-filter-pill').removeClass('active');
+            $('#filterBtnAll').addClass('active');
+
+            $('#dncCompaniesListBody').html(
+                '<tr><td colspan="6" class="text-center py-4 text-muted">' +
+                '<div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>' +
+                'Loading companies...' +
+                '</td></tr>'
+            );
+
+            $('#manageDncModal').modal('show');
+
+            $.ajax({
+                url: "{{ url('sources/dnc-companies') }}/" + sourceId,
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status) {
+                        dncCompaniesData = res.companies || [];
+                        recalcDncStatsAndRender();
+                    } else {
+                        toastr.error(res.message || 'Failed to load companies');
+                    }
+                },
+                error: function (xhr) {
+                    toastr.error('Error loading companies for this campaign');
+                }
+            });
+        }
+
+        function renderDncTable() {
+            var search = ($('#dncCompanyFilterInput').val() || '').toLowerCase().trim();
+
+            dncFilteredCompanies = dncCompaniesData.filter(function (item) {
+                var name = (item.company_name || '').toLowerCase();
+                var matchesSearch = !search || name.indexOf(search) !== -1;
+                var matchesStatus = true;
+                if (dncCurrentFilter === 'dnc') {
+                    matchesStatus = item.is_dnc === 1;
+                } else if (dncCurrentFilter === 'active') {
+                    matchesStatus = item.is_dnc === 0;
+                }
+                return matchesSearch && matchesStatus;
+            });
+
+            var tbody = $('#dncCompaniesListBody');
+            tbody.empty();
+            $('#dncMasterCheckbox').prop('checked', false);
+
+            if (dncFilteredCompanies.length === 0) {
+                var emptyMsg = 'No companies found matching criteria.';
+                if (search) {
+                    emptyMsg = 'No companies matching "' + $('<div>').text(search).html() + '" found.';
+                } else if (dncCurrentFilter === 'dnc') {
+                    emptyMsg = 'No companies are marked as DNC in this campaign.';
+                } else if (dncCurrentFilter === 'active') {
+                    emptyMsg = 'No active companies found.';
+                }
+                tbody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><i class="fa fa-info-circle me-1"></i> ' + emptyMsg + '</td></tr>');
+                return;
+            }
+
+            var rowsHtml = '';
+            for (var i = 0; i < dncFilteredCompanies.length; i++) {
+                var c = dncFilteredCompanies[i];
+                var isDnc = c.is_dnc === 1;
+                var safeName = $('<div>').text(c.company_name).html();
+
+                var badge = isDnc
+                    ? '<span class="badge" style="background:#dc3545;color:#fff;font-size:11px;padding:3px 8px;border-radius:4px;"><i class="fa fa-ban me-1"></i> DNC</span>'
+                    : '<span class="badge" style="background:#16a34a;color:#fff;font-size:11px;padding:3px 8px;border-radius:4px;"><i class="fa fa-check me-1"></i> Active</span>';
+
+                var actionBtn = isDnc
+                    ? '<button type="button" class="btn btn-sm" style="background:#fff;border:1px solid #16a34a;color:#16a34a;padding:2px 8px;font-size:11px;font-weight:600;border-radius:4px;" onclick="toggleCompanyDncByIndex(' + i + ', 0)"><i class="fa fa-undo me-1"></i> Remove DNC</button>'
+                    : '<button type="button" class="btn btn-sm" style="background:#fff;border:1px solid #dc3545;color:#dc3545;padding:2px 8px;font-size:11px;font-weight:600;border-radius:4px;" onclick="toggleCompanyDncByIndex(' + i + ', 1)"><i class="fa fa-ban me-1"></i> Mark DNC</button>';
+
+                rowsHtml += '<tr style="' + (isDnc ? 'background-color: #fff5f5;' : '') + '">' +
+                    '<td class="text-center" style="vertical-align: middle;"><input type="checkbox" class="dnc-row-cb" data-idx="' + i + '"></td>' +
+                    '<td class="text-center text-muted" style="vertical-align: middle; font-size: 11px;">' + (i + 1) + '</td>' +
+                    '<td style="vertical-align: middle; font-weight: 600; color: #1e293b;">' + safeName + '</td>' +
+                    '<td class="text-center" style="vertical-align: middle;"><span class="badge" style="background:#e2e8f0;color:#334155;font-size:11px;padding:3px 7px;">' + (c.total_leads || 0) + '</span></td>' +
+                    '<td class="text-center" style="vertical-align: middle;">' + badge + '</td>' +
+                    '<td class="text-center" style="vertical-align: middle;">' + actionBtn + '</td>' +
+                    '</tr>';
+            }
+            tbody.html(rowsHtml);
+        }
+
+        function setDncFilter(filter) {
+            dncCurrentFilter = filter;
+            $('.dnc-filter-pill').removeClass('active');
+            if (filter === 'all') {
+                $('#filterBtnAll').addClass('active');
+            } else if (filter === 'dnc') {
+                $('#filterBtnDnc').addClass('active');
+            } else if (filter === 'active') {
+                $('#filterBtnActive').addClass('active');
+            }
+            renderDncTable();
+        }
+
+        function filterDncTable() {
+            renderDncTable();
+        }
+
+        function toggleSelectAllDnc(masterCheckbox) {
+            $('.dnc-row-cb').prop('checked', masterCheckbox.checked);
+        }
+
+        function toggleCompanyDncByIndex(idx, isDnc) {
+            if (!dncFilteredCompanies[idx]) return;
+            var companyName = dncFilteredCompanies[idx].company_name;
+            toggleCompanyDnc(companyName, isDnc);
+        }
+
+        function toggleCompanyDnc(companyName, isDnc) {
+            if (!companyName || !companyName.trim()) {
+                toastr.warning('Company name cannot be empty');
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('sources.toggle_dnc') }}",
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    source_id: dncSourceId,
+                    company_name: companyName.trim(),
+                    is_dnc: isDnc
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status) {
+                        toastr.success(res.message);
+                        dncModified = true;
+
+                        var found = false;
+                        for (var i = 0; i < dncCompaniesData.length; i++) {
+                            if (dncCompaniesData[i].company_name.toLowerCase().trim() === companyName.toLowerCase().trim()) {
+                                dncCompaniesData[i].is_dnc = isDnc;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found && isDnc === 1) {
+                            dncCompaniesData.unshift({
+                                company_name: companyName.trim(),
+                                total_leads: 0,
+                                is_dnc: 1
+                            });
+                        }
+                        recalcDncStatsAndRender();
+                    } else {
+                        toastr.error(res.message || 'Operation failed');
+                    }
+                },
+                error: function (xhr) {
+                    toastr.error('Error updating DNC status');
+                }
+            });
+        }
+
+        function bulkToggleDnc(isDnc) {
+            var selected = [];
+            $('.dnc-row-cb:checked').each(function () {
+                var idx = $(this).data('idx');
+                if (dncFilteredCompanies[idx]) {
+                    selected.push(dncFilteredCompanies[idx].company_name);
+                }
+            });
+
+            if (selected.length === 0) {
+                toastr.warning('Please select at least one company using the checkboxes');
+                return;
+            }
+
+            var actionText = isDnc === 1 ? 'mark ' + selected.length + ' companies as DNC' : 'remove ' + selected.length + ' companies from DNC';
+            if (!confirm('Are you sure you want to ' + actionText + '?')) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('sources.toggle_dnc') }}",
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    source_id: dncSourceId,
+                    company_names: selected,
+                    is_dnc: isDnc
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status) {
+                        toastr.success(res.message);
+                        dncModified = true;
+
+                        var selectedLower = selected.map(function (s) { return s.toLowerCase().trim(); });
+                        for (var i = 0; i < dncCompaniesData.length; i++) {
+                            if (selectedLower.indexOf(dncCompaniesData[i].company_name.toLowerCase().trim()) !== -1) {
+                                dncCompaniesData[i].is_dnc = isDnc;
+                            }
+                        }
+                        recalcDncStatsAndRender();
+                    } else {
+                        toastr.error(res.message || 'Bulk operation failed');
+                    }
+                },
+                error: function (xhr) {
+                    toastr.error('Error performing bulk DNC update');
+                }
+            });
+        }
+
+        function addCustomDncCompany() {
+            var name = ($('#manualDncCompanyName').val() || '').trim();
+            if (!name) {
+                toastr.warning('Please enter a company name');
+                $('#manualDncCompanyName').focus();
+                return;
+            }
+            toggleCompanyDnc(name, 1);
+            $('#manualDncCompanyName').val('');
+        }
+
+        function recalcDncStatsAndRender() {
+            var total = dncCompaniesData.length;
+            var dnc = 0;
+            for (var i = 0; i < dncCompaniesData.length; i++) {
+                if (dncCompaniesData[i].is_dnc === 1) {
+                    dnc++;
+                }
+            }
+            var active = total - dnc;
+            $('#dncStatTotal').text(total);
+            $('#dncStatDnc').text(dnc);
+            $('#dncStatActive').text(active);
+
+            $('#pillCountAll').text(total);
+            $('#pillCountDnc').text(dnc);
+            $('#pillCountActive').text(active);
+
+            renderDncTable();
+        }
+
+        function closeDncModal() {
+            $('#manageDncModal').modal('hide');
+            if (dncModified) {
+                dncModified = false;
+                $('#employee-table').DataTable().ajax.reload(null, false);
+            }
+        }
+
+        $('#manageDncModal').on('hidden.bs.modal', function () {
+            if (dncModified) {
+                dncModified = false;
+                $('#employee-table').DataTable().ajax.reload(null, false);
+            }
+        });
+    </script>
 @endsection

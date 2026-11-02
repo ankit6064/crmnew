@@ -41,8 +41,30 @@ class Lead extends Model
         'invitation_date',
         'confirmation_status',
         'meeting_status',
-        'meeting_failed_reason'
+        'meeting_failed_reason',
+        'is_dnc'
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope('not_dnc', function ($builder) {
+            $builder->where(function ($query) {
+                $query->where('leads.is_dnc', 0)
+                      ->orWhereNull('leads.is_dnc');
+            });
+        });
+
+        static::creating(function ($lead) {
+            if (!empty($lead->company_name) && !empty($lead->source_id)) {
+                $isDnc = CampaignDncCompany::where('source_id', $lead->source_id)
+                    ->whereRaw('LOWER(TRIM(company_name)) = ?', [strtolower(trim($lead->company_name))])
+                    ->exists();
+                if ($isDnc) {
+                    $lead->is_dnc = 1;
+                }
+            }
+        });
+    }
 
     public function source()
     {
