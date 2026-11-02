@@ -573,7 +573,7 @@ div#leadsAssignToUserModal tr td a {
             $('#totalLeadsModalBody').html(loaderHtml);
 
             // Load dynamic content
-            $('#totalLeadsModalBody').load('/crm2/source-lead/' + id, function () {
+            $('#totalLeadsModalBody').load('/source-lead/' + id, function () {
                 $('#sourceId').val(id);
             });
         }
